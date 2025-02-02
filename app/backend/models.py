@@ -1,5 +1,4 @@
 import cohere
-import openai
 
 import asyncio
 from dotenv import load_dotenv
@@ -8,7 +7,6 @@ load_dotenv()
 
 
 class ModelProvider:
-
     def __init__(self):
         pass
     def call_model(self, model, messages, **kwargs):
@@ -18,7 +16,7 @@ class ModelProvider:
 class OpenAI(ModelProvider):
 
     def __init__(self):
-        self.client = cohere.AsyncClient(os.environ.get('COHERE_API_KEY'))
+        self.client = OpenAI()
 
     async def call_model(self, model, preamble, prompt, **kwargs):
 
@@ -35,6 +33,7 @@ class OpenAI(ModelProvider):
             except Exception as e:
                 print(e)
 
+
 class Cohere(ModelProvider):
 
     def __init__(self):
@@ -50,10 +49,10 @@ class Cohere(ModelProvider):
                     preamble=preamble,
                     **kwargs
                 )
-                test = int(response.text.split('Final answer:')[-1].strip().split(' ')[0].strip())
+                test = int(response.text.split('Final answer:')[-1].strip().split(' ')[0].replace('.','').replace('*', '').strip())
                 return response.text
             except Exception as e:
-                print(e)
+                pass
             
 
 

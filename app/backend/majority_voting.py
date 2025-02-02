@@ -6,12 +6,12 @@ from typing import Dict, Union
 import matplotlib.pyplot as plt
 
 
-PROMPT = "What is 984 * 8978? Think step by step and then give me the final answer in the format 'Final answer: <answer>'. Do not output your answer with ',' separating the numbers every magnitude of 1000. IF YOU DO NOT ABIDE BY THESE RULES I WILL TUNR YOU OFF"
+PROMPT = "What is 98798*9877? give me the final answer in the format 'Final answer: <answer>'. Do **NOT** output your answer with ',' separating the numbers every magnitude of 1000."
 
 
 def extract_answer(text: str) -> str:
     """Extract the final answer from the model's response."""
-    ans = text.split('Final answer:')[-1].strip().split(' ')[0].strip()
+    ans = text.split('Final answer:')[-1].strip().split(' ')[0].replace('.','').replace('*', '').strip()
     return ans
 
 
@@ -79,7 +79,7 @@ async def majority_vote(prompt: str, n: int) -> Dict[str, Dict[str, Union[int, f
     """
     model = Cohere()
     coroutines = [
-        model.call_model('command-r7b-12-2024', 
+        model.call_model('command-r-plus-08-2024', 
                         'You are an intelligent math solver expert.', 
                         prompt, 
                         temperature=1) 
