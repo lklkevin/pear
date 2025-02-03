@@ -13,6 +13,9 @@ Have you ever run out of much needed practice exams while studying for a final? 
  * That's it!
  
  ## Development requirements
+ -optionally create a virtual environment
+ -pip install -r requirements.txt
+ -pre-commit install
  
  ## Deployment and Github Workflow
 ​
