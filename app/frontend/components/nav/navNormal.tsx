@@ -4,7 +4,7 @@ import Button from "@/components/nav/buttonGray"
 
 export default function Home() {
     return (
-        <nav className="text-zinc-400 text-md flex flex-row w-screen h-[72px] bg-zinc-950 border-b border-zinc-900 px-10 justify-between py-3">
+        <nav className="text-zinc-400 text-md flex flex-row w-screen h-[72px] bg-zinc-950 px-10 justify-between py-3">
             <div className=" flex items-center h-full space-x-8">
                 <div className="h-9 w-9 bg-zinc-950 border border-zinc-700 rounded-full"></div>
                 <Link className="hover:text-white" href="/about">Browse</Link>

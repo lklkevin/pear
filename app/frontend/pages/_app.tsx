@@ -11,6 +11,8 @@ const dmSans = DM_Sans({
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-  <Component className={dmSans.className} {...pageProps} />
+    <main className={dmSans.className}>
+      <Component {...pageProps} />
+    </main>
   );
 }

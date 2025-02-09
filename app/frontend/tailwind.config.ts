@@ -15,4 +15,8 @@ export default {
     },
   },
   plugins: [],
+  corePlugins: {
+    transform: true, // Ensure transform utilities are enabled
+    skew: true, // Ensure skew utilities are enabled
+  },
 } satisfies Config;
