@@ -2,9 +2,9 @@ import { motion } from "framer-motion";
 
 const rectangles = [
   { id: 1, color: "bg-white/75", border: "border-white" },
-  { id: 2, color: "bg-emerald-900/75", border: "border-emerald-300" },
-  { id: 3, color: "bg-emerald-900/75", border: "border-emerald-300" },
-  { id: 4, color: "bg-emerald-900/75", border: "border-emerald-300" },
+  { id: 2, color: "bg-emerald-900/50", border: "border-emerald-300" },
+  { id: 3, color: "bg-emerald-900/50", border: "border-emerald-300" },
+  { id: 4, color: "bg-emerald-900/50", border: "border-emerald-300" },
 ];
 
 export default function SkewedStack() {
@@ -15,7 +15,7 @@ export default function SkewedStack() {
     <motion.div
       key={rect.id}
       className={`
-        w-[18rem] h-[18rem] border ${rect.border} ${rect.color}
+        w-[20rem] h-[20rem] border ${rect.border} ${rect.color}
         drop-shadow-[0_0_10px_rgba(0,0,0,0.3)] 
         rounded-tl-[1.25rem] rounded-br-[1.25rem] 
         rounded-tr-[2rem] rounded-bl-[2rem]
@@ -26,7 +26,7 @@ export default function SkewedStack() {
       style={{
         pointerEvents: "auto",
         backgroundColor: rect.color,
-        marginLeft: index === 0 ? 0 : -160,
+        marginLeft: index === 0 ? 0 : -180,
         zIndex: rectangles.length - index,
         backdropFilter: "blur(3px)",
         position: "relative",
@@ -35,11 +35,11 @@ export default function SkewedStack() {
         `skewX(-36deg) skewY(14deg) ${generated}`
       }
     >
-      {rect.id === 1 && (
+      {(
         <img
-          src="Pompompurin.png"
+          src={`${rect.id}.png`}
           alt="Text line background"
-          className="absolute inset-0 object-cover"
+          className="absolute inset-0 object-cover object-center"
         />
       )}
     </motion.div>
