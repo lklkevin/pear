@@ -8,6 +8,7 @@ from sympy.parsing.sympy_parser import parse_expr
 import asyncio
 from models import Cohere
 from enum import Enum
+from sympy import Eq, simplify, symbols, cancel
 
 
 class Equality(Enum):
@@ -342,6 +343,17 @@ class LLMAnswerComparator:
         if equal_check:
             return Equality.EQUAL
 
+        if isinstance(expr_a, Eq) and isinstance(expr_b, Eq):
+            lhs_a, rhs_a = expr_a.lhs - expr_a.rhs, 0
+            lhs_b, rhs_b = expr_b.lhs - expr_b.rhs, 0
+
+            if simplify(lhs_a - lhs_b) == 0:
+                return Equality.EQUAL
+
+            ratio = cancel(lhs_a / lhs_b)
+            if ratio.is_number:
+                return Equality.EQUAL
+            return Equality.UNEQUAL
         return Equality.EQUAL if self.check_close(expr_a, expr_b) else Equality.UNEQUAL
 
     def _parse_matrix(self, expr: str):
@@ -410,19 +422,15 @@ class LLMAnswerComparator:
         """Use LLM to check equivalence as last resort"""
         model = Cohere()
 
-        prompt = f"Can expression 1: <{ans1}> and expression 2: <{ans2}> be interpreted to have the same value?"
+        prompt = f"Evaluate the values within expression 1: <{ans1}> and expression 2: <{ans2}>. Show your steps. It does not matter if the format is different, just tell me if the final value is numerically equal."
         response = await model.call_model(
             "command-r-plus-08-2024",
-            'You are an examinator and need to decide if 2 answers from a student have the same value. Answer every question as "Yes" or "No"',
+            "You are an examinator and need to decide if 2 answers are equivalent in value. Show your steps and at the end reply with <Yes> or <No>",
             prompt,
             is_answer=False,
             temperature=1,
         )
-        return (
-            Equality.EQUAL
-            if "yes" in response.lower() or "true" in response.lower()
-            else Equality.UNEQUAL
-        )
+        return Equality.EQUAL if "<yes>" in response.lower() else Equality.UNEQUAL
 
     def format_intervals(self, prediction: str) -> str:
         patterns = {
@@ -537,6 +545,7 @@ class LLMAnswerComparator:
         # we are not confident in UNEQUAL value so dont set it
         if symbolic == Equality.EQUAL:
             validation.add_equal("symbolic")
+
         return validation
 
     async def llm_answers_equivalent_full(
@@ -564,22 +573,24 @@ if __name__ == "__main__":
     comparator = LLMAnswerComparator(tolerance=1e-5)
     examples = [
         # Fraction vs. number.
-        ("\\frac{10}{2}", "5"),
-        # Mixed fraction (implicit plus).
-        ("7 \\frac{3}{4}", "7.75"),
-        # Interval representations.
-        ("Interval.open(1, 2)", "(1,2)"),
-        # Point representation.
-        ("Point(2,3)", "(2,3)"),
-        # Symbolic expressions.
-        ("x + x", "2*x"),
-        # Bracketed lists.
-        ("{  10, 20 }", "[10,20]"),
-        # Numeric tolerance.
-        ("(2.000001)", "(2.0)"),
-        # Matrix examples: LaTeX vs. Matrix(...)
-        (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
-        ("The expression is 4.3", "The expression is 2 + 2.3"),
+        # ("\\frac{10}{2}", "5"),
+        # # Mixed fraction (implicit plus).
+        # ("7 \\frac{3}{4}", "7.75"),
+        # # Interval representations.
+        # ("Interval.open(1, 2)", "(1,2)"),
+        # # Point representation.
+        # ("Point(2,3)", "(2,3)"),
+        # # Symbolic expressions.
+        # ("x + x", "2*x"),
+        # # Bracketed lists.
+        # ("{  10, 20 }", "[10,20]"),
+        # # Numeric tolerance.
+        # ("(2.000001)", "(2.0)"),
+        # # Matrix examples: LaTeX vs. Matrix(...)
+        # (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
+        # ("The expression is 4.3", "The expression is 2 + 2.3"),
+        # ("5+3", "10"),
+        ("My answer is y=2x+3", "The answer is 2y=4x+6")
     ]
     # print(comparator._symbolic_equal('(1, 2)', '(1,2)'))
     for i, (ansA, ansB) in enumerate(examples, 1):
