@@ -47,4 +47,4 @@ jobs:
 
       - name: Run tests
         working-directory: app/backend
-        run: poetry run pytest
+        run: PYTHONPATH=$(pwd) poetry run pytest
