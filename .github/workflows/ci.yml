@@ -31,18 +31,20 @@ jobs:
 
       - name: Configure Poetry
         run: |
-          poetry config virtualenvs.create false  # Install dependencies in the system Python
+          poetry config virtualenvs.create false  # Install dependencies in system Python
 
       - name: Cache Poetry dependencies
         uses: actions/cache@v3
         with:
           path: ~/.cache/pypoetry
-          key: poetry-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+          key: poetry-${{ runner.os }}-${{ hashFiles('app/backend/poetry.lock') }}
           restore-keys: |
             poetry-${{ runner.os }}-
 
       - name: Install dependencies
+        working-directory: app/backend
         run: poetry install --no-interaction --no-root
 
       - name: Run tests
-        run: poetry run pytest ../../tests
+        working-directory: app/backend
+        run: poetry run pytest
