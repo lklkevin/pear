@@ -4,30 +4,145 @@ from validation import LLMAnswerComparator, Equality
 
 
 @pytest.mark.parametrize(
-    "ans1, ans2, expected",
+    "ans1, ans2, expected_status, expected_state",
     [
-        ("\\frac{10}{2}", "5", Equality.EQUAL),
-        ("7 \\frac{3}{4}", "7.75", Equality.EQUAL),
-        ("Interval.open(1, 2)", "(1,2)", Equality.EQUAL),
+        # Test case where string comparison fails but symbolic comparison succeeds
+        (
+            "\\frac{10}{2}",
+            "5",
+            Equality.EQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "failed"},
+                {"type": "matrices comparison", "reason": "failed"},
+                {"type": "symbolic comparison", "reason": "success"},
+            ],
+        ),
+        # Test case where string comparison fails but symbolic comparison succeeds
+        (
+            "7 \\frac{3}{4}",
+            "7.75",
+            Equality.EQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "failed"},
+                {"type": "matrices comparison", "reason": "failed"},
+                {"type": "symbolic comparison", "reason": "success"},
+            ],
+        ),
+        # Test case where string comparison fails but symbolic comparison succeeds
+        (
+            "Interval.open(1, 2)",
+            "(1,2)",
+            Equality.EQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "success"},
+            ],
+        ),
+        # Test case where string comparison fails but matrices comparison succeeds
         (
             r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}",
             "Matrix([[1,2],[3,4]])",
             Equality.EQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "failed"},
+                {"type": "matrices comparison", "reason": "success"},
+            ],
         ),
-        ("x + x", "2*x", Equality.EQUAL),
-        ("{  10, 20 }", "[10,20]", Equality.EQUAL),
-        ("(2.000001)", "(2.0)", Equality.EQUAL),
-        ("5+3", "10", Equality.UNEQUAL),
-        ("sqrt(16)", "5", Equality.UNEQUAL),
-        ("3+4j", "3+4j", Equality.EQUAL),
+        # Test case where symbolic comparison succeeds without LLM
+        (
+            "x + x",
+            "2*x",
+            Equality.EQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "failed"},
+                {"type": "matrices comparison", "reason": "failed"},
+                {"type": "symbolic comparison", "reason": "success"},
+            ],
+        ),
+        # Test case where string comparison fails but brackets comparison succeeds
+        (
+            "{  10, 20 }",
+            "[10,20]",
+            Equality.EQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "success"},
+            ],
+        ),
+        # Test case where string comparison fails but math comparison succeeds
+        (
+            "2.000001",
+            "2.0",
+            Equality.EQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "success"},
+            ],
+        ),
+        # Test case where all non-LLM checks fail, requiring LLM verification
+        (
+            "5+3",
+            "10",
+            Equality.UNEQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "failed"},
+                {"type": "matrices comparison", "reason": "failed"},
+                {"type": "symbolic comparison", "reason": "not equal"},
+            ],
+        ),
+        # Test case where all non-LLM checks fail, requiring LLM verification
+        (
+            "sqrt(16)",
+            "5",
+            Equality.UNEQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "failed"},
+                {"type": "matrices comparison", "reason": "failed"},
+                {"type": "symbolic comparison", "reason": "not equal"},
+            ],
+        ),
+        # Test case where string comparison succeeds immediately
+        (
+            "3+4j",
+            "3+4j",
+            Equality.EQUAL,
+            [{"type": "string comparison", "reason": "success"}],
+        ),
+        (
+            "3",
+            "3.01",
+            Equality.UNEQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "not equal"},
+            ],
+        ),
     ],
 )
-def test_non_llm_answer_comparator(ans1, ans2, expected):
+def test_non_llm_answer_comparator(ans1, ans2, expected_status, expected_state):
     comparator = LLMAnswerComparator(tolerance=1e-5)
-    result = comparator._llm_answers_equivalent(
-        ans1, ans2
-    ).status  # Replace with a non-LLM method
-    assert result == expected, f"Failed on: {ans1} vs {ans2}"
+    validation_obj = comparator._llm_answers_equivalent(ans1, ans2)
+
+    assert (
+        validation_obj.status == expected_status
+    ), f"Status mismatch for: {ans1} vs {ans2}"
+    assert (
+        validation_obj.state == expected_state
+    ), f"State mismatch for: {ans1} vs {ans2}, got {validation_obj.state}"
 
 
 # @pytest.mark.parametrize(

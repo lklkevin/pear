@@ -525,6 +525,7 @@ class LLMAnswerComparator:
         a_is_num, a_val = self.is_digit(a)
         b_is_num, b_val = self.is_digit(b)
         if a_is_num and b_is_num:
+            print("ok")
             is_close = isclose(a_val, b_val, rel_tol=self.tolerance)
             val_method = validation.add_equal if is_close else validation.add_unequal
             val_method("math")
@@ -559,8 +560,13 @@ class LLMAnswerComparator:
         # NOTE: sometimes sympy parses even though its meaningless
         validation = self._llm_answers_equivalent(ans1, ans2)
         # we are not confident in UNEQUAL value so dont set it
-        if validation.status == Equality.EQUAL:
+        if validation.status != Equality.FAILED and not (
+            validation.status == Equality.UNEQUAL
+            and validation.state[-1]["type"] == "symbolic comparison"
+        ):
             return validation
+        # must clear it because of above reason
+        validation = ValidationObject()
         final = await self.llm_check(ans1, ans2)
         if final == Equality.EQUAL:
             validation.add_equal("llm")
@@ -575,26 +581,28 @@ if __name__ == "__main__":
     comparator = LLMAnswerComparator(tolerance=1e-5)
     examples = [
         # Fraction vs. number.
-        ("\\frac{10}{2}", "5"),
-        # Mixed fraction (implicit plus).
-        ("7 \\frac{3}{4}", "7.75"),
-        # Interval representations.
-        ("Interval.open(1, 2)", "(1,2)"),
-        # Point representation.
-        ("Point(2,3)", "(2,3)"),
-        # Symbolic expressions.
-        ("x + x", "2*x"),
-        # Bracketed lists.
-        ("{  10, 20 }", "[10,20]"),
-        # Numeric tolerance.
-        ("(2.000001)", "(2.0)"),
-        # Matrix examples: LaTeX vs. Matrix(...)
-        (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
+        # ("\\frac{10}{2}", "5"),
+        # # Mixed fraction (implicit plus).
+        # ("7 \\frac{3}{4}", "7.75"),
+        # # Interval representations.
+        # ("Interval.open(1, 2)", "(1,2)"),
+        # # Point representation.
+        # ("Point(2,3)", "(2,3)"),
+        # # Symbolic expressions.
+        # ("x + x", "2*x"),
+        # # Bracketed lists.
+        # ("{  10, 20 }", "[10,20]"),
+        # # Numeric tolerance.
+        # ("(2.000001)", "(2.0)"),
+        # # Matrix examples: LaTeX vs. Matrix(...)
+        # (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
         ("The expression is 4.3", "The expression is 2 + 2.3"),
-        ("5+3", "8"),
-        ("My exprssion is y=2x+3", "The fef is 2y=4x+6"),
+        # ("5+3", "8"),
+        # ("2", "2.05"),
     ]
     # print(comparator._symbolic_equal('(1, 2)', '(1,2)'))
     for i, (ansA, ansB) in enumerate(examples, 1):
-        eq = asyncio.run(comparator.llm_answers_equivalent_full(ansA, ansB)).status
+        eq = asyncio.run(comparator.llm_answers_equivalent_full(ansA, ansB))
+        print(eq.status)
+        print(eq.state)
         print(f"Example {i}: '{ansA}' vs. '{ansB}' => {eq}")
