@@ -13,8 +13,12 @@ export default function Home() {
                 <Link className="hover:text-white" href="/about">Contact</Link>
             </div>
             <div className="text-zinc-200 flex items-center h-full space-x-6">
-                <Button text="Login"></Button>
-                <ButtonG text="Sign Up"></ButtonG>
+                <Link href={"/login"}>
+                    <Button text="Login"></Button>
+                </Link> 
+                <Link href={"/signup"}>
+                    <ButtonG text="Sign Up"></ButtonG>
+                </Link>
             </div>
         </nav>
     )

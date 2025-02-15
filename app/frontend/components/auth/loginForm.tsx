@@ -36,7 +36,7 @@ const Login: React.FC = () => {
         </button>
 
         <p className="text-center text-sm text-zinc-400 mt-4">
-          Don't have an account? <a href="#" className="text-white underline">Sign up</a>
+          Don't have an account? <a href="/signup" className="text-white underline">Sign up</a>
         </p>
       </div>
     </div>
