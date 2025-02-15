@@ -8,9 +8,9 @@ export default function Home() {
             <div className=" flex items-center h-full space-x-8">
                 <div className="h-9 w-9 bg-zinc-950 border border-zinc-700 rounded-full"></div>
                 <Link className="hover:text-white" href="/browse">Browse</Link>
-                <Link className="hover:text-white" href="/about">Generate</Link>
-                <Link className="hover:text-white" href="/about">Pricing</Link>
-                <Link className="hover:text-white" href="/about">Contact</Link>
+                <Link className="hover:text-white" href="/generate">Generate</Link>
+                <Link className="hover:text-white" href="/pricing">Pricing</Link>
+                <Link className="hover:text-white" href="/contact">Contact</Link>
             </div>
             <div className="text-zinc-200 flex items-center h-full space-x-6">
                 <Link href={"/login"}>
