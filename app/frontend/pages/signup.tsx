@@ -1,11 +1,14 @@
 import React from "react";
-import Signup from "../components/signup/signupForm"; // Import Signup component
+import Signup from "../components/auth/signupForm"; 
+import AuthLayout from "@/components/layout/authLayout";
 
 const SignupPage: React.FC = () => {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-zinc-950">
-      <Signup />
-    </div>
+    <AuthLayout text="Get started with Company">
+      <div>
+        <Signup />
+      </div>
+    </AuthLayout>
   );
 };
 

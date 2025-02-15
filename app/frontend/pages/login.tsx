@@ -1,12 +1,15 @@
 import React from "react";
-import Login from "../components/login/loginForm"; 
+import Login from "../components/auth/loginForm"; 
+import AuthLayout from "@/components/layout/authLayout";
 
 
 const LoginPage: React.FC = () => {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-zinc-950">
-      <Login />
-    </div>
+    <AuthLayout text="Welcome back!">
+      <div>
+        <Login />
+      </div>
+    </AuthLayout>
   );
 };
 

@@ -1,4 +1,4 @@
-import Nav from "@/components/nav/navNormal";
+import Nav from "@/components/layout/navNormal";
 import Graphic from "@/components/landing/graphic";
 
 export default function Home() {
