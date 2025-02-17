@@ -36,7 +36,7 @@ async def majority_vote(prompt: str, n: int) -> Dict[str, Dict[str, Union[int, f
     ]
 
     # Run coroutines concurrently with progress bar
-    results = await tqdm_asyncio.gather(*coroutines, desc="Processing")
+    results = await tqdm_asyncio.gather(*coroutines, desc="Generating possible answers:")
 
     # Extract answers and count them
     answers = [extract_answer(r) for r in results]
@@ -62,31 +62,51 @@ async def generate_answers(question: str, n: int) -> Dict[str, int | float]:
     comparator = validation.LLMAnswerComparator(tolerance=1e-5)
     result_dict = await majority_vote(prompt, n)
 
-    # Merge equivalent answers using LLMAnswerComparator
-    unique_answers = list(result_dict.keys())  # List to iterate over safely
-    merged_dict = {}  # Store merged results
+    # List of unique answers
+    unique_answers = list(result_dict.keys())
+    num_answers = len(unique_answers)
 
-    for answer in unique_answers:
-        if answer not in result_dict:  # It may have been merged already
-            continue
+    # Initialize 2D matrix for equivalence checks
+    unique_answers_matrix = [[None] * num_answers for _ in range(num_answers)]
+    equivalence_tasks = []
 
-        merged_answer = answer
-        merged_count = result_dict[answer]['count']
-        merged_frequency = result_dict[answer]['frequency']
+    # Populate matrix with coroutines (only for i < j)
+    for i in range(num_answers):
+        for j in range(i + 1, num_answers):
+            task = comparator.llm_answers_equivalent_full(unique_answers[i], unique_answers[j])
+            unique_answers_matrix[i][j] = task
+            equivalence_tasks.append(task)
 
-        for other_answer in list(result_dict.keys()):
-            if answer == other_answer or other_answer not in result_dict:
-                continue  # Skip comparing identical or already merged entries
+    # Await all equivalence checks concurrently
+    results = await tqdm_asyncio.gather(*equivalence_tasks, desc="Grouping answers:")
 
-            # Check if answers are equivalent
-            are_equal = await comparator.llm_answers_equivalent_full(answer, other_answer)
 
-            if are_equal.status == validation.Equality.EQUAL:  # If validator confirms equivalence
-                merged_count += result_dict[other_answer]['count']
-                merged_frequency += result_dict[other_answer]['frequency']
-                del result_dict[other_answer]  # Remove duplicate answer
+    # Fill in matrix with actual results
+    index = 0
+    for i in range(num_answers):
+        for j in range(i + 1, num_answers):
+            unique_answers_matrix[i][j] = results[index].status == validation.Equality.EQUAL
+            index += 1
 
-        # Store the merged result
+    # Merge equivalent answers
+    merged_dict = {}
+    merged_indices = set()
+
+    for i in range(num_answers):
+        if i in merged_indices:
+            continue  # Skip already merged answers
+
+        merged_answer = unique_answers[i]
+        merged_count = result_dict[merged_answer]['count']
+        merged_frequency = result_dict[merged_answer]['frequency']
+
+        for j in range(i + 1, num_answers):
+            if unique_answers_matrix[i][j]:  # If equivalent
+                merged_count += result_dict[unique_answers[j]]['count']
+                merged_frequency += result_dict[unique_answers[j]]['frequency']
+                merged_indices.add(j)  # Mark as merged
+
+        # Store final merged result
         merged_dict[merged_answer] = round(merged_frequency * 100, 2)
 
     return merged_dict

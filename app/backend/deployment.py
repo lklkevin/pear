@@ -88,9 +88,12 @@ def main():
 
     print("\n---------------------------Questions Generated--------------------------------\n")
     print("\n---------------------------Generating Answers---------------------------------\n")
+    i = 1
     for question in new_questions:
+        print(f"\n-------------------------Answers for Question {i}-------------------------------\n")
         answers = asyncio.run(generate_answers(question, 10))
         exam.add_answers(question, answers)
+        i += 1
     print("\n----------------------------Answers Generated---------------------------------\n")
     print("\n------------------------Exam Successfully Generated---------------------------\n")
 
