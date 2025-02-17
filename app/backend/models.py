@@ -1,8 +1,11 @@
-import cohere
-
 import asyncio
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
+
+import cohere
+import PyPDF2
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -15,22 +18,64 @@ class ModelProvider:
         raise NotImplementedError
 
 
-class OpenAI(ModelProvider):
+class PDFModelProvider:
+    """
+    Abstract base class for models that take PDFs as input.
+    """
 
-    def __init__(self):
-        self.client = OpenAI()
+    def call_model(self, pdf_path: str, prompt: str, **kwargs) -> str:
+        """
+        Abstract method to be implemented by subclasses to call the model.
 
-    async def call_model(self, model, preamble, prompt, **kwargs):
+        Args:
+            pdf_path (str): The path to the PDF file.
+            prompt (str): The user-provided prompt to guide text generation.
 
-        for _ in range(5):
-            try:
-                response = await self.client.chat(
-                    model=model, message=prompt, preamble=preamble, **kwargs
-                )
-                if "Final answer:" in response.text:
-                    return response.text
-            except Exception as e:
-                print(e)
+        Returns:
+            str: The model's generated response.
+        """
+        pass
+
+
+class GeminiPDFModel(PDFModelProvider):
+    """
+    Gemini implementation of the PDFModelProvider, using Google's Gemini API.
+    """
+
+    def __init__(self, api_key: str, model: str = "gemini-2.0-flash"):
+        """
+        Initializes the Gemini model with an API key and model selection.
+
+        Args:
+            api_key (str): The API key for Gemini API.
+            model (str): The specific Gemini model to use.
+        """
+        self.client = genai.Client(api_key=api_key)
+        self.model = model
+
+    def call_model(self, pdf_path: str, prompt: str, **kwargs) -> str:
+        """
+        Reads the PDF as raw bytes, wraps it in a types.Part to preserve the document's content,
+        and calls the Gemini API to generate a response based on the provided prompt.
+
+        Args:
+            pdf_path (str): The file path to the PDF document.
+            prompt (str): The prompt to guide the Gemini API's text generation.
+
+        Returns:
+            str: The generated response text from the Gemini model.
+        """
+        with open(pdf_path, "rb") as f:
+            pdf_bytes = f.read()
+        pdf_part = types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+        contents = [pdf_part, prompt]
+
+        response = self.client.models.generate_content(
+            model=self.model,
+            contents=contents,
+            **kwargs
+        )
+        return response.text
 
 
 class Cohere(ModelProvider):
