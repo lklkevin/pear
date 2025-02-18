@@ -1,0 +1,6 @@
+pytest
+streamlit
+cohere
+sympy
+python-dotenv
+tqdm
