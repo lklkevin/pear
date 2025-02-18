@@ -36,8 +36,8 @@ class DataAccessObject(ABC):
     @abstractmethod
     def get_exams(self, 
                   username: str, 
-                  public: bool) -> set[list[tuple[str, str]]]:
-        """Return exams associated with the given user. 
+                  public: bool) -> list[int]:
+        """Return exam ids associated with the given user. 
         
         If public is True, then return only the public exams. Otherwise, return
         all exams.
@@ -59,7 +59,7 @@ class DataAccessObject(ABC):
                     color: str,
                     description: str,
                     public: bool) -> None:
-        """Insert an exam with the given options for a given user.
+        """Insert an empty exam for a given user, with the given options.
 
         Args:
             username: The username of the user.
