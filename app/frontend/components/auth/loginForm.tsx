@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import { FaEyeSlash, FaEye, FaGoogle } from "react-icons/fa";
+import { FaGoogle } from "react-icons/fa";
 import InputField from "../form/inputField";
 import PasswordField from "../form/passwordField";
 import SubmitButton from "../form/submitButton";
+import Link from "next/link";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div>
@@ -36,7 +36,7 @@ const Login: React.FC = () => {
         </button>
 
         <p className="text-center text-sm text-zinc-400 mt-4">
-          Don't have an account? <a href="/signup" className="text-white underline">Sign up</a>
+          Don&apos;t have an account? <Link href="/signup" className="text-white underline">Sign up</Link>
         </p>
       </div>
     </div>

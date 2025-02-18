@@ -65,6 +65,7 @@ export default function GenerateLayout({
                   },
                 ].map((step, index) => (
                   <InfoCard
+                    key={index}
                     number={step.number}
                     mainText={step.mainText}
                     text={step.text}
