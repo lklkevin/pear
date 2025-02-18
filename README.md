@@ -87,5 +87,6 @@ Students often face a shortage of practice material, especially when preparing f
 Ensure to add a `.env` file in the root directory with the following variables:
 ```
 COHERE_API_KEY=your_cohere_api_key
+GEMINI_API_KEY=your_gemini_key
 ```
 You can create a trial Cohere API key (for free) [here](https://dashboard.cohere.com/api-keys)
