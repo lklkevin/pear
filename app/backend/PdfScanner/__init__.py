@@ -33,7 +33,7 @@ class PDFScannerInterface(ABC):
         pass
 
     @abstractmethod
-    def _process_pdf_text(self, text: str, include_order: bool) -> PDFObject:
+    def _process_pdf_text(self, text: str) -> PDFObject:
         """
         Processes the extracted text to generate question-answer pairs.
 

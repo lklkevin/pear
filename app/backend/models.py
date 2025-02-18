@@ -3,7 +3,6 @@ import os
 from dotenv import load_dotenv
 
 import cohere
-import PyPDF2
 from google import genai
 from google.genai import types
 
@@ -14,7 +13,7 @@ class ModelProvider:
     def __init__(self):
         pass
 
-    def call_model(self, model, messages, **kwargs):
+    def call_model(self, model, preamble, prompt, is_answer=True, **kwargs):
         raise NotImplementedError
 
 
@@ -42,7 +41,7 @@ class GeminiPDFModel(PDFModelProvider):
     Gemini implementation of the PDFModelProvider, using Google's Gemini API.
     """
 
-    def __init__(self, api_key: str, model: str = "gemini-2.0-flash"):
+    def __init__(self, model: str = "gemini-2.0-flash"):
         """
         Initializes the Gemini model with an API key and model selection.
 
@@ -50,7 +49,7 @@ class GeminiPDFModel(PDFModelProvider):
             api_key (str): The API key for Gemini API.
             model (str): The specific Gemini model to use.
         """
-        self.client = genai.Client(api_key=api_key)
+        self.client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
         self.model = model
 
     def call_model(self, pdf_path: str, prompt: str, **kwargs) -> str:
@@ -101,7 +100,7 @@ class Cohere(ModelProvider):
                     )
                 return response.text
             except Exception as e:
-                pass
+                print(e)
 
 
 if __name__ == "__main__":
