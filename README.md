@@ -35,7 +35,7 @@ Students often face a shortage of practice material, especially when preparing f
 ## **Beta Usage (Testing Only)**
 
 ### **Demo of Problem/Final Answer Generation Pipeline**
-1. Navigate to this streamlit deployment:
+1. Navigate to this streamlit deployment: https://subteam-deployment-dklckspcc565nsvcvnpbmp.streamlit.app/
 
 2. Follow the instructions from the script
 
@@ -55,8 +55,8 @@ Students often face a shortage of practice material, especially when preparing f
 #### **Installation Steps**
 1. **Clone the repository:**
    ```sh
-   git clone https://github.com/your-repo/math-practice-generator.git
-   cd math-practice-generator
+   git clone https://github.com/csc301-2025-s/project-27-the-avengers.git
+   cd project-27-the-avengers
    ```
 2. Ensure you have `poetry` installed. If you do, proceed to the next step. If not:
 - Run `pip install --user poetry==1.8.3`.
