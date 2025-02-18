@@ -5,12 +5,14 @@ import Button from "@/components/ui/buttonGray";
 export default function Home({ landing = false }: { landing?: boolean }) {
   return (
     <nav
-      className={`text-zinc-400 text-sm md:text-base flex flex-row w-screen h-[72px] bg-zinc-950 px-4 md:px-10 justify-between py-3 ${
+      className={`text-zinc-400 text-sm md:text-base flex flex-row w-screen h-[72px] bg-zinc-950 px-8 md:px-10 justify-between py-3 ${
         landing ? "" : "border-b border-zinc-800"
       }`}
     >
       <div className="flex items-center h-full space-x-4 md:space-x-8">
-        <div className="h-9 w-9 bg-zinc-950 border border-zinc-700 rounded-full"></div>
+        <Link href="/" passHref>
+          <div className="h-9 w-9 bg-zinc-950 border border-zinc-700 rounded-full"></div>
+        </Link>
         <Link className="hidden sm:block hover:text-white" href="/browse">
           Browse
         </Link>
