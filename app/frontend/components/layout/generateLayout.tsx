@@ -17,15 +17,15 @@ export default function GenerateLayout({
       <Navbar />
 
       {/* Page Content with Sidebar */}
-      <div className="flex relative">
+      <div className="flex relative h-full">
         {/* Animated placeholder that reserves sidebar space */}
         <motion.div
-          className="flex-shrink-0"
+          className="flex-shrink-0 "
           animate={{ width: isCollapsed ? 0 : expandedWidth }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
         />
 
-        {/* Main Content centered using */}
+        {/* Main Content*/}
         <div
           className={`flex-1 flex flex-col max-w-7xl px-8 py-8 sm:pt-12 sm:pb-16 mx-auto min-h-[calc(100vh-72px)] ${
             !isCollapsed ? "hidden sm:flex" : ""
@@ -38,7 +38,7 @@ export default function GenerateLayout({
         <div className="absolute left-0 h-full">
           <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
             <div className="pr-8">
-              <h2 className="text-center text-2xl sm:text-3xl font-semibold">
+              <h2 className="ml-8 text-2xl sm:text-3xl font-semibold">
                 Getting Started
               </h2>
               <ul className="mt-6 mb-16 space-y-8">

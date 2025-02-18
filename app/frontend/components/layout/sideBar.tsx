@@ -46,7 +46,7 @@ export default function Sidebar({
               msOverflowStyle: "none",
               scrollbarWidth: "none",
             }}
-            className="bg-zinc-900 h-screen fixed top-[72px] left-0 w-[360px] border-r border-zinc-800"
+            className="bg-zinc-900 h-screen absolute left-0 w-[360px] border-r border-zinc-800"
           >
             {/* Inline style to hide scrollbar for Webkit browsers */}
             <style jsx>{`
