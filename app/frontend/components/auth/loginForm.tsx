@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useRouter } from "next/router"; // Import useRouter
 import { FaGoogle } from "react-icons/fa";
 import InputField from "../form/inputField";
 import PasswordField from "../form/passwordField";
@@ -8,11 +9,23 @@ import Link from "next/link";
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter(); 
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Mock authentication - replace with your actual authentication logic
+    if (email && password) {
+      router.push("/"); 
+    } else {
+      alert("Please enter valid credentials");
+    }
+  };
 
   return (
     <div>
       <div>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleLogin}>
           <InputField label="Email / Username" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
 
           <PasswordField 
