@@ -1,6 +1,6 @@
 import Link from "next/link";
-import ButtonG from "@/components/ui/buttonGreen";
-import Button from "@/components/ui/buttonGray";
+import ButtonG from "../ui/buttonGreen";
+import Button from "../ui/buttonGray";
 
 export default function Home({ landing = false }: { landing?: boolean }) {
   return (

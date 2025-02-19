@@ -2,7 +2,7 @@ import { useState } from "react";
 import Navbar from "./navNormal";
 import Sidebar from "./sideBar";
 import { motion } from "framer-motion";
-import InfoCard from "@/components/sidebar/infoCard";
+import InfoCard from "../sidebar/infoCard";
 
 export default function GenerateLayout({
   children,

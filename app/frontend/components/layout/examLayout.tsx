@@ -2,7 +2,7 @@ import { useState } from "react";
 import Navbar from "./navNormal";
 import Sidebar from "./sideBar";
 import { motion } from "framer-motion";
-import TestSearch from "@/components/sidebar/testSideSearch"
+import TestSearch from "../sidebar/testSideSearch"
 
 export default function GenerateLayout({
   children,

@@ -1,7 +1,7 @@
 // /components/layout/LandingLayout.js
-import Nav from "@/components/layout/navNormal";
-import Glow from "@/components/landing/glow";
-import CTA from "@/components/landing/cta";
+import Nav from "../layout/navNormal";
+import Glow from "../landing/glow";
+import CTA from "../landing/cta";
 
 const LandingLayout = ({ children }: { children: React.ReactNode }) => {
   return (

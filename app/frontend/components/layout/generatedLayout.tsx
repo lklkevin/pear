@@ -2,7 +2,7 @@ import { useState } from "react";
 import Navbar from "./navNormal";
 import Sidebar from "./sideBar";
 import { motion } from "framer-motion";
-import Generated from "@/components/sidebar/newUser";
+import Generated from "../sidebar/newUser";
 
 export default function GenerateLayout({
   children,

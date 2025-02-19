@@ -1,4 +1,4 @@
-import ExamLayout from "@/components/layout/examLayout";
+import ExamLayout from "../layout/examLayout";
 import { sampleExam } from "./sampleExam";
 import ExamContent from "./examContent";
 

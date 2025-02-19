@@ -15,11 +15,11 @@ const Login: React.FC = () => {
     e.preventDefault();
     
     // Mock authentication - replace with your actual authentication logic
-    if (email && password) {
-      router.push("/"); 
-    } else {
+    if (!email || !password) {
       alert("Please enter valid credentials");
+      return;
     }
+    router.push("/");
   };
 
   return (

@@ -1,5 +1,5 @@
-import LandingLayout from "@/components/layout/landingLayout";
-import Graphic from "@/components/landing/graphic";
+import LandingLayout from "../layout/landingLayout";
+import Graphic from "./graphic";
 
 export default function Home() {
   return (

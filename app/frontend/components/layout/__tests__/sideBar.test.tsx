@@ -60,17 +60,4 @@ describe("Sidebar component", () => {
   });
 });
 
-// jest.config.js
-// Add this configuration to your jest.config.js or create it if it doesn't exist.
-module.exports = {
-  testEnvironment: "jsdom",
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],
-  transform: {
-    "^.+\\.(ts|tsx)$": "ts-jest",
-  },
-  testMatch: ["**/__tests__/**/*.(ts|tsx)"],
-};
 
-// Installation commands (run these in your project root):
-// npm install --save-dev jest @testing-library/react @testing-library/jest-dom ts-jest @types/jest
-// npx jest
