@@ -15,7 +15,7 @@ class GeminiPDFScanner(PDFScannerInterface):
       - text_processor (a ModelProvider) to extract question–answer pairs from the scanned text.
     """
 
-    def __init__(self, image_scanner: PDFModelProvider, text_processor: ModelProvider):
+    def __init__(self, image_scanner: PDFModelProvider = None, text_processor: ModelProvider = None):
         """
         Initializes the GeminiPDFScanner with the provided APIs.
 
@@ -23,6 +23,10 @@ class GeminiPDFScanner(PDFScannerInterface):
             image_scanner (PDFModelProvider): API object responsible for extracting content from PDFs.
             text_processor (ModelProvider): API object responsible for processing extracted text.
         """
+        if image_scanner is None:
+            image_scanner = GeminiPDFModel()
+        if text_processor is None:
+            text_processor = Cohere()
         super().__init__(image_scanner, text_processor)
 
     async def scan_pdfs(self, list_of_pdfs: list[str]) -> list[PDFObject]:
