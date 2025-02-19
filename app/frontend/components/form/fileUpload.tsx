@@ -10,7 +10,7 @@ export default function FileUpload() {
   };
 
   return (
-    <div className="border border-zinc-700 rounded-lg p-6 text-center bg-zinc-800">
+    <div className="h-full border border-zinc-800 rounded-lg p-6 text-center bg-zinc-900">
       {files.length > 0 ? (
         <div className="flex flex-wrap gap-2">
           {files.map((file, index) => (
@@ -20,9 +20,10 @@ export default function FileUpload() {
           ))}
         </div>
       ) : (
-        <label className="cursor-pointer flex flex-col items-center">
-          <span className="text-4xl">+</span>
-          <span className="text-zinc-400">Drop your file here</span>
+        <label className="cursor-pointer flex flex-col items-center justify-center h-full">
+          <span className="text-9xl">+</span>
+          <span className="text-zinc-400 text-xl -mt-4">Drop your file here</span>
+          <span className="text-zinc-500 mt-1">(Accepted formats: .pdf, .jpg, .png)</span>
           <input type="file" className="hidden" onChange={handleFileUpload} />
         </label>
       )}

@@ -1,6 +1,6 @@
 interface SubmitButtonProps {
     text: string;
-    loading: any;
+    loading: boolean;
 }
 
 export default function SubmitButton({

@@ -1,18 +1,32 @@
 import React, { useState } from "react";
+import { useRouter } from "next/router"; // Import useRouter
 import { FaGoogle } from "react-icons/fa";
 import InputField from "../form/inputField";
 import PasswordField from "../form/passwordField";
 import SubmitButton from "../form/submitButton";
+import Link from "next/link";
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const router = useRouter(); 
+
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Mock authentication - replace with actual signup logic
+    if (email && username && password) {
+      router.push("/"); 
+    } else {
+      alert("Please fill in all fields");
+    }
+  };
 
   return (
     <div>
       <div>
-        <form className="space-y-4">
+        <form className="space-y-4" onSubmit={handleSignup}>
           <InputField label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
 
           <InputField label="Username" type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
@@ -33,7 +47,7 @@ const Signup: React.FC = () => {
         </button>
 
         <p className="text-center text-sm text-zinc-400 mt-4">
-          Already have an account? <a href="/login" className="text-white underline">Log in</a>
+          Already have an account? <Link href="/login" className="text-white underline">Log in</Link>
         </p>
       </div>
     </div>

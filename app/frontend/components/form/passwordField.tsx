@@ -34,7 +34,7 @@ export default function PasswordField({
       </label>
       <input
         type={showPassword ? "text" : "password"}
-        className="w-full p-2 mt-1 bg-zinc-800 border border-zinc-700 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500"
+        className="w-full p-2 mt-1 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500"
         value={value}
         onChange={onChange}
         required
