@@ -11,8 +11,6 @@ from exam import Exam
 # Additional imports for PDF scanning
 from PdfScanner.GeminiPdfScanner import GeminiPDFScanner
 
-os.environ["GEMINI_API_KEY"] = "AIzaSyDrXvmaOCptWaowiGLNrkYSeduqA4qxFnk"
-
 # Initialize session state for storing exam data
 if "exam" not in st.session_state:
     st.session_state.exam = Exam()
