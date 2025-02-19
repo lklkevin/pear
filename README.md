@@ -39,7 +39,7 @@ Students often face a shortage of practice material, especially when preparing f
 
 2. Follow the instructions from the script, you do not need to worry about an API key or dependencies.
 
-3. The scope of our exams at the moment is limited to high school level math questions with simple final answers. If you want example questions you can find some we personally tested with in the ./app/backend/tests/example questions
+3. The scope of our exams at the moment is limited to high school level math questions with simple final answers. If you want example questions you can find some we personally tested with in the ./app/backend/tests/example questions. An example PDF to test the extraction features is available in app/backend/tests/example_pdfs
 
 
 
