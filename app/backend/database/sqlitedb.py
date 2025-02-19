@@ -1,4 +1,4 @@
-from . import DataAccessObject
+from database import DataAccessObject
 import sqlite3
 import datetime
 

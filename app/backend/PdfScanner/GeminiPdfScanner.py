@@ -1,9 +1,9 @@
 import asyncio
 
-from pdfobject import PDFObject
-from app.backend.models import ModelProvider, PDFModelProvider
-from app.backend.models import Cohere, GeminiPDFModel
-from app.backend.PdfScanner import PDFScannerInterface  # Adjust the import path as needed
+from PdfScanner.pdfobject import PDFObject
+from models import ModelProvider, PDFModelProvider
+from models import Cohere, GeminiPDFModel
+from PdfScanner import PDFScannerInterface  # Adjust the import path as needed
 
 
 class GeminiPDFScanner(PDFScannerInterface):
