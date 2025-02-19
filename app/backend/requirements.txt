@@ -1,6 +1,7 @@
 pytest
 streamlit
 cohere
+google-genai
 sympy
 python-dotenv
 tqdm
