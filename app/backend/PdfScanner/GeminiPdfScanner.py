@@ -153,6 +153,6 @@ if __name__ == "__main__":
     pdf_model = GeminiPDFModel()
     text_model = Cohere()
     scanner = GeminiPDFScanner(pdf_model, text_model)
-    result = asyncio.run(scanner.scan_pdfs(["math_12.pdf"]))[0]
+    result = asyncio.run(scanner.scan_pdfs(["./tests/example_pdfs/math_12.pdf"]))[0]
     for question in result:
         print(question)
