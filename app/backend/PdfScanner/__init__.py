@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from pdfobject import PDFObject
-from app.backend.models import ModelProvider, PDFModelProvider
+from PdfScanner.pdfobject import PDFObject
+from models import ModelProvider, PDFModelProvider
 
 
 class PDFScannerInterface(ABC):

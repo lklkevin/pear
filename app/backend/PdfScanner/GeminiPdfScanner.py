@@ -1,9 +1,9 @@
 import asyncio
 
-from pdfobject import PDFObject
-from app.backend.models import ModelProvider, PDFModelProvider
-from app.backend.models import Cohere, GeminiPDFModel
-from app.backend.PdfScanner import PDFScannerInterface  # Adjust the import path as needed
+from PdfScanner.pdfobject import PDFObject
+from models import ModelProvider, PDFModelProvider
+from models import Cohere, GeminiPDFModel
+from PdfScanner import PDFScannerInterface  # Adjust the import path as needed
 
 
 class GeminiPDFScanner(PDFScannerInterface):
@@ -153,6 +153,6 @@ if __name__ == "__main__":
     pdf_model = GeminiPDFModel()
     text_model = Cohere()
     scanner = GeminiPDFScanner(pdf_model, text_model)
-    result = asyncio.run(scanner.scan_pdfs(["math_12.pdf"]))[0]
+    result = asyncio.run(scanner.scan_pdfs(["./tests/example_pdfs/math_12.pdf"]))[0]
     for question in result:
         print(question)
