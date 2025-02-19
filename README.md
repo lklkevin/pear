@@ -96,7 +96,7 @@ You can create a trial Cohere API key (for free) [here](https://dashboard.cohere
 
 ### Tests
 For frontend testing, we utilize the Jest framework, we can test components individually through unit tests, checking the expected behaviour of various UI features (e.g., expanding and collapsing the sidebar)
-Additionally, we have created some integration tests to ensure that the routing is correct. Our current test coverage is _____. To run the tests locally, following the installation steps and run:
+Additionally, we have created some integration tests to ensure that the routing is correct. Our current test (line) coverage is 90%. To run the tests locally, following the installation steps and run:
 ```sh
 npx jest
 ```
