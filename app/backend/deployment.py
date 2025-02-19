@@ -1,6 +1,8 @@
 import streamlit as st
 import asyncio
 import tempfile
+import os
+
 
 from questionGenerator import generate_questions
 from answerGenerator import generate_answers
@@ -9,9 +11,15 @@ from exam import Exam
 # Additional imports for PDF scanning
 from PdfScanner.GeminiPdfScanner import GeminiPDFScanner
 
+os.environ["GEMINI_API_KEY"] = "AIzaSyDrXvmaOCptWaowiGLNrkYSeduqA4qxFnk"
+
 # Initialize session state for storing exam data
 if "exam" not in st.session_state:
     st.session_state.exam = Exam()
+if "scanned_questions" not in st.session_state:
+    st.session_state.scanned_questions = []  # Store scanned questions persistently
+if "pdf_processed" not in st.session_state:
+    st.session_state.pdf_processed = False  # Flag to check if PDF is processed
 
 st.title("AI Exam Generator")
 st.write("This tool generates exam questions and answers using AI.")
@@ -19,38 +27,38 @@ st.write("This tool generates exam questions and answers using AI.")
 # Step 0: Upload a PDF file containing exam questions
 st.header("Step 0: Upload PDF File")
 uploaded_pdf = st.file_uploader("Upload a PDF file containing exam questions", type=["pdf"])
-scanned_questions = []
 
-if uploaded_pdf is not None:
+if uploaded_pdf is not None and not st.session_state.pdf_processed:
     with st.spinner("Scanning and processing the PDF..."):
         # Save the uploaded PDF to a temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp_file:
             tmp_file.write(uploaded_pdf.read())
             pdf_path = tmp_file.name
 
-        # Initialize the PDF scanner using your provided models
+        # Initialize the PDF scanner
         scanner = GeminiPDFScanner()
 
         # Scan the PDF (pass a list with the single PDF path)
-        pdf_objects = scanner.scan_pdfs([pdf_path])
+        pdf_objects = asyncio.run(scanner.scan_pdfs([pdf_path]))
 
         if pdf_objects:
             # Extract questions from the first (or only) PDFObject
-            scanned_questions = [question for question, _ in pdf_objects[0].qa_pairs]
+            st.session_state.scanned_questions = [question for question, _ in pdf_objects[0].qa_pairs]
+            st.session_state.pdf_processed = True  # Mark PDF as processed
             st.success("PDF scanned successfully. Questions extracted.")
         else:
             st.error("No questions found in the PDF.")
 
 # Step 1: Provide Your Exam Questions
 st.header("Step 1: Provide Your Exam Questions")
-# Set the default number of questions based on scanned questions if available
-default_n = len(scanned_questions) if scanned_questions else 1
+# Use session state to get scanned questions
+default_n = len(st.session_state.scanned_questions) if st.session_state.scanned_questions else 1
 n = st.number_input("How many questions are in your exam?", min_value=1, step=1, value=default_n)
 
 questions = []
 for i in range(n):
-    # Use the scanned question as a default if available; otherwise, leave blank
-    default_question = scanned_questions[i] if i < len(scanned_questions) else ""
+    # Use scanned question as default if available; otherwise, leave blank
+    default_question = st.session_state.scanned_questions[i] if i < len(st.session_state.scanned_questions) else ""
     question = st.text_input(f"Question {i + 1}", value=default_question)
     if question:
         questions.append(question)

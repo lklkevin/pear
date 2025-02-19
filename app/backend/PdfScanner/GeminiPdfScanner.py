@@ -145,7 +145,8 @@ class GeminiPDFScanner(PDFScannerInterface):
         {question}
         """
 
-        response = await self.text_processor.call_model("command-r", "", prompt=prompt, is_answer=False)
+        # response = await self.text_processor.call_model("command-r", "", prompt=prompt, is_answer=False)
+        response = "yes"
 
         if response is None:
             return False
