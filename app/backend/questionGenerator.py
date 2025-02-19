@@ -1,31 +1,35 @@
 from models import Cohere
 import asyncio
+import ast
 
-
-async def generate_questions(questions: list[str], Num_new_questions: int) -> list[str]:
+async def generate_questions(questions: list[str], num_new_questions: int) -> list[str]:
     num_questions = len(questions)
     prompt_formatter = f"Here are {num_questions} questions:\n"
 
     for i in range(num_questions):
         prompt_formatter += questions[i] + "\n"
 
-    prompt_formatter += f"\nGenerate {Num_new_questions} new questions that tackle the same mathematical concepts to " \
-                        f"the current questions provided.\n"
-    prompt_formatter += "Provide only the questions unnumbered and on seperate lines. No explanation needs to be given."
+    prompt_formatter += f"\nGenerate {num_new_questions} new questions that tackle the same mathematical concepts as the current questions provided. Return the questions as a Python list of strings. Just give me the list and nothing else. Do not include ```python or ``` in the response."
+
 
     model = Cohere()
+    for _ in range(5):
+        try:
+            response = await model.call_model(
+                'command-r-plus-08-2024',
+                'You are an intelligent test creator.',
+                prompt_formatter,
+                temperature=1,
+                is_answer=False
+            )
 
-    response = await model.call_model(
-        'command-r-plus-08-2024',
-        'You are an intelligent test creator.',
-        prompt_formatter,
-        temperature=1,
-        is_answer=False
-    )
+            new_questions = ast.literal_eval(response)
+            return new_questions
 
-    new_questions = response.split("\n\n")
+        except Exception as e:
+            print(f"Error generating questions: {e}. {response}")
 
-    return new_questions
+    return []
 
 # ---------------------- Example Usage ----------------------
 if __name__ == "__main__":
