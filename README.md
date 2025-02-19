@@ -37,21 +37,24 @@ Students often face a shortage of practice material, especially when preparing f
 ### **Demo of Problem/Final Answer Generation Pipeline**
 1. Navigate to this streamlit deployment: https://subteam-deployment-dklckspcc565nsvcvnpbmp.streamlit.app/ 
 
-2. Follow the instructions from the script, you do not need to worry about an API key or dependancies.
+2. Follow the instructions from the script, you do not need to worry about an API key or dependencies.
 
 3. The scope of our exams at the moment is limited to high school level math questions with simple final answers. If you want example questions you can find some we personally tested with in the ./app/backend/tests/example questions
-
 
 ### **Demo of PDF Extraction**
 
 
-### **Demo of Front End**
-
+### **Demo of Front End** - [Screenshots](https://imgur.com/a/group-27-deliverable-2-frontend-demo-pjQ5QVr)
+1. Navigate to our Vercel deployment: https://avenger-deliverable-2.vercel.app/
+   
+2. Walk through the various buttons and links on each page to see their functionality (Note that contact and pricing are not yet implemented)
+   
+3. If you wish to explictly check individual pages, the following routes are valid: /, /exam, /generate, /generated, /browse, /login, /signup
 
 ## **Developer Instructions**
 ### **Setting Up the Project Locally**
 #### **Prerequisites**
-- **Node.js** (for frontend development)
+- **Node.js 18+** (for frontend development)
 - **Python 3.11+** (for backend API)
 
 #### **Installation Steps**
@@ -93,6 +96,12 @@ You can create a trial Cohere API key (for free) [here](https://dashboard.cohere
 
 
 ### Tests
-We utilize the Pytest python framework for our automated testing. 
+For frontend testing, we utilize the Jest framework, we can test components individually through unit tests, checking the expected behaviour of various UI features (e.g., expanding and collapsing the sidebar)
+Additionally, we have created some integration tests to ensure that the routing is correct. Our current test coverage is _____. To run the tests locally, following the installation steps and run:
+```sh
+npx jest
+```
+
+We utilize the Pytest python framework for our automated testing in the backend. 
 
 Currently we only have test coverage across our `validator` module, however we plan on expanding our coverage to the other modules that rely on API calls to ensure stability.
