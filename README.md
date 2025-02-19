@@ -90,3 +90,9 @@ COHERE_API_KEY=your_cohere_api_key
 GEMINI_API_KEY=your_gemini_key
 ```
 You can create a trial Cohere API key (for free) [here](https://dashboard.cohere.com/api-keys)
+
+
+### Tests
+We utilize the Pytest python framework for our automated testing. 
+
+Currently we only have test coverage across our `validator` module, however we plan on expanding our coverage to the other modules that rely on API calls to ensure stability.
