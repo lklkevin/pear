@@ -5,15 +5,18 @@ import ast
 
 
 async def generate_questions(questions: list[str], num_new_questions: int) -> list[str]:
-    num_questions = len(questions)
-    prompt_formatter = f"Here are {num_questions} questions:\n"
 
-    for i in range(num_questions):
-        prompt_formatter += questions[i] + "\n"
-
-    prompt_formatter += f"\nGenerate {num_new_questions} new questions that tackle the same mathematical concepts as the current questions provided. Return the questions as a Python list of strings. Just give me the list and nothing else. Do not include ```python or ``` in the response."
-    model = Cohere()
     try:
+        assert len(questions) > 0, "Questions list cannot be empty"
+        assert num_new_questions > 0, "Number of new questions must be greater than 0"
+        num_questions = len(questions)
+        prompt_formatter = f"Here are {num_questions} questions:\n"
+
+        for i in range(num_questions):
+            prompt_formatter += questions[i] + "\n"
+
+        prompt_formatter += f"\nGenerate {num_new_questions} new questions that tackle the same mathematical concepts as the current questions provided. Return the questions as a Python list of strings. Just give me the list and nothing else. Do not include ```python or ``` in the response."
+        model = Cohere()
         response = await model.call_model(
             prompt_formatter,
             temperature=1,
@@ -24,9 +27,8 @@ async def generate_questions(questions: list[str], num_new_questions: int) -> li
         return new_questions
 
     except Exception as e:
-        print(f"Error generating questions: {e}. {response}")
-
-    return []
+        print(f"Error generating questions: {e}")
+        return []
 
 # ---------------------- Example Usage ----------------------
 if __name__ == "__main__":
