@@ -1,47 +1,41 @@
 import asyncio
 import os
 from dotenv import load_dotenv
+from typing import Callable, Optional
 
 import cohere
 from google import genai
-from google.genai import types
+from google.genai.types import Part, GenerateContentConfig
 
 load_dotenv()
 
 
 class ModelProvider:
-    def __init__(self):
-        pass
 
-    def call_model(self, model, preamble, prompt, is_answer=True, **kwargs):
+    def __init__(self, model: str, max_reties: int):
+        self.model = model
+        self.max_retries = max_reties
+        self.default_preamble = "You are a helpful assistant"
+
+    def call_model(self, prompt: str, preamble: Optional[str], pdf_path: Optional[str], accept_func: Callable, **kwargs) -> str:
         raise NotImplementedError
 
-
-class PDFModelProvider:
-    """
-    Abstract base class for models that take PDFs as input.
-    """
-
-    def call_model(self, pdf_path: str, prompt: str, **kwargs) -> str:
-        """
-        Abstract method to be implemented by subclasses to call the model.
-
-        Args:
-            pdf_path (str): The path to the PDF file.
-            prompt (str): The user-provided prompt to guide text generation.
-
-        Returns:
-            str: The model's generated response.
-        """
-        pass
+    def load_pdf(self, pdf_path: str) -> str:
+        try:
+            with open(pdf_path, "rb") as f:
+                pdf_bytes = f.read()
+            return Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
+        except Exception as e:
+            print(e)
+            return
 
 
-class GeminiPDFModel(PDFModelProvider):
+class GeminiModel(ModelProvider):
     """
     Gemini implementation of the PDFModelProvider, using Google's Gemini API.
     """
 
-    def __init__(self, model: str = "gemini-2.0-flash"):
+    def __init__(self, model: str = "gemini-2.0-flash", max_retries: int = 5):
         """
         Initializes the Gemini model with an API key and model selection.
 
@@ -49,12 +43,12 @@ class GeminiPDFModel(PDFModelProvider):
             api_key (str): The API key for Gemini API.
             model (str): The specific Gemini model to use.
         """
+        super().__init__(model, max_retries)
         self.client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
-        self.model = model
 
-    def call_model(self, pdf_path: str, prompt: str, **kwargs) -> str:
+    async def call_model(self, prompt: str, preamble: Optional[str] = None, pdf_path: Optional[str] = None, accept_func: Callable = lambda x: True, **kwargs) -> str:
         """
-        Reads the PDF as raw bytes, wraps it in a types.Part to preserve the document's content,
+        Reads the PDF as raw bytes, wraps it in a Part to preserve the document's content,
         and calls the Gemini API to generate a response based on the provided prompt.
 
         Args:
@@ -64,55 +58,65 @@ class GeminiPDFModel(PDFModelProvider):
         Returns:
             str: The generated response text from the Gemini model.
         """
-        with open(pdf_path, "rb") as f:
-            pdf_bytes = f.read()
-        pdf_part = types.Part.from_bytes(data=pdf_bytes, mime_type="application/pdf")
-        contents = [pdf_part, prompt]
+        preamble = preamble if preamble is not None else self.default_preamble
 
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=contents,
-            **kwargs
-        )
-        return response.text
+        # if a PDF is being passed for extraction
+        if pdf_path is not None:
+            pdf_part = self.load_pdf(pdf_path)
+            if pdf_part is None:
+                return 
+            kwargs['contents'] = [pdf_part, prompt]
+        else:
+            kwargs['contents'] = prompt
+
+        for _ in range(self.max_retries):
+            try:
+                response = await self.client.aio.models.generate_content(
+                    model=self.model,
+                    config=GenerateContentConfig(
+                        system_instruction=preamble
+                    ),
+                    **kwargs
+                )
+                assert accept_func(response.text), "Model returned an unacceptable response according to the accept function"
+                return response.text.strip()
+            except Exception as e:
+                print(e)
 
 
 class Cohere(ModelProvider):
 
-    def __init__(self):
+    def __init__(self, model: str, max_retries: int = 5):
+        super().__init__(model, max_retries)
         self.client = cohere.AsyncClient(os.environ.get("COHERE_API_KEY"))
 
-    async def call_model(self, model, preamble, prompt, is_answer=True, **kwargs):
+    async def call_model(self, prompt: str, preamble: Optional[str] = None, pdf_path: Optional[str] = None, accept_func: Callable = lambda x: True, **kwargs) -> str:
 
-        for _ in range(5):
+        if pdf_path is not None:
+            raise NotImplementedError("Cohere does not support PDFs")
+
+        preamble = preamble if preamble is not None else self.default_preamble
+
+        for _ in range(self.max_retries):
             try:
                 response = await self.client.chat(
-                    model=model, message=prompt, preamble=preamble, **kwargs
+                    model=self.model, 
+                    message=prompt, 
+                    preamble=preamble,
+                    **kwargs
                 )
-                if is_answer:
-                    test = int(
-                        response.text.split("Final answer:")[-1]
-                        .strip()
-                        .split(" ")[0]
-                        .replace(".", "")
-                        .replace("*", "")
-                        .strip()
-                    )
-                return response.text
+                assert accept_func(response.text), "Model returned an unacceptable response according to the accept function"
+                return response.text.strip()
             except Exception as e:
                 print(e)
 
 
 if __name__ == "__main__":
-    co = Cohere()
+    co = Cohere(model="command-r7b-12-2024")
     print(
         asyncio.run(
             co.call_model(
-                "command-r7b-12-2024",
-                "You are a dumbass",
-                prompt="What is 1+1",
-                temperature=1.0,
-                return_prompt=True,
+                prompt="give me a summary of this pdf",
             )
         )
     )
