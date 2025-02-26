@@ -4,6 +4,8 @@ from backend.answerGenerator import generate_answers
 from backend.exam import Exam
 
 
+model = Cohere()
+
 def get_int_input(prompt: str) -> int:
     """Helper function to safely get an integer input from the user."""
     while True:
@@ -81,7 +83,7 @@ def main():
 
     print("\n--------------------------Generating Questions-------------------------------\n")
 
-    new_questions = asyncio.run(generate_questions(questions, x))
+    new_questions = asyncio.run(generate_questions(questions, x, model))
 
     for question in new_questions:
         exam.add_question(question)
@@ -91,7 +93,7 @@ def main():
     i = 1
     for question in new_questions:
         print(f"\n-------------------------Answers for Question {i}-------------------------------\n")
-        answers = asyncio.run(generate_answers(question, 10))
+        answers = asyncio.run(generate_answers(question, 10, model))
         exam.add_answers(question, answers)
         i += 1
     print("\n----------------------------Answers Generated---------------------------------\n")

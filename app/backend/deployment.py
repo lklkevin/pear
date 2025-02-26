@@ -11,6 +11,8 @@ from backend.exam import Exam
 # Additional imports for PDF scanning
 from backend.PdfScanner.GeminiPdfScanner import GeminiPDFScanner
 
+model = Cohere()
+
 # Initialize session state for storing exam data
 if "exam" not in st.session_state:
     st.session_state.exam = Exam()
@@ -69,7 +71,7 @@ x = st.number_input("How many questions do you want in your new exam?", min_valu
 if st.button("Generate Exam"):
     if questions:
         with st.spinner("Generating new questions..."):
-            new_questions = asyncio.run(generate_questions(questions, x))
+            new_questions = asyncio.run(generate_questions(questions, x, model))
             for question in new_questions:
                 st.session_state.exam.add_question(question)
         st.success("Questions generated successfully!")
@@ -78,7 +80,7 @@ if st.button("Generate Exam"):
         with st.spinner("Generating answers..."):
             for i, question in enumerate(new_questions, 1):
                 st.write(f"**Generating answers for Question {i}...**")
-                answers = asyncio.run(generate_answers(question, 10))
+                answers = asyncio.run(generate_answers(question, 10, model))
                 st.session_state.exam.add_answers(question, answers)
         st.success("Answers generated successfully!")
 

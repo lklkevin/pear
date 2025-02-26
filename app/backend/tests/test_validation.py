@@ -1,6 +1,6 @@
 import pytest
 import asyncio
-from validation import LLMAnswerComparator, Equality
+from backend.validation import LLMAnswerComparator, Equality
 
 
 @pytest.mark.parametrize(

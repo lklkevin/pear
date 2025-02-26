@@ -25,8 +25,9 @@ async def mock_cohere():
 @pytest.mark.asyncio
 async def test_successful_question_generation(sample_questions, mock_cohere):
     mock_cohere.return_value = '["What is 4 + 4?", "Solve for y: 2y - 3 = 7"]'
+    model = Cohere()
     
-    result = await generate_questions(sample_questions, 2)
+    result = await generate_questions(sample_questions, 2, model)
     
     assert isinstance(result, list)
     assert len(result) == 2
@@ -39,38 +40,44 @@ async def test_successful_question_generation(sample_questions, mock_cohere):
 
 @pytest.mark.asyncio
 async def test_empty_input(mock_cohere):
-    result = await generate_questions([], 1)
+    model = Cohere()
+    result = await generate_questions([], 1, model)
     assert isinstance(result, list)
     assert len(result) == 0
 
 @pytest.mark.asyncio
 async def test_invalid_model_response(sample_questions, mock_cohere):
     mock_cohere.return_value = '```python\n["What is 4 + 4?", "Solve for y: 2y - 3 = 7"]\n```'
-    result = await generate_questions(sample_questions, 2)
+    model = Cohere()
+    result = await generate_questions(sample_questions, 2, model)
     assert result == []
 
 @pytest.mark.asyncio
 async def test_model_exception(sample_questions, mock_cohere):
     mock_cohere.side_effect = Exception("Model error")
-    result = await generate_questions(sample_questions, 2)
+    model = Cohere()
+    result = await generate_questions(sample_questions, 2, model)
     assert result == []
 
 @pytest.mark.asyncio
 async def test_large_question_count(sample_questions, mock_cohere):
     mock_cohere.return_value = str(["Question " + str(i) for i in range(100)])
+    model = Cohere()
     
-    result = await generate_questions(sample_questions, 100)
+    result = await generate_questions(sample_questions, 100, model)
     assert isinstance(result, list)
     assert len(result) == 100
 
 @pytest.mark.asyncio
 async def test_zero_new_questions(sample_questions, mock_cohere):
-    result = await generate_questions(sample_questions, 0)
+    model = Cohere()
+    result = await generate_questions(sample_questions, 0, model)
     assert isinstance(result, list)
     assert len(result) == 0
 
 @pytest.mark.asyncio
 async def test_negative_question_count(sample_questions, mock_cohere):
-    result = await generate_questions(sample_questions, -1)
+    model = Cohere()
+    result = await generate_questions(sample_questions, -1, model)
     assert isinstance(result, list)
     assert len(result) == 0

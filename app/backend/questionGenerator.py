@@ -1,10 +1,10 @@
-from backend.models import Cohere
+from backend.models import ModelProvider, Cohere
 import asyncio
 import ast
 import ast
 
 
-async def generate_questions(questions: list[str], num_new_questions: int) -> list[str]:
+async def generate_questions(questions: list[str], num_new_questions: int, model: ModelProvider) -> list[str]:
 
     try:
         assert len(questions) > 0, "Questions list cannot be empty"
@@ -16,7 +16,6 @@ async def generate_questions(questions: list[str], num_new_questions: int) -> li
             prompt_formatter += questions[i] + "\n"
 
         prompt_formatter += f"\nGenerate {num_new_questions} new questions that tackle the same mathematical concepts as the current questions provided. Return the questions as a Python list of strings. Just give me the list and nothing else. Do not include ```python or ``` in the response."
-        model = Cohere()
         response = await model.call_model(
             prompt_formatter,
             temperature=1,
@@ -32,6 +31,7 @@ async def generate_questions(questions: list[str], num_new_questions: int) -> li
 
 # ---------------------- Example Usage ----------------------
 if __name__ == "__main__":
+    model = Cohere()
     questions = [
         "Tom is painting a fence 100 feet long. He starts at the West end of the fence and paints "
         "at a rate of 5 feet per hour. After 2 hours, Huck joins Tom and begins painting from the "
@@ -47,5 +47,5 @@ if __name__ == "__main__":
         "how many bags of cotton candy must be sold?"
     ]
 
-    new_questions = asyncio.run(generate_questions(questions, 3))
+    new_questions = asyncio.run(generate_questions(questions, 3, model))
     print(new_questions)
