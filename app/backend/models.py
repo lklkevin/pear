@@ -17,7 +17,7 @@ class ModelProvider:
         self.max_retries = max_reties
         self.default_preamble = "You are a helpful assistant"
 
-    def call_model(self, prompt: str, preamble: Optional[str], pdf_path: Optional[str], accept_func: Callable, **kwargs) -> str:
+    async def call_model(self, prompt: str, preamble: Optional[str], pdf_path: Optional[str], accept_func: Callable, **kwargs) -> str:
         raise NotImplementedError
 
     def load_pdf(self, pdf_path: str) -> str:
@@ -32,7 +32,7 @@ class ModelProvider:
 
 class GeminiModel(ModelProvider):
     """
-    Gemini implementation of the PDFModelProvider, using Google's Gemini API.
+    Gemini implementation of the ModelProvider, using Google's Gemini API.
     """
 
     def __init__(self, model: str = "gemini-2.0-flash", max_retries: int = 5):
@@ -86,7 +86,7 @@ class GeminiModel(ModelProvider):
 
 class Cohere(ModelProvider):
 
-    def __init__(self, model: str, max_retries: int = 5):
+    def __init__(self, model: str = 'command-r-plus-08-2024', max_retries: int = 5):
         super().__init__(model, max_retries)
         self.client = cohere.AsyncClient(os.environ.get("COHERE_API_KEY"))
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     print(
         asyncio.run(
             co.call_model(
-                prompt="give me a summary of this pdf",
+                prompt="whats 9 + 10",
             )
         )
     )

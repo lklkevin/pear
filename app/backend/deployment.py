@@ -4,12 +4,12 @@ import tempfile
 import os
 
 
-from questionGenerator import generate_questions
-from answerGenerator import generate_answers
-from exam import Exam
+from backend.questionGenerator import generate_questions
+from backend.answerGenerator import generate_answers
+from backend.exam import Exam
 
 # Additional imports for PDF scanning
-from PdfScanner.GeminiPdfScanner import GeminiPDFScanner
+from backend.PdfScanner.GeminiPdfScanner import GeminiPDFScanner
 
 # Initialize session state for storing exam data
 if "exam" not in st.session_state:

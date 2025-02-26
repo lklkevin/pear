@@ -1,6 +1,8 @@
-from models import Cohere
+from backend.models import Cohere
 import asyncio
 import ast
+import ast
+
 
 async def generate_questions(questions: list[str], num_new_questions: int) -> list[str]:
     num_questions = len(questions)
@@ -10,24 +12,19 @@ async def generate_questions(questions: list[str], num_new_questions: int) -> li
         prompt_formatter += questions[i] + "\n"
 
     prompt_formatter += f"\nGenerate {num_new_questions} new questions that tackle the same mathematical concepts as the current questions provided. Return the questions as a Python list of strings. Just give me the list and nothing else. Do not include ```python or ``` in the response."
-
-
     model = Cohere()
-    for _ in range(5):
-        try:
-            response = await model.call_model(
-                'command-r-plus-08-2024',
-                'You are an intelligent test creator.',
-                prompt_formatter,
-                temperature=1,
-                is_answer=False
-            )
+    try:
+        response = await model.call_model(
+            prompt_formatter,
+            temperature=1,
+            accept_func=lambda x: ast.literal_eval(x) is not None
+        )
 
-            new_questions = ast.literal_eval(response)
-            return new_questions
+        new_questions = ast.literal_eval(response)
+        return new_questions
 
-        except Exception as e:
-            print(f"Error generating questions: {e}. {response}")
+    except Exception as e:
+        print(f"Error generating questions: {e}. {response}")
 
     return []
 

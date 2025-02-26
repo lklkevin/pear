@@ -1,7 +1,7 @@
 import asyncio
-from questionGenerator import generate_questions
-from answerGenerator import generate_answers
-from exam import Exam
+from backend.questionGenerator import generate_questions
+from backend.answerGenerator import generate_answers
+from backend.exam import Exam
 
 
 def get_int_input(prompt: str) -> int:
