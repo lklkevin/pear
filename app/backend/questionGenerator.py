@@ -1,38 +1,37 @@
-from models import Cohere
+from backend.models import ModelProvider, Cohere
 import asyncio
 import ast
-
-async def generate_questions(questions: list[str], num_new_questions: int) -> list[str]:
-    num_questions = len(questions)
-    prompt_formatter = f"Here are {num_questions} questions:\n"
-
-    for i in range(num_questions):
-        prompt_formatter += questions[i] + "\n"
-
-    prompt_formatter += f"\nGenerate {num_new_questions} new questions that tackle the same mathematical concepts as the current questions provided. Return the questions as a Python list of strings. Just give me the list and nothing else. Do not include ```python or ``` in the response."
+import ast
 
 
-    model = Cohere()
-    for _ in range(5):
-        try:
-            response = await model.call_model(
-                'command-r-plus-08-2024',
-                'You are an intelligent test creator.',
-                prompt_formatter,
-                temperature=1,
-                is_answer=False
-            )
+async def generate_questions(questions: list[str], num_new_questions: int, model: ModelProvider) -> list[str]:
 
-            new_questions = ast.literal_eval(response)
-            return new_questions
+    try:
+        assert len(questions) > 0, "Questions list cannot be empty"
+        assert num_new_questions > 0, "Number of new questions must be greater than 0"
+        num_questions = len(questions)
+        prompt_formatter = f"Here are {num_questions} questions:\n"
 
-        except Exception as e:
-            print(f"Error generating questions: {e}. {response}")
+        for i in range(num_questions):
+            prompt_formatter += questions[i] + "\n"
 
-    return []
+        prompt_formatter += f"\nGenerate {num_new_questions} new questions that tackle the same mathematical concepts as the current questions provided. Return the questions as a Python list of strings. Just give me the list and nothing else. Do not include ```python or ``` in the response."
+        response = await model.call_model(
+            prompt_formatter,
+            temperature=1,
+            accept_func=lambda x: ast.literal_eval(x) is not None
+        )
+
+        new_questions = ast.literal_eval(response)
+        return new_questions
+
+    except Exception as e:
+        print(f"Error generating questions: {e}")
+        return []
 
 # ---------------------- Example Usage ----------------------
 if __name__ == "__main__":
+    model = Cohere()
     questions = [
         "Tom is painting a fence 100 feet long. He starts at the West end of the fence and paints "
         "at a rate of 5 feet per hour. After 2 hours, Huck joins Tom and begins painting from the "
@@ -48,5 +47,5 @@ if __name__ == "__main__":
         "how many bags of cotton candy must be sold?"
     ]
 
-    new_questions = asyncio.run(generate_questions(questions, 3))
+    new_questions = asyncio.run(generate_questions(questions, 3, model))
     print(new_questions)

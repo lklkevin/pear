@@ -72,3 +72,9 @@ config.ini
 .env.*
 .envrc
 *.pem
+
+
+
+app/backend/*txt
+!app/backend/requirements.txt
+app/backend/*pdf

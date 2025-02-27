@@ -6,7 +6,7 @@ import sympy
 from sympy.parsing.latex import parse_latex
 from sympy.parsing.sympy_parser import parse_expr
 import asyncio
-from models import Cohere
+from backend.models import Cohere
 from enum import Enum
 from sympy import Eq, simplify, symbols, cancel
 
@@ -424,13 +424,12 @@ class LLMAnswerComparator:
 
         prompt = f"Evaluate the values within expression 1: <{ans1}> and expression 2: <{ans2}>. Show your steps. It does not matter if the format is different, just tell me if the final value is numerically equal."
         response = await model.call_model(
-            "command-r-plus-08-2024",
-            "You are an examinator and need to decide if 2 answers are equivalent in value. Show your steps and at the end reply with <Yes> or <No>",
             prompt,
-            is_answer=False,
+            preamble="You are an examinator and need to decide if 2 answers are equivalent in value. Show your steps and at the end reply with exactly 'Decision: yes' or 'Decision: no'",
+            accept_func=lambda x: any(s in x.lower().split('decision:')[1].strip() for s in ['yes', 'no']),
             temperature=1,
         )
-        return Equality.EQUAL if "<yes>" in response.lower() else Equality.UNEQUAL
+        return Equality.EQUAL if "yes" in response.lower().split('decision:')[1].strip() else Equality.UNEQUAL
 
     def format_intervals(self, prediction: str) -> str:
         patterns = {
@@ -525,7 +524,6 @@ class LLMAnswerComparator:
         a_is_num, a_val = self.is_digit(a)
         b_is_num, b_val = self.is_digit(b)
         if a_is_num and b_is_num:
-            print("ok")
             is_close = isclose(a_val, b_val, rel_tol=self.tolerance)
             val_method = validation.add_equal if is_close else validation.add_unequal
             val_method("math")

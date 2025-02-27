@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
-from PdfScanner.pdfobject import PDFObject
-from models import ModelProvider, PDFModelProvider
+from backend.PdfScanner.pdfobject import PDFObject
+from backend.models import ModelProvider
 
 
 class PDFScannerInterface(ABC):
@@ -8,7 +8,7 @@ class PDFScannerInterface(ABC):
     Abstract base class defining the PDF scanner interface.
     """
 
-    def __init__(self, image_scanner: PDFModelProvider, text_processor: ModelProvider):
+    def __init__(self, image_scanner: ModelProvider, text_processor: ModelProvider):
         """
         Initializes the scanner with image scanning and text processing APIs.
 
