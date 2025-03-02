@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { FaEyeSlash, FaEye } from "react-icons/fa";
+import InputField from "./inputField";
 
 interface PasswordFieldProps {
   label: string;
@@ -26,26 +26,31 @@ export default function PasswordField({
           <button
             type="button"
             onClick={onForgotPasswordClick}
-            className="text-white underline"
+            className="text-zinc-300 underline"
           >
             Forgot Password?
           </button>
         )}
       </label>
-      <input
-        type={showPassword ? "text" : "password"}
-        className="w-full p-2 mt-1 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500"
-        value={value}
-        onChange={onChange}
-        required
-      />
-      <button
-        type="button"
-        className="mr-1 absolute right-3 top-9 text-zinc-400 hover:text-zinc-200"
-        onClick={() => setShowPassword(!showPassword)}
-      >
-        {showPassword ? <FaEye /> : <FaEyeSlash />}
-      </button>
+      
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          className="w-full p-2 mt-1 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500 pr-10" // Add padding-right for button space
+          value={value}
+          onChange={onChange}
+          required
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute inset-y-0 right-3 top-1 flex items-center text-zinc-400 hover:text-zinc-200"
+        >
+          <span className="material-icons scale-90">
+            {showPassword ? "visibility_off" : "visibility"}
+          </span>
+        </button>
+      </div>
     </div>
-  );
+  ); 
 }
