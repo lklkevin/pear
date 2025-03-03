@@ -47,4 +47,7 @@ jobs:
 
       - name: Run tests
         working-directory: app/backend
+        env:
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: PYTHONPATH=$(pwd) poetry run pytest
