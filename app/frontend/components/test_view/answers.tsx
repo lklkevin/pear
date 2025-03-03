@@ -16,12 +16,12 @@ const containerVariants = {
   visible: {
     opacity: 1,
     height: "auto",
-    transition: { duration: 0.1 },
+    transition: { opacity: { duration: 0.2 }, height: { duration: 0.3 } },
   },
   exit: {
     opacity: 0,
     height: 0,
-    transition: { opacity: { duration: 0.05 }, height: { duration: 0.2 } },
+    transition: { opacity: { duration: 0.2 }, height: { duration: 0.3 } },
   },
 }
 
