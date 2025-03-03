@@ -91,28 +91,15 @@ from backend.validation import LLMAnswerComparator, Equality
         ),
         # Test case where all non-LLM checks fail, requiring LLM verification
         (
-            "5+3",
-            "10",
-            Equality.UNEQUAL,
-            [
-                {"type": "string comparison", "reason": "not equal"},
-                {"type": "math comparison", "reason": "failed"},
-                {"type": "brackets comparison", "reason": "failed"},
-                {"type": "matrices comparison", "reason": "failed"},
-                {"type": "symbolic comparison", "reason": "not equal"},
-            ],
-        ),
-        # Test case where all non-LLM checks fail, requiring LLM verification
-        (
-            "sqrt(16)",
+            "sqrt(25)",
             "5",
-            Equality.UNEQUAL,
+            Equality.EQUAL,
             [
                 {"type": "string comparison", "reason": "not equal"},
                 {"type": "math comparison", "reason": "failed"},
                 {"type": "brackets comparison", "reason": "failed"},
                 {"type": "matrices comparison", "reason": "failed"},
-                {"type": "symbolic comparison", "reason": "not equal"},
+                {"type": "symbolic comparison", "reason": "success"},
             ],
         ),
         # Test case where string comparison succeeds immediately
@@ -131,11 +118,37 @@ from backend.validation import LLMAnswerComparator, Equality
                 {"type": "math comparison", "reason": "not equal"},
             ],
         ),
+        (
+            "The expression is 4.3",
+            "The expression is 2 + 2.3",
+            Equality.EQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "failed"},
+                {"type": "matrices comparison", "reason": "failed"},
+                {"type": "symbolic comparison", "reason": "failed"},
+                {"type": "llm comparison", "reason": "success"},
+            ],
+        ),
+        (
+            "The expression is 4.3",
+            "The expression is 2 + 2.1",
+            Equality.UNEQUAL,
+            [
+                {"type": "string comparison", "reason": "not equal"},
+                {"type": "math comparison", "reason": "failed"},
+                {"type": "brackets comparison", "reason": "failed"},
+                {"type": "matrices comparison", "reason": "failed"},
+                {"type": "symbolic comparison", "reason": "failed"},
+                {"type": "llm comparison", "reason": "not equal"},
+            ],
+        ),
     ],
 )
-def test_non_llm_answer_comparator(ans1, ans2, expected_status, expected_state):
+def test_llm_answer_comparator(ans1, ans2, expected_status, expected_state):
     comparator = LLMAnswerComparator(tolerance=1e-5)
-    validation_obj = comparator._llm_answers_equivalent(ans1, ans2)
+    validation_obj = asyncio.run(comparator.llm_answers_equivalent_full(ans1, ans2))
 
     assert (
         validation_obj.status == expected_status
