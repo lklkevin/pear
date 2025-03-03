@@ -6,7 +6,7 @@ export default function GeneratePage() {
     <GenerateLayout>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-16">
         <div>
-          <h1 className="text-3xl sm:text-5xl font-bold">Create Exam</h1>
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight">Create Exam</h1>
           <p className="text-sm sm:text-base text-zinc-400 mt-2 sm:mt-4">
             Simply upload your past exam and press generate. You can optionally
             include a title and description to better tailor your focus.

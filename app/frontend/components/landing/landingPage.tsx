@@ -6,7 +6,7 @@ export default function Home() {
     <LandingLayout>
       {/* Headings Section */}
       <section
-        className="text-center mt-8 lg:mt-16 mb-24"
+        className="text-center mb-24"
         style={{ zIndex: "-10" }}
       >
         <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold md:mb-2 tracking-tight sm:tracking-normal">
