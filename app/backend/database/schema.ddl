@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS User (
     oauth_id TEXT UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP
+    last_login TIMESTAMP DEFAULT NULL
 );
 
 CREATE TABLE IF NOT EXISTS RefreshToken (
@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS Exam (
     color TEXT,  -- hex
     description TEXT,
     public INTEGER DEFAULT FALSE,
-    FOREIGN KEY (owner) REFERENCES user(id)
+    FOREIGN KEY (owner) REFERENCES User(id)
 );
 
 CREATE TABLE IF NOT EXISTS Question (

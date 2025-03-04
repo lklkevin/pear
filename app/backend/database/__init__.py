@@ -1,12 +1,19 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
+
+AuthProvider = Literal["local", "google"]
+SortOrder = Literal["popular", "recent", "N/A"]
+Filter = Literal["favourites", "mine", "N/A"]
 
 class DataAccessObject(ABC):
     """A database access object to interface with user data."""
     
     @abstractmethod
-    def user_exists(self, username: str, email: str) -> bool:
+    def user_exists(self, 
+        username: Optional[str], 
+        email: Optional[str]
+    ) -> bool:
         """Return whether the username or email already exists in the database.
 
         Args:
@@ -20,8 +27,13 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def add_user(self, username: str, email: str, password: str,
-                 auth_provider: str) -> None:
+    def add_user(self, 
+        username: str, 
+        email: str, 
+        password: str,
+        auth_provider: AuthProvider, 
+        oauth_id: Optional[str] = None
+    ) -> None:
         """Insert a new user in the database with the given information.
 
         Args:
@@ -30,6 +42,8 @@ class DataAccessObject(ABC):
             password: The hashed password of the user.
             auth_provider: The authentication provider used to create the 
                            account.
+            oauth_id: The oauth id used by Google if the selected 
+                      authentication provider is Google.
 
         Raises:
             DatabaseError: An error related to the database occurred.
@@ -38,9 +52,10 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_user_by_id(self, id: int
-        ) -> Optional[
-        tuple[str, str, str, str, datetime, datetime, Optional[datetime]]]:
+    def get_user_by_id(self, 
+        id: int
+    ) -> Optional[tuple[str, str, str, AuthProvider, 
+                        datetime, datetime, Optional[datetime]]]:
         """Fetch the user information for the user associated with the given id.
         
         Args:
@@ -72,9 +87,10 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_user_by_email(self, email: str
-        ) -> Optional[
-        tuple[str, str, str, str, datetime, datetime, Optional[datetime]]]:
+    def get_user_by_email(self, 
+        email: str
+    ) -> Optional[tuple[str, str, str, AuthProvider, 
+                        datetime, datetime, Optional[datetime]]]:
         """Fetch the user information for the user associated with the given 
         email.
         
@@ -107,9 +123,10 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_user_by_username(self, username: str
-        ) -> Optional[
-        tuple[str, str, str, str, datetime, datetime, Optional[datetime]]]:
+    def get_user_by_username(self, 
+        username: str
+    ) -> Optional[tuple[str, str, str, AuthProvider, 
+                        datetime, datetime, Optional[datetime]]]:
         """Fetch the user information for the user associated with the given 
         username.
         
@@ -142,7 +159,9 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_refresh_token(self, token: str, revoked: bool
+    def get_refresh_token(self, 
+        token: str, 
+        revoked: bool
     ) -> Optional[tuple[int, datetime, datetime]]:
         """Return the information associated with the given token and revoked 
         status.
@@ -194,30 +213,45 @@ class DataAccessObject(ABC):
     
     @abstractmethod
     def get_exams(self, 
-                  username: str, 
-                  public: bool) -> list[int]:
-        """Return exam ids associated with the given user. 
-        
-        If public is True, then return only the public exams. Otherwise, return
-        all exams.
+        user_id: str,
+        sorting: SortOrder,
+        filter: Filter,
+        title: Optional[str]
+    ) -> list[tuple[int, str, str, str, str]]:
+        """
+        Fetch public exams matching the query.
 
         Args:
-            username: The username of the user.
-            public: Whether if only public exams should be returned.
-        
-        Raises:
-            DatabaseError: An error related to the database occurred.
-            DataError: An error related to the processed data occurred.
+            user_id: The id of the user making this query.
+            sorting: The sorting settings for this query. This is either 
+                     "popular", "recent", or "N/A", determining the order that
+                     queries are returned in.
+            filter: The filtering settings for this query. This is either
+                    "favourites", "mine", or "N/A", determining the type of 
+                    exams being returned.
+            title: The title of the exam that is being searched for.
+
+        Returns:
+            A list of tuples (exam_id, title, description, colour, author) 
+            of exam information matching the search query.
+            
+            exam_id (str): The id of the exam.
+            title (str): The title of the exam.
+            description (str): The description of the exam.
+            colour (str): The hex code of the exam colour.
+            author (str): The username of the exam author.
         """
         raise NotImplementedError
 
     @abstractmethod
     def create_exam(self,
-                    username: str,
-                    name: str,
-                    color: str,
-                    description: str,
-                    public: bool) -> None:
+        username: str,
+        name: str,
+        color: str,
+        description: str,
+        public: bool
+    ) -> None:
+        raise NotImplementedError
         """Insert an empty exam for a given user, with the given options.
 
         Args:
@@ -235,10 +269,11 @@ class DataAccessObject(ABC):
     
     @abstractmethod
     def insert_question(self,
-                        username: str,
-                        exam: str,
-                        question: str,
-                        answers: set[tuple[str, float]]) -> None:
+        username: str,
+        exam: str,
+        question: str,
+        answers: set[tuple[str, float]]
+    ) -> None:
         """Insert a generated question and potential answers for a user exam.
 
         Args:
