@@ -55,7 +55,6 @@ class SQLiteDB(DataAccessObject):
             raise DataError("A password must be provided "
                             "if auth_provider is 'google'.")
 
-        time = datetime.datetime.now()
         try:
             cur = self.conn.cursor()
             cur.execute("INSERT INTO User "

@@ -26,8 +26,8 @@ db = sqlitedb.SQLiteDB()
 def generate_access_token(user_id):
     return jwt.encode({
         'user_id': user_id,
-        'exp': datetime.datetime.now() + app.config['JWT_ACCESS_TOKEN_EXPIRES'],
-        'iat': datetime.datetime.now(),
+        'exp': datetime.datetime.now(datetime.timezone.utc) + app.config['JWT_ACCESS_TOKEN_EXPIRES'],
+        'iat': datetime.datetime.now(datetime.timezone.utc),
         'type': 'access'
     }, app.config['SECRET_KEY'], algorithm="HS256")
 
@@ -35,7 +35,7 @@ def generate_refresh_token(user_id: int) -> str:
     token_value = secrets.token_hex(64)
     
     # Set expiration
-    expires_at = datetime.datetime.now() + app.config['JWT_REFRESH_TOKEN_EXPIRES']
+    expires_at = datetime.datetime.now(datetime.timezone.utc) + app.config['JWT_REFRESH_TOKEN_EXPIRES']
 
     try:
         db.create_refresh_token(user_id, token_value, expires_at)
@@ -142,7 +142,7 @@ def login():
         return jsonify({'message': 'Invalid credentials!'}), 401
     
     # Update last login time
-    db.set_last_login(user[0], datetime.datetime.now())
+    db.set_last_login(user[0], datetime.datetime.now(datetime.timezone.utc))
     
     # Generate tokens
     access_token = generate_access_token(user_id)
@@ -176,7 +176,7 @@ def google_auth():
             db.set_oauth_id(user_id, data['oauth_id'])
         
         # Update last login time
-        db.set_last_login(user_id, datetime.datetime.now())
+        db.set_last_login(user_id, datetime.datetime.now(datetime.timezone.utc))
     else:
         # For Google users, if a username is not provided, generate one based on the email.
         email_prefix = data['email'].split('@')[0]
@@ -219,7 +219,7 @@ def refresh():
     user_id, expires_at, created_at = token_record
     
     # Check if token is expired
-    if datetime.datetime.strptime(expires_at, "%Y-%m-%d %H:%M:%S.%f") < datetime.datetime.now():
+    if datetime.datetime.strptime(expires_at, "%Y-%m-%d %H:%M:%S.%f%z") < datetime.datetime.now(datetime.timezone.utc):
         db.set_revoked_status(data['token'], True)
         return jsonify({'message': 'Refresh token has expired!'}), 401
     

@@ -36,7 +36,7 @@ export default NextAuth({
             name: responseData.username,
             accessToken: responseData.access_token,
             refreshToken: responseData.refresh_token,
-            accessTokenExpires: Date.now() + 15 * 60 * 1000, // 15 min expiration
+            accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 min expiration
           };
         } catch (error) {
           console.error("Google sign-in failed:", error.message);
@@ -76,7 +76,7 @@ export default NextAuth({
             name: responseData.username,
             accessToken: responseData.access_token,
             refreshToken: responseData.refresh_token,
-            accessTokenExpires: Date.now() + 15 * 60 * 1000, // 15 min expiration
+            accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 min expiration
           };
         } catch (error) {
           console.error("Credentials sign-in failed:", error.message);
@@ -87,6 +87,7 @@ export default NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
+      // this callback is used whenever the session is checked, and after first login
       if (user) {
         return {
           ...token,
@@ -141,7 +142,7 @@ async function refreshAccessToken(token) {
       ...token,
       accessToken: responseData.access_token,
       refreshToken: responseData.refresh_token,
-      accessTokenExpires: Date.now() + 15 * 60 * 1000, // 15 min expiration
+      accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 min expiration
     };
   } catch (error) {
     console.error("Error refreshing token:", error.message);
