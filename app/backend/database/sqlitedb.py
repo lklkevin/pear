@@ -3,7 +3,7 @@ import datetime
 
 from typing import Optional
 
-from backend.database import DataAccessObject, AuthProvider, SortOrder, Filter
+from backend.database import DataAccessObject, AuthProvider, SortOrder, Filter, DatabaseError, DataError
 
 
 SCHEMA = "backend/database/schema.ddl"
@@ -23,98 +23,165 @@ class SQLiteDB(DataAccessObject):
         self.conn.commit()
 
     def user_exists(self, 
-        username: Optional[str], 
-        email: Optional[str]
+        username: Optional[str] = None, 
+        email: Optional[str] = None
     ) -> bool:
-        cur = self.conn.cursor()
+        try:
+            cur = self.conn.cursor()
 
-        if username:
-            cur.execute("SELECT * FROM User WHERE username = ?;", (username,))
-        elif email:
-            cur.execute("SELECT * FROM User WHERE email = ?;", (email,))
-        else:
-            return None
-        
-        return cur.fetchone is not None
+            if username:
+                cur.execute("SELECT * FROM User WHERE username = ?;", 
+                            (username,))
+            elif email:
+                cur.execute("SELECT * FROM User WHERE email = ?;", (email,))
+            else:
+                raise TypeError("At least one argument "
+                                "(username, email) is required.")
             
+            return cur.fetchone is not None
+        except sqlite3.DatabaseError:
+            raise DatabaseError
+        except sqlite3.DataError:
+            raise DataError
+        
     def add_user(self, 
         username: str, 
         email: str, 
-        password: str,
+        password: Optional[str],
         auth_provider: AuthProvider, 
         oauth_id: Optional[str] = None
     ) -> None:
-        cur = self.conn.cursor()
+        if password is None and auth_provider == 'local':
+            raise DataError("A password must be provided "
+                            "if auth_provider is 'google'.")
+
         time = datetime.now()
-        
-        cur.execute("INSERT INTO User "
-                    "(username, email, password, auth_provider, oauth_id) "
-                    "VALUES "
-                    "(?, ?, ?, ?, ?);",
-                    (username, email, password, auth_provider, oauth_id))
-        self.conn.commit()
+        try:
+            cur = self.conn.cursor()
+            cur.execute("INSERT INTO User "
+                        "(username, email, password, auth_provider, oauth_id) "
+                        "VALUES "
+                        "(?, ?, ?, ?, ?);",
+                        (username, email, password, auth_provider, oauth_id))
+            self.conn.commit()
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
 
-    def get_user_by_id(self, 
-        id: int
-    ) -> Optional[tuple[str, str, str, AuthProvider, 
+    def get_user(self, 
+        user_id: Optional[int] = None, 
+        username: Optional[str] = None, 
+        email: Optional[str] = None
+    ) -> Optional[tuple[int, str, str, str, AuthProvider, 
                         datetime, datetime, Optional[datetime]]]:
-        cur = self.conn.cursor()
+        if user_id is not None:
+            query, args = "SELECT * FROM User WHERE id = ?;", (user_id,)
+        elif username is not None:
+            query, args = "SELECT * FROM User WHERE username = ?;", (username,)
+        elif email is not None:
+            query, args = "SELECT * FROM User WHERE email = ?;", (email,)
+        else:
+            raise ValueError("At least one argument "
+                             "(user_id, username, or email) is required.")
 
-        cur.execute("SELECT * FROM User "
-                    "WHERE id = ?;",
-                    (id,))
+        try:
+            cur = self.conn.cursor()
+            cur.execute(query, args)
+            return cur.fetchone()
+        except sqlite3.DatabaseError:
+            raise DatabaseError
+        except sqlite3.DataError:
+            raise DataError
 
-        return cur.fetchone()
-            
-    def get_user_by_email(self, 
-        email: str
-    ) -> Optional[tuple[str, str, str, AuthProvider, 
-                        datetime, datetime, Optional[datetime]]]:
-        cur = self.conn.cursor()
-
-        cur.execute("SELECT * FROM User "
-                    "WHERE email = ?;",
-                    (email,))
-
-        return cur.fetchone()
-
-    def get_user_by_username(self, 
-        username: str
-    ) -> Optional[tuple[str, str, str, AuthProvider, 
-                        datetime, datetime, Optional[datetime]]]:
-        cur = self.conn.cursor()
-
-        cur.execute("SELECT * FROM User "
-                    "WHERE username = ?;",
-                    (username,))
-
-        return cur.fetchone()
+    def create_refresh_token(self,
+        user_id: str,
+        token: str,
+        expires_at: datetime
+    ) -> None:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("INSERT INTO RefreshToken "
+                        "(user, token, expires_at) "
+                        "VALUES (?, ?, ?);", (user_id, token, expires_at))
+            self.conn.commit()
+            return None
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
 
     def get_refresh_token(self, 
         token: str, 
-        revoked: bool
+        revoked: Optional[bool]
     ) -> Optional[tuple[int, datetime, datetime]]:
         cur = self.conn.cursor()
 
-        cur.execute("SELECT user, expires_at, created_at FROM RefreshToken "
-                    "WHERE token = ? AND revoked = ?;",
-                    (token, revoked))
-
-        return cur.fetchone()
+        if revoked is not None:
+            query = ("SELECT user, expires_at, created_at FROM RefreshToken "
+                     "WHERE token = ? AND revoked = ? "
+                     "ORDER BY created_at DESC;")
+            args = (token, revoked)
+        else:
+            query = ("SELECT user, expires_at, created_at FROM RefreshToken "
+                     "WHERE token = ? "
+                     "ORDER BY created_at DESC;")
+            args = (token,)
+        
+        try:
+            cur.execute(query, args)
+            return cur.fetchone()
+        except sqlite3.DatabaseError:
+            raise DatabaseError
+        except sqlite3.DataError:
+            raise DataError
+        
     
-    def set_token_revoked(self, token: str, revoked: bool) -> None:
-        cur = self.conn.cursor()
+    def set_revoked_status(self, token: str, revoked: bool) -> None:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("UPDATE RefreshToken "
+                        "SET revoked = ? "
+                        "WHERE token = ?;", (revoked, token))
+            self.conn.commit()
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
 
-        cur.execute("UPDATE RefreshToken "
-                    "SET revoked = ? "
-                    "WHERE token = ?;")
+    def set_oauth_id(user_id: str, oauth_id: str) -> None:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("UPDATE User "
+                        "SET oauth_id = ? "
+                        "WHERE id = ?;", (oauth_id, user_id))
+            self.conn.commit()
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
 
-    def update_last_login(self, username: str, time: datetime) -> bool:
-        cur = self.conn.cursor()
-
-        cur.execute("UPDATE User"
-                    "SET last_login = ?"
-                    "WHERE username = ?")
+    def set_last_login(self, username: str, time: datetime) -> bool:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("UPDATE User"
+                        "SET last_login = ?"
+                        "WHERE username = ?", (time, username))
+            self.conn.commit()
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
 
     def get_exams(self, 
         user_id: str,

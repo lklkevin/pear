@@ -2,7 +2,8 @@ CREATE TABLE IF NOT EXISTS User (
     id INTEGER PRIMARY KEY,  -- separate from username for performance
     username TEXT NOT NULL UNIQUE,
     email TEXT NOT NULL UNIQUE,
-    password TEXT NOT NULL,  -- hashed
+    password TEXT,  -- hashed
+                    -- password can be NULL iff auth_provider == 'google'
     auth_provider TEXT NOT NULL 
         CHECK (auth_provider IN ('local', 'google')),
     oauth_id TEXT UNIQUE,
