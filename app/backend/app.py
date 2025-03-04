@@ -19,7 +19,7 @@ CORS(app)
 # JWT configuration
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)  # Short-lived access tokens
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)    # Long-lived refresh tokens
-
+app.config['SECRET_KEY'] = 'testingtestingtesting'
 db = sqlitedb.SQLiteDB()
 
 # Token generation functions
@@ -35,10 +35,10 @@ def generate_refresh_token(user_id: int) -> str:
     token_value = secrets.token_hex(64)
     
     # Set expiration
-    expires_at = datetime.datetime.utcnow() + app.config['JWT_REFRESH_TOKEN_EXPIRES']
+    expires_at = datetime.datetime.now() + app.config['JWT_REFRESH_TOKEN_EXPIRES']
 
     try:
-        db.create_refresh_token(user_id, token, expires_at)
+        db.create_refresh_token(user_id, token_value, expires_at)
     except (dao.DatabaseError, dao.DataError) as e:
         # XXX: right now there is no explicit handling of a db error when
         #      creating a token, so we might end up with a situation where
@@ -128,18 +128,21 @@ def login():
     # Find the user
     user = db.get_user(email=data['email'])
     
-    if not user or user.auth_provider != 'local':
+    if not user:
         return jsonify({'message': 'Invalid credentials!'}), 401
 
     # unpack user
-    user_id, username, email, password, auth_provider, created_at, updated_at, last_login = user
+    user_id, username, email, password, auth_provider, oauth_id, created_at, updated_at, last_login = user
+    
+    if auth_provider != 'local':
+        return jsonify({'message': 'Invalid credentials!'}), 401
     
     # Verify password
-    if not check_password_hash(user.password, data['password']):
+    if not check_password_hash(password, data['password']):
         return jsonify({'message': 'Invalid credentials!'}), 401
     
     # Update last login time
-    db.set_last_login(user[0], datetime.datetime.utcnow())
+    db.set_last_login(user[0], datetime.datetime.now())
     
     # Generate tokens
     access_token = generate_access_token(user_id)
@@ -163,7 +166,7 @@ def google_auth():
         return jsonify({'message': 'Email and OAuth ID are required!'}), 400
     
     # Check if a user already exists with this email
-    user = get_user(email=data['email'])
+    user = db.get_user(email=data['email'])
     
     if user:
         # If user exists and is a local account, only update oauth_id if it's missing
@@ -173,7 +176,7 @@ def google_auth():
             db.set_oauth_id(user_id, data['oauth_id'])
         
         # Update last login time
-        db.set_last_login(user_id, datetime.datetime.utcnow())
+        db.set_last_login(user_id, datetime.datetime.now())
     else:
         # For Google users, if a username is not provided, generate one based on the email.
         email_prefix = data['email'].split('@')[0]
@@ -193,7 +196,7 @@ def google_auth():
     
     return jsonify({
         'id': user_id,
-        'email': email,
+        'email': data['email'],
         'username': username,
         'auth_provider': auth_provider,
         'access_token': access_token,
@@ -208,7 +211,7 @@ def refresh():
         return jsonify({'message': 'Refresh token is required!'}), 400
     
     # Find the refresh token in the database
-    token_record = db.get_refresh_token(data['refresh_token'], )
+    token_record = db.get_refresh_token(data['refresh_token'], False)
     
     if not token_record:
         return jsonify({'message': 'Invalid refresh token!'}), 401
@@ -216,7 +219,7 @@ def refresh():
     user_id, expires_at, created_at = token_record
     
     # Check if token is expired
-    if expires_at < datetime.datetime.utcnow():
+    if datetime.datetime.strptime(expires_at, "%Y-%m-%d %H:%M:%S.%f") < datetime.datetime.now():
         db.set_revoked_status(data['token'], True)
         return jsonify({'message': 'Refresh token has expired!'}), 401
     
@@ -227,10 +230,10 @@ def refresh():
         return jsonify({'message': 'User not found!'}), 401
     
     # Generate new access token
-    access_token = generate_access_token(user.id)
+    access_token = generate_access_token(user_id)
     
     # Token rotation: revoke the old refresh token and generate a new one
-    db.set_revoked_status(data['token'], True)
+    db.set_revoked_status(data['refresh_token'], True)
     new_refresh_token = generate_refresh_token(user_id)
     
     return jsonify({
@@ -246,12 +249,14 @@ def logout():
         return jsonify({'message': 'Refresh token is required!'}), 400
     
     # Revoke the refresh token
-    token_record = db.get_refresh_token(data['refresh_token'])
-    token_record = RefreshToken.query.filter_by(token=data['refresh_token']).first()
+    token_record = db.get_refresh_token(data['refresh_token'], False)
+    # token_record = RefreshToken.query.filter_by(token=data['refresh_token']).first()
     
     if token_record:
-        token_record.revoked = True
-        db.session.commit()
+        db.set_revoked_status(data['refresh_token'], True)
+    else:
+        return jsonify({'message': 'Invalid refresh token!'}), 400
+
     
     return jsonify({'message': 'Successfully logged out!'}), 200
 
@@ -260,12 +265,10 @@ def logout():
 @token_required
 def get_profile(current_user):
     return jsonify({
-        'id': current_user.id,
-        'email': current_user.email,
-        'username': current_user.username,
-        'auth_provider': current_user.auth_provider,
-        'created_at': current_user.created_at.isoformat() if current_user.created_at else None,
-        'last_login': current_user.last_login.isoformat() if current_user.last_login else None
+        'id': current_user[0],
+        'email': current_user[2],
+        'username': current_user[1],
+        'auth_provider': current_user[4]
     }), 200
 
 if __name__ == '__main__':
