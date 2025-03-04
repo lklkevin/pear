@@ -1,14 +1,16 @@
-import { useSession } from "next-auth/react";
+import { getSession } from "next-auth/react";
 
 export default function Dashboard() {
-  const { data: session } = useSession();
-
   const fetchProtectedData = async () => {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`, {
-      headers: {
-        Authorization: `Bearer ${session?.accessToken}`,
-      },
-    });
+    const session = await getSession(); // ensures we call the jwt callback here
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`,
+      {
+        headers: {
+          Authorization: `Bearer ${session?.accessToken}`,
+        },
+      }
+    );
 
     const data = await res.json();
     console.log(data);

@@ -26,8 +26,8 @@ db = sqlitedb.SQLiteDB()
 def generate_access_token(user_id):
     return jwt.encode({
         'user_id': user_id,
-        'exp': datetime.datetime.utcnow() + app.config['JWT_ACCESS_TOKEN_EXPIRES'],
-        'iat': datetime.datetime.utcnow(),
+        'exp': datetime.datetime.now() + app.config['JWT_ACCESS_TOKEN_EXPIRES'],
+        'iat': datetime.datetime.now(),
         'type': 'access'
     }, app.config['SECRET_KEY'], algorithm="HS256")
 
