@@ -17,7 +17,7 @@ class SQLiteDB(DataAccessObject):
         with open(SCHEMA, "r") as file:
             ddl_script = file.read()
 
-        self.conn = sqlite3.connect(filename)
+        self.conn = sqlite3.connect(filename, check_same_thread=False)
         cur = self.conn.cursor()
         cur.executescript(ddl_script)  # read the schema into the db
         self.conn.commit()
@@ -38,7 +38,7 @@ class SQLiteDB(DataAccessObject):
                 raise TypeError("At least one argument "
                                 "(username, email) is required.")
             
-            return cur.fetchone is not None
+            return cur.fetchone() is not None
         except sqlite3.DatabaseError:
             raise DatabaseError
         except sqlite3.DataError:
@@ -55,7 +55,6 @@ class SQLiteDB(DataAccessObject):
             raise DataError("A password must be provided "
                             "if auth_provider is 'google'.")
 
-        time = datetime.now()
         try:
             cur = self.conn.cursor()
             cur.execute("INSERT INTO User "
@@ -75,7 +74,7 @@ class SQLiteDB(DataAccessObject):
         user_id: Optional[int] = None, 
         username: Optional[str] = None, 
         email: Optional[str] = None
-    ) -> Optional[tuple[int, str, str, str, AuthProvider, 
+    ) -> Optional[tuple[int, str, str, str, AuthProvider, Optional[str],
                         datetime, datetime, Optional[datetime]]]:
         if user_id is not None:
             query, args = "SELECT * FROM User WHERE id = ?;", (user_id,)
@@ -172,7 +171,7 @@ class SQLiteDB(DataAccessObject):
     def set_last_login(self, username: str, time: datetime) -> bool:
         try:
             cur = self.conn.cursor()
-            cur.execute("UPDATE User"
+            cur.execute("UPDATE User "
                         "SET last_login = ?"
                         "WHERE username = ?", (time, username))
             self.conn.commit()

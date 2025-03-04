@@ -61,7 +61,7 @@ class DataAccessObject(ABC):
         user_id: Optional[int] = None, 
         username: Optional[str] = None, 
         email: Optional[str] = None
-    ) -> Optional[tuple[int, str, str, str, AuthProvider, 
+    ) -> Optional[tuple[int, str, str, str, AuthProvider, Optional[str],
                         datetime, datetime, Optional[datetime]]]:
         """Fetch the user information for the user according to the given
         information.
