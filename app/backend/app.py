@@ -1,14 +1,14 @@
+from functools import wraps
 import datetime
 import secrets
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from functools import wraps
 import jwt
-import uuid
 from werkzeug.security import generate_password_hash, check_password_hash
 
-import backend.database as db
+import backend.database as dao
+import backend.database.sqlitedb as sqlitedb
 
 
 app = Flask(__name__)
@@ -20,7 +20,7 @@ CORS(app)
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)  # Short-lived access tokens
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)    # Long-lived refresh tokens
 
-db = db.sqlitedb.SQLiteDB()
+db = sqlitedb.SQLiteDB()
 
 # Token generation functions
 def generate_access_token(user_id):
@@ -39,7 +39,7 @@ def generate_refresh_token(user_id: int) -> str:
 
     try:
         db.create_refresh_token(user_id, token, expires_at)
-    except DatabaseError as e:
+    except (dao.DatabaseError, dao.DataError) as e:
         # XXX: right now there is no explicit handling of a db error when
         #      creating a token, so we might end up with a situation where
         #      a refresh token but was not stored
@@ -79,7 +79,7 @@ def token_required(f):
             return jsonify({'message': 'Token has expired!', 'code': 'token_expired'}), 401
         except jwt.InvalidTokenError:
             return jsonify({'message': 'Invalid token!'}), 401
-        except DatabaseError:
+        except dao.DatabaseError:
             return jsonify({'message': 'Error retrieving user information!'})
             
         return f(current_user, *args, **kwargs)
@@ -105,7 +105,7 @@ def signup():
     try:
         auth_provider = 'local'
         new_id = db.add_user(data['username'], data['email'], hashed_password, auth_provider)
-    except IntegrityError:
+    except dao.DataError:
         return jsonify({'message': 'Username or email already in use!'}), 409   
     
     # Generate tokens
@@ -184,7 +184,7 @@ def google_auth():
             # password is None here as no password is required when signing in
             # using Google as the auth provider
             user_id = db.add_user(username, data['email'], None, 'google', data['oauth_id'])
-        except IntegrityError:
+        except dao.DataError:
             return jsonify({'message': 'Error creating user!'}), 500
     
     # Generate tokens
@@ -269,6 +269,4 @@ def get_profile(current_user):
     }), 200
 
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Create database tables if they don't exist
     app.run(debug=True)
