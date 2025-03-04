@@ -104,3 +104,7 @@ npx jest
 We utilize the Pytest python framework for our automated testing in the backend. 
 
 Currently we only have test coverage across our `validator` module, however we plan on expanding our coverage to the other modules that rely on API calls to ensure stability.
+
+### CI/CD
+1. We are using various pre-commit hooks to ensure consistent coding conventions and formatting such as ```black```.
+2. We run automated testing when a PR is merged using ```GitHub Actions``` to ensure correct functionality.
