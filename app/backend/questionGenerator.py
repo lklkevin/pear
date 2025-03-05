@@ -15,7 +15,9 @@ async def generate_questions(questions: list[str], num_new_questions: int, model
         for i in range(num_questions):
             prompt_formatter += questions[i] + "\n"
 
-        prompt_formatter += f"\nGenerate {num_new_questions} new questions that tackle the same mathematical concepts as the current questions provided. Return the questions as a Python list of strings. Just give me the list and nothing else. Do not include ```python or ``` in the response."
+        prompt_formatter += f"\nGenerate {num_new_questions} new questions that tackle the same mathematical concepts " \
+                            f"as the current questions provided. Return the questions as a Python list of strings. " \
+                            f"Just give me the list and nothing else. Do not include ```python or ``` in the response."
         response = await model.call_model(
             prompt_formatter,
             temperature=1,

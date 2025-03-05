@@ -1,3 +1,4 @@
+import asyncio
 from functools import wraps
 import datetime
 import secrets
@@ -9,6 +10,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import backend.database as dao
 import backend.database.sqlitedb as sqlitedb
+import backend.examGenerator as eg
 
 
 app = Flask(__name__)
@@ -270,6 +272,142 @@ def get_profile(current_user):
         'username': current_user[1],
         'auth_provider': current_user[4]
     }), 200
+
+
+@app.route('/api/exam/generate', methods=['POST'])
+def generate_exam():
+    max_questions = 10
+
+    if 'files' not in request.files:
+        return jsonify({'message': 'No files provided!'}), 400
+
+    files = request.files.getlist('files')
+    title = request.form.get('title')
+    description = request.form.get('description')
+    num_questions = request.form.get('num_questions')  # Correct field name
+
+    if not title or not description:
+        return jsonify({'message': 'Title and description are required!'}), 400
+
+    # Ensure num_questions is an integer
+    try:
+        num_questions = int(num_questions)
+    except (TypeError, ValueError):
+        return jsonify({'message': 'Invalid number of questions'}), 400
+
+    if num_questions > max_questions:
+        return jsonify({'message': f"Too many questions for guest user (max {max_questions})."}), 400
+    elif num_questions <= 0:
+        return jsonify({'message': 'Cannot generate fewer than 1 question.'}), 400
+
+    try:
+        # Read PDF file data before passing
+        pdf_data_list = [file.stream.read() for file in files]
+
+        # Process the PDF files and generate the exam
+        exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, num_questions))
+
+        return jsonify({
+            "title": title,
+            "description": description,
+            "questions": [
+                {
+                    "question": q,
+                    "answers": exam.get_all_answers(q)  # Include all answers with confidence
+                }
+                for q in exam.get_question()
+            ]
+        }), 200
+
+    except Exception as e:
+        print(f"Error generating exam: {e}")
+        return jsonify({'message': 'An error occurred while generating the exam'}), 500
+
+
+@app.route('/api/exam/generate/save', methods=['POST'])
+@token_required
+def generate_and_save_exam(current_user):
+    if 'files' not in request.files:
+        return jsonify({'message': 'No files provided!'}), 400
+
+    files = request.files.getlist('files')
+    title = request.form.get('title')
+    description = request.form.get('description')
+    color = request.form.get('color')
+    privacy = request.form.get('privacy')
+
+    if not title or not description or not color or privacy is None:
+        return jsonify({'message': 'Title, description, color, and privacy are required!'}), 400
+
+    try:
+        # Convert privacy to boolean
+        privacy = bool(int(privacy))
+    except ValueError:
+        return jsonify({'message': 'Privacy must be 0 (private) or 1 (public).'}), 400
+
+    try:
+        # Read file contents
+        pdf_data_list = [file.stream.read() for file in files]
+
+        # Process the PDF files and generate the exam
+        exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, 10))  # Adjust num_questions as needed
+    except Exception as e:
+        print(f"Error generating exam: {e}")
+        return jsonify({'message': 'An error occurred while generating the exam'}), 500
+
+    # Save the exam to the database
+    exam_id = db.add_exam(
+        username=current_user[1],  # Assuming current_user tuple: (id, username, email, ...)
+        examname=title,
+        color=color,
+        description=description,
+        public=privacy
+    )
+
+    # Insert questions and answers into the database
+    for index, question_text in enumerate(exam.get_question(), start=1):
+        answers = exam.get_all_answers(question_text)
+        db.insert_question(index, exam_id, question_text, set(answers.items()))
+
+    return jsonify({'exam_id': exam_id, 'message': 'Exam successfully created and saved!'}), 201
+
+
+@app.route('/api/exam/generate/save-after', methods=['POST'])
+@token_required
+def save_exam_after_generate(current_user):
+    data = request.get_json()
+
+    # Validate input fields
+    required_fields = ["title", "description", "color", "privacy", "questions"]
+    if not all(field in data and data[field] for field in required_fields):
+        return jsonify({'message': 'Title, description, color, privacy, and questions are required!'}), 400
+
+    # Extract values from JSON
+    title = data["title"]
+    description = data["description"]
+    color = data["color"]
+    privacy = bool(data["privacy"])  # Ensure privacy is a boolean
+    questions = data["questions"]
+
+    # Save the exam to the database
+    exam_id = db.add_exam(
+        username=current_user[1],  # Assuming current_user is a tuple (id, username, email, ...)
+        examname=title,
+        color=color,
+        description=description,
+        public=privacy
+    )
+
+    # Insert questions into the database (insert_question already handles inserting answers)
+    for index, question_data in enumerate(questions, start=1):
+        question_text = question_data["question"]
+        answers = question_data["answers"]  # Dictionary of answer -> confidence
+
+        # Insert question (this will also insert answers internally)
+        db.insert_question(index, exam_id, question_text, set(answers.items()))
+
+    return jsonify({'exam_id': exam_id}), 201
+
 
 if __name__ == '__main__':
     app.run(debug=True)

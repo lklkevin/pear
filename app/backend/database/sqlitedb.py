@@ -11,7 +11,7 @@ SCHEMA = "backend/database/schema.ddl"
 class SQLiteDB(DataAccessObject):
     """An SQLite implementation of the data access object."""
     conn: sqlite3.Connection
-    
+
     def __init__(self, filename: str = "backend/database/sqlite.db"):
         """Initialise the database with the given filename."""
         with open(SCHEMA, "r") as file:
@@ -22,33 +22,33 @@ class SQLiteDB(DataAccessObject):
         cur.executescript(ddl_script)  # read the schema into the db
         self.conn.commit()
 
-    def user_exists(self, 
-        username: Optional[str] = None, 
+    def user_exists(self,
+        username: Optional[str] = None,
         email: Optional[str] = None
     ) -> bool:
         try:
             cur = self.conn.cursor()
 
             if username:
-                cur.execute("SELECT * FROM User WHERE username = ?;", 
+                cur.execute("SELECT * FROM User WHERE username = ?;",
                             (username,))
             elif email:
                 cur.execute("SELECT * FROM User WHERE email = ?;", (email,))
             else:
                 raise TypeError("At least one argument "
                                 "(username, email) is required.")
-            
+
             return cur.fetchone() is not None
         except sqlite3.DatabaseError:
             raise DatabaseError
         except sqlite3.DataError:
             raise DataError
-        
-    def add_user(self, 
-        username: str, 
-        email: str, 
+
+    def add_user(self,
+        username: str,
+        email: str,
         password: Optional[str],
-        auth_provider: AuthProvider, 
+        auth_provider: AuthProvider,
         oauth_id: Optional[str] = None
     ) -> None:
         if password is None and auth_provider == 'local':
@@ -70,9 +70,9 @@ class SQLiteDB(DataAccessObject):
             self.conn.rollback()
             raise DataError
 
-    def get_user(self, 
-        user_id: Optional[int] = None, 
-        username: Optional[str] = None, 
+    def get_user(self,
+        user_id: Optional[int] = None,
+        username: Optional[str] = None,
         email: Optional[str] = None
     ) -> Optional[tuple[int, str, str, str, AuthProvider, Optional[str],
                         datetime, datetime, Optional[datetime]]]:
@@ -114,8 +114,8 @@ class SQLiteDB(DataAccessObject):
             self.conn.rollback()
             raise DataError
 
-    def get_refresh_token(self, 
-        token: str, 
+    def get_refresh_token(self,
+        token: str,
         revoked: Optional[bool]
     ) -> Optional[tuple[int, datetime, datetime]]:
         cur = self.conn.cursor()
@@ -130,7 +130,7 @@ class SQLiteDB(DataAccessObject):
                      "WHERE token = ? "
                      "ORDER BY created_at DESC;")
             args = (token,)
-        
+
         try:
             cur.execute(query, args)
             return cur.fetchone()
@@ -138,8 +138,8 @@ class SQLiteDB(DataAccessObject):
             raise DatabaseError
         except sqlite3.DataError:
             raise DataError
-        
-    
+
+
     def set_revoked_status(self, token: str, revoked: bool) -> None:
         try:
             cur = self.conn.cursor()
@@ -182,7 +182,7 @@ class SQLiteDB(DataAccessObject):
             self.conn.rollback()
             raise DataError
 
-    def get_exams(self, 
+    def get_exams(self,
         user_id: str,
         sorting: SortOrder,
         filter: Filter,
@@ -190,23 +190,68 @@ class SQLiteDB(DataAccessObject):
     ) -> list[tuple[int, str, str, str, str]]:
         raise NotImplementedError
 
-    def create_exam(self,
+    def add_exam(self,
         username: str,
-        name: str,
+        examname: str,
         color: str,
         description: str,
         public: bool
-    ) -> None:
-        raise NotImplementedError
+    ) -> int:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("INSERT INTO Exam (name, date, owner, color, description, public) "
+                        "VALUES (?, datetime('now'), (SELECT id FROM User WHERE username = ?), ?, ?, ?);",
+                        (examname, username, color, description, int(public)))
+            exam_id = cur.lastrowid
+            self.conn.commit()
+            return exam_id
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
 
     def insert_question(self,
-        username: str,
-        exam: str,
+        question_number: int,
+        exam_id: int,
         question: str,
         answers: set[tuple[str, float]]
     ) -> None:
-        raise NotImplementedError
-    
+        try:
+            cur = self.conn.cursor()
+            cur.execute("INSERT INTO Question (number, exam, question) VALUES (?, ?, ?);",
+                        (question_number, exam_id, question))
+            question_id = cur.lastrowid
+
+            for answer, confidence in answers:
+                self.insert_answer(question_id, answer, confidence)
+
+            self.conn.commit()
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
+
+    def insert_answer(self,
+        questionId: int,
+        answer: str,
+        answer_confidence: float
+    ) -> None:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("INSERT INTO Answer (question, answer, confidence) VALUES (?, ?, ?);",
+                        (questionId, answer, answer_confidence))
+            self.conn.commit()
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
+
 
 if __name__ == "__main__":
     db = SQLiteDB()
