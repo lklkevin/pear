@@ -1,25 +1,45 @@
 import React, { useState } from "react";
-import { useRouter } from "next/router"; // Import useRouter
+import { useRouter } from "next/router"; 
 import { FaGoogle } from "react-icons/fa";
 import InputField from "../form/inputField";
 import PasswordField from "../form/passwordField";
 import SubmitButton from "../form/submitButton";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useErrorStore } from "../../store/store";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const router = useRouter(); 
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Mock authentication - replace with your actual authentication logic
-    if (!email || !password) {
-      alert("Please enter valid credentials");
-      return;
+    setLoading(true);
+    useErrorStore.getState().setError(null);
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false, // Prevent auto redirect
+      });
+
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+
+      router.push("/"); 
+    } catch (error) {
+      if (error instanceof Error) {
+        useErrorStore.getState().setError(error.message || "Login failed");
+      } else {
+        useErrorStore.getState().setError("Login failed");
+      }
+    } finally {
+      setLoading(false);
     }
-    router.push("/");
   };
 
   return (
@@ -35,7 +55,7 @@ const Login: React.FC = () => {
             showForgotPassword={true} 
           />
 
-          <SubmitButton text="Log in" loading={false} />
+          <SubmitButton text="Log in" loading={loading} />
         </form>
 
         <div className="flex items-center my-4">
@@ -44,7 +64,8 @@ const Login: React.FC = () => {
           <hr className="flex-grow border-zinc-700" />
         </div>
 
-        <button className="w-full flex items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700">
+        <button className="w-full flex items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700"
+          onClick={() => signIn("google")}>
           <span className="mr-2"><FaGoogle /></span> Continue with Google
         </button>
 
