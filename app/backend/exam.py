@@ -10,6 +10,23 @@ class Exam:
         """Adds a question to the exam."""
         self.questions.append(question)
 
+    def get_question(self, index: int = None) -> Union[str, List[str]]:
+        """
+        Retrieves a specific question by index or all questions if no index is provided.
+
+        Args:
+            index (int, optional): The index of the question to retrieve.
+
+        Returns:
+            Union[str, List[str]]: A specific question if index is provided, otherwise all questions.
+        """
+        if index is None:
+            return self.questions  # Return all questions
+        elif 0 <= index < len(self.questions):
+            return self.questions[index]  # Return the question at the specified index
+        else:
+            raise IndexError("Question index out of range")
+
     def add_answers(self, question: str, answers: Dict[str, Union[int, float]]):
         """
         Stores all answers with their confidence and selects the highest-confidence answer.
@@ -48,11 +65,20 @@ class Exam:
     def display_exam(self):
         """Prints all questions with their best answer and confidence scores."""
         for question in self.questions:
-            print(f"Question: {question}")
+            print("\n" + "=" * 80)
+            print(f"📌 **Question:** {question}")
             all_answers = self.answer_confidence.get(question, {})
             best_answer = self.answers.get(question, "No answer available")
 
-            print(f"  - Best Answer: {best_answer} (Confidence: {all_answers.get(best_answer, 0):.2f})")
-            print("  - All Answers:")
-            for answer, confidence in all_answers.items():
-                print(f"    - {answer}: {confidence:.2f}")
+            print(f"✅ **Best Answer:** {best_answer} (Confidence: {all_answers.get(best_answer, 0):.2f}%)")
+
+            if all_answers:
+                print("\n💡 **All Answers & Confidence Scores:**")
+                # Sort answers by confidence in descending order
+                sorted_answers = sorted(all_answers.items(), key=lambda x: x[1], reverse=True)
+                for answer, confidence in sorted_answers:
+                    best_marker = "🌟" if answer == best_answer else "   "
+                    print(f"  {best_marker} {answer} → {confidence:.2f}%")
+            else:
+                print("\n⚠️ No answers available for this question.")
+

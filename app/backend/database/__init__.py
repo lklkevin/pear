@@ -217,7 +217,7 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def create_exam(self,
+    def add_exam(self,
         username: str,
         name: str,
         color: str,
@@ -242,11 +242,11 @@ class DataAccessObject(ABC):
     
     @abstractmethod
     def insert_question(self,
-        username: str,
-        exam: str,
+        question_number: int,
+        exam_id: int,
         question: str,
         answers: set[tuple[str, float]]
-    ) -> None:
+        ) -> None:
         """Insert a generated question and potential answers for a user exam.
 
         Args:
@@ -262,6 +262,24 @@ class DataAccessObject(ABC):
         Raises:
             DatabaseError: An error related to the database occurred.
             DataError: An error related to the processed data occurred.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def insert_answer(self,
+                      question_id: int,
+                      answer: str,
+                      answer_confidence: float) -> None:
+        """Insert an answer for a specific question in an exam.
+
+        Args:
+            question_id (int): The ID of the question this answer belongs to.
+            answer (str): The generated answer text.
+            answer_confidence (float): The confidence score of the answer.
+
+        Raises:
+            DatabaseError: If an error occurs while interacting with the database.
+            DataError: If there is an issue with the provided data.
         """
         raise NotImplementedError
 
