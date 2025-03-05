@@ -3,11 +3,70 @@ import FileUpload from "../form/fileUpload";
 import GreenButton from "../ui/longButtonGreen";
 import Link from "next/link";
 import { useState } from "react";
+import { useSession, getSession } from "next-auth/react";
+import Counter from "./counter";
+import { useErrorStore } from "@/store/store";
 
 export default function ExamForm() {
   const [files, setFiles] = useState<File[]>([]);
+  const [count, setCount] = useState(5);
   const [examTitle, setExamTitle] = useState("");
   const [examDescription, setExamDescription] = useState("");
+  const { data: session } = useSession();
+
+  const handleGenerate = async () => {
+    // If there's no active session (i.e., guest user)
+    if (!session) {
+      // Clear any previous errors in the global state
+      useErrorStore.getState().setError(null);
+
+      // Prepare the FormData with all required fields and files
+      const formData = new FormData();
+      files.forEach((file) => formData.append("files", file));
+      formData.append("title", examTitle || "Untitled Exam");
+      formData.append("description", examDescription || "No description was provided");
+      formData.append("num_questions", count.toString());
+      console.log(formData)
+
+      try {
+        // Make the POST request to the backend endpoint
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate`,
+          {
+            method: "POST",
+            body: formData,
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          // Throw an error to be caught below if response not OK
+          useErrorStore.getState().setError("Error generating exam");
+        }
+
+        if (result.message) {
+          useErrorStore.getState().setError(result.message);
+        } else {
+          console.log("Exam generated successfully:", result);
+        }
+        // For example, you could redirect or update state here:
+        // router.push("/generated");
+      } catch (error) {
+        // Handle errors by setting the global error state
+        if (error instanceof Error) {
+          useErrorStore
+            .getState()
+            .setError(error.message || "Error generating exam");
+        } else {
+          useErrorStore.getState().setError("Error generating exam");
+        }
+      }
+    } else {
+      // Optionally handle the case for authenticated users
+      console.log("Authenticated user detected. Handle accordingly if needed.");
+    }
+  };
 
   return (
     <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-16 h-full">
@@ -43,12 +102,23 @@ export default function ExamForm() {
             value={examDescription}
             onChange={(e) => setExamDescription(e.target.value)}
           />
+
+          <div className="mt-4 sm:mt-8 mb-2 sm:mb-4 flex flex-row justify-between">
+            <h3 className="text-lg sm:text-xl font-semibold">
+              Questions
+            </h3>
+            <Counter
+              value={count}
+              onChange={setCount}
+              min={1}
+              max={10}
+              step={1}
+            />
+          </div>
         </div>
         {/* mt-auto pushes the button container to the bottom */}
         <div className="text-lg mt-auto">
-          <Link href={"/generated"}>
-            <GreenButton text="Generate" />
-          </Link>
+          <GreenButton text="Generate" onClick={handleGenerate}/>
         </div>
       </div>
     </div>
