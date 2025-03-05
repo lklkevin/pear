@@ -109,7 +109,7 @@ Keep only the question part of the question, do not preserve any extra formattin
             answer = section[a_index + len("answer:"):].strip()
 
             # Validate the extracted question.
-            if not await self._validate_question(question):
+            if not await self.validate_question(question):
                 print(f"Invalid question skipped: {question}")
                 continue
 
@@ -117,7 +117,7 @@ Keep only the question part of the question, do not preserve any extra formattin
 
         return PDFObject(qa_pairs)
 
-    async def _validate_question(self, question: str) -> bool:
+    async def validate_question(self, question: str) -> bool:
         """
         Validates whether a given question meets the expected format.
 
@@ -133,14 +133,17 @@ text based questions that result in a singular answer.
 
 You will be given an exam question and respond whether it is satisfactory to be included in the math exam.
 For your criteria, be generous to the question, and just try to exclude gibberish or non-math questions, as long
-as you can look at it and see what computation needs to be done.
+as you can look at it and see what computation needs to be done or if it can be answered with a single number or word.
 You can assume that just a formula by itself means to solve that formula and is a valid question.
 
-In your response, only include the word 'yes' or 'no'
+In your response, only include the word 'yes' or 'no'.
 
 Here is the question:
 {question}
 """
+        if question == "":
+            return False
+
         response = await self.text_processor.call_model(
             prompt,
             accept_func=lambda x: any(s in x.lower() for s in ['yes', 'no'])
@@ -149,13 +152,15 @@ Here is the question:
         if response is None:
             return False
 
-        return 'yes' in response
+        return 'yes' in response.lower()
 
 
 if __name__ == "__main__":
     pdf_model = GeminiModel()
     text_model = Cohere('command-r-plus-08-2024')
     scanner = GeminiPDFScanner(pdf_model, text_model)
-    result = asyncio.run(scanner.scan_pdfs(["./backend/tests/example_pdfs/math_12.pdf"]))[0]
-    for question in result:
-        print(question)
+    # asyncio.run(scanner._validate_question("|x-4|<2 is equivalent to"))
+    result = asyncio.run(scanner.scan_pdfs(["math_12.pdf"]))[0]
+    for question, answer in result:
+        print("Question:", question)
+        print("Answer:", answer)
