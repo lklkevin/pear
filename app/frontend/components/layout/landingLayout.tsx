@@ -16,7 +16,7 @@ const LandingLayout = ({ children }: { children: React.ReactNode }) => {
         />
         {/* Green Glow on the left */}
         <Glow
-          className="top-[25%] md:top-[20%] lg:top-[10%] left-[25%] sm:left-[30%] md:left-[20%] xl:left-[25%] 2xl:left-[30%]
+          className="top-[20%] md:top-[20%] lg:top-[10%] left-[25%] sm:left-[30%] md:left-[20%] xl:left-[25%] 2xl:left-[30%]
              w-[450px] h-[450px] md:w-[600px] md:h-[600px] lg:w-[900px] lg:h-[900px]"
           background="radial-gradient(ellipse, rgba(6,95,70,0.75) 0%, transparent 70%)"
         />

@@ -1,2 +1,80 @@
-.env
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
 venv/
+.env
+.venv/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Logs and databases
+*.log
+*.sqlite3
+*.db
+*.pyo
+
+# Django/Pytest/Coverage
+*.pytest_cache/
+.coverage
+htmlcov/
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.cache
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.iml
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Flask-related
+instance/
+*.pid
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# Gunicorn
+gunicorn-error.log
+
+# MyPy
+.mypy_cache/
+
+# Pyright
+pyrightconfig.json
+
+# Security / Secrets
+secrets.json
+config.yaml
+config.ini
+.env.*
+.envrc
+*.pem
+
+
+
+app/backend/*txt
+!app/backend/requirements.txt
+app/backend/*pdf

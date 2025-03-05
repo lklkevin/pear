@@ -12,16 +12,16 @@ const dmMono = DM_Mono({
 
 // Animation variants for the answer container
 const containerVariants = {
-  hidden: { opacity: 0, height: 0 }, // Start collapsed
+  hidden: { opacity: 0, height: 0 },
   visible: {
     opacity: 1,
-    height: "auto", // Expand to fit content
-    transition: { duration: 0.4 }, // Smooth transition
+    height: "auto",
+    transition: { duration: 0.1 },
   },
   exit: {
     opacity: 0,
     height: 0,
-    transition: { duration: 0.5 }, // Slightly longer fade-out
+    transition: { opacity: { duration: 0.05 }, height: { duration: 0.2 } },
   },
 }
 
@@ -30,13 +30,12 @@ const textVariants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { delay: 0.2, duration: 0.5 }, // Delayed fade-in for smooth appearance
   },
   exit: {
-    opacity: 0,
-    transition: { duration: 0.2 }, // Faster fade-out
+    opacity: 0
   },
 }
+
 
 // Define props for the AnswerSection component
 interface AnswerSectionProps {
@@ -120,10 +119,9 @@ export default function AnswerSection({
                       {validAlternatives.map((alt, index) => (
                         <motion.div
                           key={index}
-                          initial={{ opacity: 0, y: 20 }} // Start slightly below
-                          animate={{ opacity: 1, y: 0 }} // Slide up into place
-                          exit={{ opacity: 0, y: -10 }} // Fade and move slightly up on exit
-                          transition={{ delay: 0.2 + index * 0.1, duration: 0.3 }}
+                          initial={{ opacity: 0 }} 
+                          animate={{ opacity: 1 }} 
+                          exit={{ opacity: 0 }} 
                           className="pt-4 space-y-2"
                         >
                           {/* Alternative Answer Header */}
