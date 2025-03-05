@@ -1,11 +1,10 @@
 import InputField from "../form/inputField";
 import FileUpload from "../form/fileUpload";
 import GreenButton from "../ui/longButtonGreen";
-import Link from "next/link";
 import { useState } from "react";
 import { useSession, getSession } from "next-auth/react";
 import Counter from "./counter";
-import { useErrorStore } from "@/store/store";
+import { useErrorStore, useLoadingStore } from "@/store/store";
 
 export default function ExamForm() {
   const [files, setFiles] = useState<File[]>([]);
@@ -24,12 +23,16 @@ export default function ExamForm() {
       const formData = new FormData();
       files.forEach((file) => formData.append("files", file));
       formData.append("title", examTitle || "Untitled Exam");
-      formData.append("description", examDescription || "No description was provided");
+      formData.append(
+        "description",
+        examDescription || "No description was provided"
+      );
       formData.append("num_questions", count.toString());
-      console.log(formData)
+      console.log(formData);
 
       try {
         // Make the POST request to the backend endpoint
+        useLoadingStore.getState().setLoading(true);
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate`,
           {
@@ -43,15 +46,19 @@ export default function ExamForm() {
         if (!response.ok) {
           // Throw an error to be caught below if response not OK
           useErrorStore.getState().setError("Error generating exam");
+          useLoadingStore.getState().setLoading(false);
+          return;
         }
 
         if (result.message) {
           useErrorStore.getState().setError(result.message);
+          useLoadingStore.getState().setLoading(false);
+          return;
         } else {
+          //cache it here -> redirect
           console.log("Exam generated successfully:", result);
+          useLoadingStore.getState().setLoading(false);
         }
-        // For example, you could redirect or update state here:
-        // router.push("/generated");
       } catch (error) {
         // Handle errors by setting the global error state
         if (error instanceof Error) {
@@ -61,6 +68,7 @@ export default function ExamForm() {
         } else {
           useErrorStore.getState().setError("Error generating exam");
         }
+        useLoadingStore.getState().setLoading(false);
       }
     } else {
       // Optionally handle the case for authenticated users
@@ -104,9 +112,7 @@ export default function ExamForm() {
           />
 
           <div className="mt-4 sm:mt-8 mb-2 sm:mb-4 flex flex-row justify-between">
-            <h3 className="text-lg sm:text-xl font-semibold">
-              Questions
-            </h3>
+            <h3 className="text-lg sm:text-xl font-semibold">Questions</h3>
             <Counter
               value={count}
               onChange={setCount}
@@ -118,7 +124,7 @@ export default function ExamForm() {
         </div>
         {/* mt-auto pushes the button container to the bottom */}
         <div className="text-lg mt-auto">
-          <GreenButton text="Generate" onClick={handleGenerate}/>
+          <GreenButton text="Generate" onClick={handleGenerate} />
         </div>
       </div>
     </div>

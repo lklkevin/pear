@@ -3,6 +3,7 @@ import Navbar from "./navNormal";
 import Sidebar from "./sideBar";
 import { motion } from "framer-motion";
 import InfoCard from "../sidebar/infoCard";
+import { useLoadingStore } from "@/store/store";
 
 export default function GenerateLayout({
   children,
@@ -11,6 +12,7 @@ export default function GenerateLayout({
 }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const expandedWidth = 360; // pixels
+  const { loading } = useLoadingStore()
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white overflow-hidden">
@@ -76,6 +78,15 @@ export default function GenerateLayout({
           </Sidebar>
         </div>
       </div>
+      {loading && (
+        <div className="fixed inset-0 bg-zinc-950/25 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-12 w-12 rounded-full border-4 border-zinc-900 border-t-white animate-spin mb-4"></div>
+            <p className="text-lg font-medium text-white">Generating your new exam...</p>
+            <p className=" font-medium text-zinc-400">Check back in a few minutes, do not refresh this page</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
