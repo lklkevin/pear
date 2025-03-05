@@ -28,7 +28,7 @@ class GeminiPDFScanner(PDFScannerInterface):
             text_processor = Cohere()
         super().__init__(image_scanner, text_processor)
 
-    async def scan_pdfs(self, list_of_pdfs: list[str]) -> list[PDFObject]:
+    async def scan_pdfs(self, list_of_pdfs: list[str | bytes]) -> list[PDFObject]:
         """
         Scans multiple PDFs and extracts question–answer pairs.
 
@@ -61,16 +61,31 @@ Keep only the question part of the question, do not preserve any extra formattin
 """
         pdf_objects = []
         print(f"Processing {len(list_of_pdfs)} PDFs")
-        for pdf_path in list_of_pdfs:
-            print(f"Processing PDF: {pdf_path}")  # Print the current PDF file being processed
-            # Use the image scanner to extract the full PDF content without modification.
-            extracted_content = await self.image_scanner.call_model(
-                prompt=prompt,
-                pdf_path=pdf_path,
-            )
-            # Process the extracted text to obtain question–answer pairs.
-            pdf_obj = await self._process_pdf_text(extracted_content)
-            pdf_objects.append(pdf_obj)
+
+        if type(list_of_pdfs[0] == bytes):
+            for pdf_data in list_of_pdfs:
+                print(f"Processing PDF file...")  # Print each PDF processing step
+
+                # Use the image scanner to extract the full PDF content from binary data.
+                extracted_content = await self.image_scanner.call_model(
+                    prompt=prompt,
+                    pdf_data=pdf_data,  # Pass raw binary PDF data
+                )
+                # Use the image scanner to extract the full PDF content using bytes.
+                pdf_obj = await self._process_pdf_text(extracted_content)
+                pdf_objects.append(pdf_obj)
+        else:
+            for pdf_path in list_of_pdfs:
+                print(f"Processing PDF: {pdf_path}")  # Print the current PDF file being processed
+                # Use the image scanner to extract the full PDF content without modification.
+                extracted_content = await self.image_scanner.call_model(
+                    prompt=prompt,
+                    pdf_path=pdf_path,
+                )
+                # Process the extracted text to obtain question–answer pairs.
+                pdf_obj = await self._process_pdf_text(extracted_content)
+                pdf_objects.append(pdf_obj)
+
         return pdf_objects
 
     async def _process_pdf_text(self, text: str) -> PDFObject:
@@ -156,6 +171,30 @@ if __name__ == "__main__":
     pdf_model = GeminiModel()
     text_model = Cohere('command-r-plus-08-2024')
     scanner = GeminiPDFScanner(pdf_model, text_model)
-    result = asyncio.run(scanner.scan_pdfs(["./backend/tests/example_pdfs/math_12.pdf"]))[0]
+    # result = asyncio.run(scanner.scan_pdfs(["./backend/tests/example_pdfs/math_12.pdf"]))[0]
+    # for question in result:
+    #     print(question)
+
+    from io import BytesIO
+    from werkzeug.datastructures import FileStorage
+
+    # Simulate a Flask file upload
+    with open("./backend/tests/example_pdfs/math_12.pdf", "rb") as pdf_file:
+        pdf_bytes = pdf_file.read()  # Read the binary content
+
+    # Create an in-memory file-like object
+    pdf_stream = BytesIO(pdf_bytes)
+
+    # Wrap it as a Flask FileStorage object (simulating an uploaded file)
+    file = FileStorage(
+        stream=pdf_stream,
+        filename="test.pdf",
+        content_type="application/pdf"
+    )
+
+    # Pass FileStorage content to scan_pdfs()
+    result = asyncio.run(scanner.scan_pdfs([file.read()]))[0]
+
+    # Print extracted questions
     for question in result:
         print(question)
