@@ -20,11 +20,7 @@ export default function AuthLayout({
           <button 
             className="absolute right-8 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200"
             onClick={() => {
-              if (window.history.length > 1) {
-                router.back(); 
-              } else {
-                router.push("/"); 
-              }
+              router.push("/"); 
             }}
           >
             <span className="material-icons">

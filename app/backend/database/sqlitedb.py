@@ -50,7 +50,7 @@ class SQLiteDB(DataAccessObject):
         password: Optional[str],
         auth_provider: AuthProvider, 
         oauth_id: Optional[str] = None
-    ) -> None:
+    ) -> int:
         if password is None and auth_provider == 'local':
             raise DataError("A password must be provided "
                             "if auth_provider is 'google'.")
@@ -63,6 +63,7 @@ class SQLiteDB(DataAccessObject):
                         "(?, ?, ?, ?, ?);",
                         (username, email, password, auth_provider, oauth_id))
             self.conn.commit()
+            return cur.lastrowid
         except sqlite3.DatabaseError:
             self.conn.rollback()
             raise DatabaseError
