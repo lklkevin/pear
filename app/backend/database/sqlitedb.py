@@ -47,10 +47,10 @@ class SQLiteDB(DataAccessObject):
                                 "(username, email) is required.")
 
             return cur.fetchone() is not None
-        except sqlite3.DatabaseError:
-            raise DatabaseError
-        except sqlite3.DataError:
-            raise DataError
+        except sqlite3.DatabaseError as e:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
+            raise DataError from e
 
     def add_user(self,
         username: str,
@@ -72,12 +72,12 @@ class SQLiteDB(DataAccessObject):
                         (username, email, password, auth_provider, oauth_id))
             self.conn.commit()
             return cur.lastrowid
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
     def get_user(self,
         user_id: Optional[int] = None,
@@ -99,10 +99,10 @@ class SQLiteDB(DataAccessObject):
             cur = self.conn.cursor()
             cur.execute(query, args)
             return cur.fetchone()
-        except sqlite3.DatabaseError:
-            raise DatabaseError
-        except sqlite3.DataError:
-            raise DataError
+        except sqlite3.DatabaseError as e:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
+            raise DataError from e
 
     def create_refresh_token(self,
         user_id: str,
@@ -116,12 +116,12 @@ class SQLiteDB(DataAccessObject):
                         "VALUES (?, ?, ?);", (user_id, token, expires_at))
             self.conn.commit()
             return None
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
     def get_refresh_token(self,
         token: str,
@@ -143,10 +143,10 @@ class SQLiteDB(DataAccessObject):
         try:
             cur.execute(query, args)
             return cur.fetchone()
-        except sqlite3.DatabaseError:
-            raise DatabaseError
-        except sqlite3.DataError:
-            raise DataError
+        except sqlite3.DatabaseError as e:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
+            raise DataError from e
 
     def set_revoked_status(self, token: str, revoked: bool) -> None:
         try:
@@ -155,12 +155,12 @@ class SQLiteDB(DataAccessObject):
                         "SET revoked = ? "
                         "WHERE token = ?;", (revoked, token))
             self.conn.commit()
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
     def set_oauth_id(self, user_id: str, oauth_id: str) -> None:
         try:
@@ -169,12 +169,12 @@ class SQLiteDB(DataAccessObject):
                         "SET oauth_id = ? "
                         "WHERE id = ?;", (oauth_id, user_id))
             self.conn.commit()
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
     def set_last_login(self, username: str, time: datetime) -> None:
         try:
@@ -183,12 +183,12 @@ class SQLiteDB(DataAccessObject):
                         "SET last_login = ?"
                         "WHERE username = ?", (time, username))
             self.conn.commit()
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
     def get_exam(self, 
         exam_id: int
@@ -218,11 +218,10 @@ class SQLiteDB(DataAccessObject):
                 exam.add_answers(question, answer_dict)
             
             return *exam_info, exam
-            
-        except sqlite3.DatabaseError:
-            raise DatabaseError
-        except sqlite3.DataError:
-            raise DataError
+        except sqlite3.DatabaseError as e:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
+            raise DataError from e
 
     def get_exams(self,
         user_id: str,
@@ -257,10 +256,10 @@ class SQLiteDB(DataAccessObject):
                 cur.execute(query)
             matches = cur.fetchall()
             return [match for match in matches if title in match[1]]
-        except sqlite3.DatabaseError:
-            raise DatabaseError
-        except sqlite3.DataError:
-            raise DataError
+        except sqlite3.DatabaseError as e:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
+            raise DataError from e
 
     def add_exam(self,
         username: str,
@@ -280,12 +279,12 @@ class SQLiteDB(DataAccessObject):
             exam_id = cur.lastrowid
             self.conn.commit()
             return exam_id
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
     def insert_question(self,
         question_number: int,
@@ -304,12 +303,12 @@ class SQLiteDB(DataAccessObject):
                 self.insert_answer(question_id, answer, confidence)
 
             self.conn.commit()
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
     def insert_answer(self,
         questionId: int,
@@ -322,12 +321,12 @@ class SQLiteDB(DataAccessObject):
                         "VALUES (?, ?, ?);",
                         (questionId, answer, answer_confidence))
             self.conn.commit()
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
     def add_favourite(self, user_id: int, exam_id: int) -> None:
         try:
@@ -337,12 +336,12 @@ class SQLiteDB(DataAccessObject):
             cur.execute("UPDATE Exam SET num_fav = num_fav + 1 "
                         "WHERE examId = ?;", (exam_id,))
             self.conn.commit()
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
     def remove_favourite(self, user_id: int, exam_id: int) -> None:
         try:
@@ -353,12 +352,12 @@ class SQLiteDB(DataAccessObject):
             cur.execute("UPDATE Exam SET num_fav = num_fav - 1 "
                         "WHERE examId = ?;", (exam_id,))
             self.conn.commit()
-        except sqlite3.DatabaseError:
+        except sqlite3.DatabaseError as e:
             self.conn.rollback()
-            raise DatabaseError
-        except sqlite3.DataError:
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
             self.conn.rollback()
-            raise DataError
+            raise DataError from e
 
 if __name__ == "__main__":
     db = SQLiteDB()
