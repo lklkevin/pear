@@ -11,7 +11,7 @@ export default function GenerateLayout({ children }: { children: React.ReactNode
   const { loading } = useLoadingStore();
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white overflow-hidden">
+    <div className="min-h-screen  text-white overflow-hidden">
       <Navbar />
 
       {/* Page Content with Sidebar */}
@@ -26,14 +26,14 @@ export default function GenerateLayout({ children }: { children: React.ReactNode
         {/* Main Content */}
         <div
           className={`max-w-screen flex-1 flex flex-col max-w-7xl px-4 sm:px-8 py-8 sm:py-12 mx-auto min-h-[calc(100vh-72px)] ${
-            !isCollapsed ? "hidden sm:flex" : ""
+            isCollapsed ? "" : "h-0 w-0 opacity-0 sm:opacity-100"
           }`}
         >
           {children}
         </div>
 
         {/* Sidebar that matches the content height */}
-        <div className="absolute left-0 top-0 bottom-0 overflow-y-auto">
+        <div className="absolute left-0 top-0 bottom-0 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-900">
           <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
             <div className="pr-8">
               <h2 className="ml-9 text-2xl sm:text-3xl font-semibold">Getting Started</h2>
@@ -76,7 +76,7 @@ export default function GenerateLayout({ children }: { children: React.ReactNode
       {loading && (
         <div className="fixed inset-0 bg-zinc-950/25 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
-            <div className="h-12 w-12 rounded-full border-4 border-zinc-900 border-t-white animate-spin mb-4"></div>
+            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-zinc-900 border-t-white animate-spin mb-4"></div>
             <p className="text-lg font-medium text-white">Generating your new exam...</p>
             <p className="font-medium text-zinc-400">
               Check back in a few minutes, do not refresh this page

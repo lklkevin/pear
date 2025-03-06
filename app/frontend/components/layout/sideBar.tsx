@@ -11,7 +11,7 @@ export default function Sidebar({
   children: ReactNode;
 }) {
   return (
-    <div className="relative">
+    <div className="relative flex h-full">
       <AnimatePresence mode="wait" initial={false}>
         {isCollapsed ? (
           // Collapsed state: show a centered circular toggle button.
@@ -41,7 +41,7 @@ export default function Sidebar({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="min-h-[calc(100vh-72px)] flex flex-col bg-zinc-900 left-0 w-[360px] border-r border-zinc-800"
+            className="min-h-[calc(100vh-72px)] flex flex-col bg-zinc-900 left-0 w-[360px] border-r border-zinc-800 "
           >
             <div className="flex">
               <button
@@ -53,38 +53,19 @@ export default function Sidebar({
                 </span>
               </button>
               <p
-                className="h-full items-center justify-center my-auto ml-3 cursor-pointer"
+                className="flex mt-0.5 h-full items-center justify-center my-auto ml-3 cursor-pointer"
                 onClick={() => setIsCollapsed(true)}
               >
                 Collapse
               </p>
             </div>
-            {/* This container now uses a custom class for a narrow, colored scrollbar */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            {/* Improved Tailwind Scrollbar */}
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-900">
               {children}
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-      <style jsx>{`
-        .custom-scrollbar {
-          /* Firefox */
-          scrollbar-width: thin;
-          scrollbar-color: #4b5563 #1f2937;
-        }
-        /* Webkit browsers */
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #1f2937;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background-color: #4b5563;
-          border-radius: 10px;
-          border: 2px solid #1f2937;
-        }
-      `}</style>
     </div>
   );
 }
