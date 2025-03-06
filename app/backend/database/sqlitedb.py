@@ -6,15 +6,16 @@ from typing import Optional
 from backend.database import DataAccessObject, AuthProvider, SortOrder, Filter, DatabaseError, DataError
 
 
-SCHEMA = "backend/database/schema.ddl"
-
 class SQLiteDB(DataAccessObject):
     """An SQLite implementation of the data access object."""
     conn: sqlite3.Connection
 
-    def __init__(self, filename: str = "backend/database/sqlite.db"):
+    def __init__(self, 
+        filename: str = "backend/database/sqlite.db",
+        schema: str = "backend/database/schema.ddl"
+    ):
         """Initialise the database with the given filename."""
-        with open(SCHEMA, "r") as file:
+        with open(schema, "r") as file:
             ddl_script = file.read()
 
         self.conn = sqlite3.connect(filename, check_same_thread=False)
@@ -35,7 +36,7 @@ class SQLiteDB(DataAccessObject):
             elif email:
                 cur.execute("SELECT * FROM User WHERE email = ?;", (email,))
             else:
-                raise TypeError("At least one argument "
+                raise ValueError("At least one argument "
                                 "(username, email) is required.")
 
             return cur.fetchone() is not None
@@ -50,7 +51,7 @@ class SQLiteDB(DataAccessObject):
         password: Optional[str],
         auth_provider: AuthProvider,
         oauth_id: Optional[str] = None
-    ) -> None:
+    ) -> int:
         if password is None and auth_provider == 'local':
             raise DataError("A password must be provided "
                             "if auth_provider is 'google'.")
@@ -63,6 +64,7 @@ class SQLiteDB(DataAccessObject):
                         "(?, ?, ?, ?, ?);",
                         (username, email, password, auth_provider, oauth_id))
             self.conn.commit()
+            return cur.lastrowid
         except sqlite3.DatabaseError:
             self.conn.rollback()
             raise DatabaseError
@@ -116,7 +118,7 @@ class SQLiteDB(DataAccessObject):
 
     def get_refresh_token(self,
         token: str,
-        revoked: Optional[bool]
+        revoked: Optional[bool] = None
     ) -> Optional[tuple[int, datetime, datetime]]:
         cur = self.conn.cursor()
 
@@ -154,7 +156,7 @@ class SQLiteDB(DataAccessObject):
             self.conn.rollback()
             raise DataError
 
-    def set_oauth_id(user_id: str, oauth_id: str) -> None:
+    def set_oauth_id(self, user_id: str, oauth_id: str) -> None:
         try:
             cur = self.conn.cursor()
             cur.execute("UPDATE User "
@@ -168,7 +170,7 @@ class SQLiteDB(DataAccessObject):
             self.conn.rollback()
             raise DataError
 
-    def set_last_login(self, username: str, time: datetime) -> bool:
+    def set_last_login(self, username: str, time: datetime) -> None:
         try:
             cur = self.conn.cursor()
             cur.execute("UPDATE User "

@@ -21,7 +21,7 @@ class DataAccessObject(ABC):
             email: The email to check.
         
         Raises:
-            TypeError: At least one argument (username, email) is required,
+            ValueError: At least one argument (username, email) is required,
                        but none were provided.
             DatabaseError: An error related to the database occurred.
             DataError: An error related to the processed data occurred.
@@ -158,7 +158,7 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_oauth_id(user_id: str, oauth_id: str) -> None:
+    def set_oauth_id(self, user_id: str, oauth_id: str) -> None:
         """Set the oauth_id of the user given by the user_id to the
         value oauth_id.
 
@@ -173,7 +173,7 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_last_login(self, username: str, time: datetime) -> bool:
+    def set_last_login(self, username: str, time: datetime) -> None:
         """Set the last login time of the user to the given time.
         
         Args:
