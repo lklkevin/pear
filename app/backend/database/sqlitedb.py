@@ -11,7 +11,7 @@ from backend.database import (
     DatabaseError,
     DataError
 )
-
+from backend.exam import Exam
 
 class SQLiteDB(DataAccessObject):
     """An SQLite implementation of the data access object."""
@@ -192,12 +192,33 @@ class SQLiteDB(DataAccessObject):
 
     def get_exam(self, 
         exam_id: int
-    ) -> Optional[tuple[int, str, str, str, str, str, bool, int]]:
+    ) -> Optional[tuple[int, str, str, str, str, str, bool, int, Exam]]:
         try:
             cur = self.conn.cursor()
-            cur.execute("SELECT * FROM Exam "
-                        "WHERE examId = ?;", (exam_id,))
-            return cur.fetchone()
+            cur.execute("SELECT * FROM Exam WHERE examId = ?;", (exam_id,))
+            exam_info = cur.fetchone()
+            if exam_id is None:
+                return None
+
+            cur.execute("SELECT * FROM Question WHERE exam = ? "
+                        "ORDER BY number", (exam_id,))
+            exam = Exam()
+            questions_info = cur.fetchall()
+            for questionId, _, _, question in questions_info:
+                exam.add_question(question)
+                cur.execute("SELECT answer, confidence FROM Answer "
+                            "INNER JOIN Question "
+                            "ON Answer.question = Question.questionId "
+                            " WHERE Question.questionId = ?;",
+                            (questionId,))
+                answers = cur.fetchall()
+                answer_dict = {}
+                for answer, confidence in answers:
+                    answer_dict[answer] = confidence
+                exam.add_answers(question, answer_dict)
+            
+            return *exam_info, exam
+            
         except sqlite3.DatabaseError:
             raise DatabaseError
         except sqlite3.DataError:

@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 import datetime
 
 from backend.database import DataAccessObject, DataError, DatabaseError
+from backend.exam import Exam
 
 class BaseTestDAO(ABC):
     """A abstract base test suite for the abstract base class DataAccessObject.
@@ -35,6 +36,68 @@ class BaseTestDAO(ABC):
             auth_provider: The authentication provider of the user to be added.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def add_exam(self,
+        db: DataAccessObject,
+        username: str,
+        name: str,
+        color: str,
+        description: str,
+        public: bool
+    ) -> int:
+        """
+        Manually add an exam with 2 questions without using the DAO interface.
+
+        The added exam consists of two questions with two answers each:
+            1. What's 1 + 1?
+                a) 2, confidence=0.9
+                b) 1.5, confidence=0.1
+            2. What's 5 * 4?
+                a) 20, confidence=0.8
+                b) 25, confidence=0.2
+
+        Args:
+            db: The database instance.
+            username: The username of the owner.
+            name: The name of the exam.
+            color: The colour of the exam.
+            description: The description of the exam.
+            public: Whether the exam is public or not.
+        Returns:
+            The id of the inserted exam.
+        """
+        raise NotImplementedError
+
+    def correct_exam(self,
+        exam: Exam
+    ) -> bool:
+        """
+        Return if the exam matches the format created in self.add_exam.
+
+        Args:
+            exam: The Exam object to be checked.
+        """
+        try:
+            assert len(exam.questions) == 2, "Wrong number of questions"
+
+            assert exam.questions[0] == "What's 1 + 1?", "Incorrect 1st question"
+            assert exam.questions[1] == "What's 5 * 4?", "Incorrect 2nd question"
+
+            answers = exam.answer_confidence[exam.questions[0]]
+            
+            assert answers["2"] == 0.9, "Wrong confidence for answer"
+            assert answers["1.5"] == 0.1, "Wrong confidence for answer"
+
+            answers = exam.answer_confidence[exam.questions[1]]
+            assert answers["20"] == 0.8, "Wrong confidence for answer"
+            assert answers["25"] == 0.2, "Wrong confidence for answer"
+
+            return True
+        except AssertionError:
+
+            return False
+
 
     @abstractmethod
     def get_last_user_id(self, db: DataAccessObject) -> int:
@@ -280,17 +343,23 @@ class BaseTestDAO(ABC):
                               "test@example.com",
                               "password",
                               "local")
-        exam_id = db.add_exam("testuser", "testexam", "#FFFFFF", "test", False)
+        exam_id = self.add_exam(db,
+                                "testuser",
+                                "testexam",
+                                "#FFFFFF",
+                                "test",
+                                True)
         res = db.get_exam(exam_id)
-
         assert res is not None
-        exam_id, name, date, owner, color, description, public, num_fav = res
-        assert name == "testexam"
-        assert owner == user_id
-        assert color == "#FFFFFF"
-        assert description == "test"
-        assert not public
-        assert num_fav == 0
+        assert res[0] == exam_id
+        assert res[1] == "testexam"
+        assert res[3] == user_id
+        assert res[4] == "#FFFFFF"
+        assert res[5] == "test"
+        assert res[6] == True
+        assert res[7] == 0
+
+        assert self.correct_exam(res[8])
 
     def test_add_favourites(self, db: DataAccessObject):
         user_id = db.add_user("testuser",
@@ -302,7 +371,7 @@ class BaseTestDAO(ABC):
 
         res = db.get_exam(exam_id)
         assert self.is_favourited(db, user_id, exam_id)
-        assert res[-1] == 1
+        assert res[7] == 1
 
     def test_remove_favourites(self, db: DataAccessObject):
         user_id = db.add_user("testuser",
@@ -315,7 +384,7 @@ class BaseTestDAO(ABC):
 
         res = db.get_exam(exam_id)
         assert not self.is_favourited(db, user_id, exam_id)
-        assert res[-1] == 0
+        assert res[7] == 0
 
     def test_get_exams(self, db: DataAccessObject):
         user_id = db.add_user("testuser",

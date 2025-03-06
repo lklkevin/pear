@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Literal, Optional
 
+from backend.exam import Exam
+
 AuthProvider = Literal["local", "google"]
 SortOrder = Literal["popular", "recent", "N/A"]
 Filter = Literal["favourites", "mine", "N/A"]
@@ -188,7 +190,7 @@ class DataAccessObject(ABC):
     @abstractmethod
     def get_exam(self, 
         exam_id: int
-    ) -> Optional[tuple[int, str, str, str, str, str, bool, int]]:
+    ) -> Optional[tuple[int, str, str, str, str, str, bool, int, Exam]]:
         """Get the exam information for a given exam_id.
 
         Args:
@@ -205,6 +207,7 @@ class DataAccessObject(ABC):
             description (str): The description of the exam.
             public (bool): Whether this exam is public or not.
             num_fav (int): The number of times this exam has been favourited.
+            exam (Exam): The exam object.
         Raises
             DatabaseError: An error related to the database occurred.
         """

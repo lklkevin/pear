@@ -24,6 +24,57 @@ class TestSQLiteDB(BaseTestDAO):
                     (username, email, auth_provider))
         db.conn.commit()
 
+    def add_exam(self,
+        db: sqlitedb.SQLiteDB,
+        username: str,
+        name: str,
+        color: str,
+        description: str,
+        public: bool
+    ) -> int:
+        cur = db.conn.cursor()
+        cur.execute("SELECT id FROM User WHERE username = ?;", (username,))
+        user_id = cur.fetchone()[0]
+
+        cur.execute("INSERT INTO Exam "
+                    "(name, date, owner, color, description, public) "
+                    "VALUES "
+                    "(?, ?, ?, ?, ?, ?)",
+                    (name, datetime.datetime.now(), 
+                     user_id, color, description, public))
+        exam_id = cur.lastrowid
+        
+        cur.execute("INSERT INTO Question "
+                    "(number, exam, question) "
+                    "VALUES (?, ?, ?)",
+                    (1, exam_id, "What's 1 + 1?"))
+        question_id = cur.lastrowid
+        cur.execute("INSERT INTO Answer "
+                    "(question, answer, confidence) "
+                    "VALUES (?, ?, ?)",
+                    (question_id, "2", 0.9))
+        cur.execute("INSERT INTO Answer "
+                    "(question, answer, confidence) "
+                    "VALUES (?, ?, ?)",
+                    (question_id, "1.5", 0.1))
+
+        cur.execute("INSERT INTO Question "
+                    "(number, exam, question) "
+                    "VALUES (?, ?, ?)",
+                    (2, exam_id, "What's 5 * 4?"))
+        question_id = cur.lastrowid
+        cur.execute("INSERT INTO Answer "
+                    "(question, answer, confidence) "
+                    "VALUES (?, ?, ?)",
+                    (question_id, "20", 0.8))
+        cur.execute("INSERT INTO Answer "
+                    "(question, answer, confidence) "
+                    "VALUES (?, ?, ?)",
+                    (question_id, "25", 0.2))
+        db.conn.commit()
+
+        return exam_id
+
     def get_last_user_id(self, db: sqlitedb.SQLiteDB) -> int:
         cur = db.conn.cursor()
         cur.execute("SELECT max(id) FROM User;")
