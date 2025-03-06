@@ -316,3 +316,57 @@ class BaseTestDAO(ABC):
         res = db.get_exam(exam_id)
         assert not self.is_favourited(db, user_id, exam_id)
         assert res[-1] == 0
+
+    def test_get_exams(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        exam_id = db.add_exam("testuser", "testexam", "#FFFFFF", "test", True)
+        exam_id2 = db.add_exam("testuser", "testexam2", "#000000", "test", True)
+
+        matches = db.get_exams(user_id, "N/A", "N/A", "")
+        assert len(matches) == 2
+        assert matches[0][0] == exam_id
+        assert matches[1][0] == exam_id2
+
+    def test_get_favourite_exams(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        exam_id = db.add_exam("testuser", "testexam", "#FFFFFF", "test", True)
+        exam_id2 = db.add_exam("testuser", "testexam2", "#000000", "test", True)
+        db.add_favourite(user_id, exam_id)
+
+        matches = db.get_exams(user_id, "N/A", "favourites", "")
+        assert len(matches) == 1
+        assert matches[0][0] == exam_id
+
+    def test_get_my_exams(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        user_id2 = db.add_user("testuser2",
+                               "test2@example.com",
+                               "password",
+                               "local")
+        exam_id = db.add_exam("testuser", "testexam", "#FFFFFF", "test", True)
+        exam_id2 = db.add_exam("testuser2", "testexam2", "#000000", "test", True)
+
+        matches = db.get_exams(user_id, "N/A", "mine", "")
+        assert len(matches) == 1
+        assert matches[0][0] == exam_id
+
+    def test_get_exams_title(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        exam_id = db.add_exam("testuser", "abc", "#FFFFFF", "test", True)
+        exam_id2 = db.add_exam("testuser", "def", "#000000", "test", True)
+
+        matches = db.get_exams(user_id, "N/A", "N/A", "a")
+        assert len(matches) == 1
+        assert matches[0][0] == exam_id

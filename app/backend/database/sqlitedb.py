@@ -208,9 +208,38 @@ class SQLiteDB(DataAccessObject):
         sorting: SortOrder,
         filter: Filter,
         title: Optional[str]
-    ) -> list[tuple[int, str, str, str, str]]:
-        # TODO: write this function
-        raise NotImplementedError
+    ) -> list[tuple[int, str, str, str, str, str, bool, int]]:
+        if filter == "favourites":
+            query = ("SELECT * FROM Exam WHERE examId IN (SELECT" 
+                     " examId FROM Favourite WHERE userId = ?) ")
+            args = (user_id,)
+        elif filter == "mine":
+            query = "SELECT * FROM Exam WHERE owner = ?"
+            args = (user_id,)
+        else:
+            query = "SELECT * FROM Exam WHERE public = True "
+            args = None
+
+        if sorting == "popular":
+            query += "ORDER BY num_fav DESC, name;"
+        elif sorting == "recent":
+            query += "ORDER BY date DESC, name;"
+        else:
+            query += "ORDER BY name;"
+
+        try:
+            cur = self.conn.cursor()
+
+            if args is not None:
+                cur.execute(query, args)
+            else:
+                cur.execute(query)
+            matches = cur.fetchall()
+            return [match for match in matches if title in match[1]]
+        except sqlite3.DatabaseError:
+            raise DatabaseError
+        except sqlite3.DataError:
+            raise DataError
 
     def add_exam(self,
         username: str,

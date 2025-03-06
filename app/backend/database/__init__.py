@@ -197,14 +197,14 @@ class DataAccessObject(ABC):
             A tuple (exam_id, name, date, owner, color, 
             description, public, num_fav).
 
-            exam_id: The exam id.
-            name: The name of the exam.
-            date: The date which the exam was created.
-            owner: The user id of the exam's owner.
-            color: The color of the exam.
-            description: The description of the exam.
-            public: Whether this exam is public or not.
-            num_fav: The number of times this exam has been favourited.
+            exam_id (int): The exam id.
+            name (str): The name of the exam.
+            date (str): The date which the exam was created.
+            owner (int): The user id of the exam's owner.
+            color (str): The color of the exam.
+            description (str): The description of the exam.
+            public (bool): Whether this exam is public or not.
+            num_fav (int): The number of times this exam has been favourited.
         Raises
             DatabaseError: An error related to the database occurred.
         """
@@ -216,7 +216,7 @@ class DataAccessObject(ABC):
         sorting: SortOrder,
         filter: Filter,
         title: Optional[str]
-    ) -> list[tuple[int, str, str, str, str]]:
+    ) -> list[tuple[int, str, str, str, str, str, bool, int]]:
         """Fetch public exams matching the query.
 
         Args:
@@ -230,14 +230,18 @@ class DataAccessObject(ABC):
             title: The title of the exam that is being searched for.
 
         Returns:
-            A list of tuples (exam_id, title, description, colour, author) 
-            of exam information matching the search query.
+            A list of tuples (exam_id, name, date, owner, color, 
+            description, public, num_fav) of exam information matching 
+            the search query.
             
-            exam_id (str): The id of the exam.
-            title (str): The title of the exam.
+            exam_id (int): The exam id.
+            name (str): The name of the exam.
+            date (str): The date which the exam was created.
+            owner (int): The user id of the exam's owner.
+            color (str): The color of the exam.
             description (str): The description of the exam.
-            colour (str): The hex code of the exam colour.
-            author (str): The username of the exam author.
+            public (bool): Whether this exam is public or not.
+            num_fav (int): The number of times this exam has been favourited.
         """
         raise NotImplementedError
 
