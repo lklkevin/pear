@@ -1,3 +1,4 @@
+import datetime
 import pytest
 
 import backend.database.sqlitedb as sqlitedb
@@ -29,9 +30,22 @@ class TestSQLiteDB(BaseTestDAO):
 
         return cur.fetchone()[0]
 
-    def get_token(self, db: sqlitedb.SQLiteDB, user_id: str):
+    def get_token(self, 
+        db: sqlitedb.SQLiteDB,
+        user_id: int
+    ) -> tuple[int, int, str, bool, datetime.datetime, datetime.datetime]:
         cur = db.conn.cursor()
         cur.execute("SELECT * FROM RefreshToken "
                     "WHERE user = ?;", (user_id,))
         return cur.fetchone()
 
+    def exam_exists(self, 
+        db: sqlitedb.SQLiteDB, 
+        username: str,
+        name: str
+    ) -> bool:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM Exam "
+                    "WHERE owner = (SELECT id FROM User WHERE username = ?)"
+                    "AND name = ?;", (username, name))
+        return cur.fetchone() is not None

@@ -45,12 +45,15 @@ class BaseTestDAO(ABC):
         Args:
             db: The database instance.
         Returns:
-
+            The id of the last inserted user.
         """
         raise NotImplementedError
 
     @abstractmethod
-    def get_token(self, db: DataAccessObject, user_id: str) -> str:
+    def get_token(self, 
+        db: DataAccessObject,
+        user_id: int
+    ) -> tuple[int, int, str, bool, datetime.datetime, datetime.datetime]:
         """
         Manually return the token information associated with the latest token
         associated with the given user_id, without using the DAO interface.
@@ -58,6 +61,27 @@ class BaseTestDAO(ABC):
         Args:
             db: The database instance.
             user_id: The user id of the user.
+
+        Returns:
+            The tuple (id, user, token, revoked, expires_at, created_at) of the
+            relevant token.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def exam_exists(self, 
+        db: DataAccessObject, 
+        username: str,
+        name: str
+    ) -> bool:
+        """
+        Return if an exam with the owner identified by the username with the
+        exam name.
+
+        Args:
+            db: The database instance.
+            username: The username of the owner.
+            name: The name of the exam.
         """
         raise NotImplementedError
     
@@ -76,6 +100,9 @@ class BaseTestDAO(ABC):
         (None, "google")
     ])
     def test_add_user(self, db: DataAccessObject, password, auth_provider):
+        assert not db.user_exists(username="testuser")
+        assert not db.user_exists(email="test@example.com")
+
         user_id = db.add_user("testuser", 
                               "test@example.com", 
                               password, 
@@ -222,3 +249,29 @@ class BaseTestDAO(ABC):
         user = db.get_user(user_id=user_id)
         assert datetime.datetime.fromisoformat(user[-1]) == time
 
+    def test_add_exam(self, db: DataAccessObject):
+        assert not self.exam_exists(db, "testuser", "testexam")
+
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        db.add_exam("testuser", "testexam", "#FFFFFF", "test", False)
+
+        assert self.exam_exists(db, "testuser", "testexam")
+        
+    def test_get_exam(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        exam_id = db.add_exam("testuser", "testexam", "#FFFFFF", "test", False)
+        res = db.get_exam(exam_id)
+
+        assert res is not None
+        exam_id, name, date, owner, color, description, public = res
+        assert name == "testexam"
+        assert owner == user_id
+        assert color == "#FFFFFF"
+        assert description == "test"
+        assert not public

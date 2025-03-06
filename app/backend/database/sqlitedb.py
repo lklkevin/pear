@@ -3,7 +3,14 @@ import datetime
 
 from typing import Optional
 
-from backend.database import DataAccessObject, AuthProvider, SortOrder, Filter, DatabaseError, DataError
+from backend.database import (
+    DataAccessObject,
+    AuthProvider,
+    SortOrder,
+    Filter,
+    DatabaseError,
+    DataError
+)
 
 
 class SQLiteDB(DataAccessObject):
@@ -184,12 +191,26 @@ class SQLiteDB(DataAccessObject):
             self.conn.rollback()
             raise DataError
 
+    def get_exam(self, 
+        exam_id: int
+    ) -> Optional[tuple[int, str, str, str, str]]:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("SELECT * FROM Exam "
+                        "WHERE examId = ?;", (exam_id,))
+            return cur.fetchone()
+        except sqlite3.DatabaseError:
+            raise DatabaseError
+        except sqlite3.DataError:
+            raise DataError
+
     def get_exams(self,
         user_id: str,
         sorting: SortOrder,
         filter: Filter,
         title: Optional[str]
     ) -> list[tuple[int, str, str, str, str]]:
+        # TODO: write this function
         raise NotImplementedError
 
     def add_exam(self,
@@ -201,8 +222,11 @@ class SQLiteDB(DataAccessObject):
     ) -> int:
         try:
             cur = self.conn.cursor()
-            cur.execute("INSERT INTO Exam (name, date, owner, color, description, public) "
-                        "VALUES (?, datetime('now'), (SELECT id FROM User WHERE username = ?), ?, ?, ?);",
+            cur.execute("INSERT INTO Exam "
+                        "(name, date, owner, color, description, public) "
+                        "VALUES "
+                        "(?, datetime('now'), "
+                        " (SELECT id FROM User WHERE username = ?), ?, ?, ?);",
                         (examname, username, color, description, int(public)))
             exam_id = cur.lastrowid
             self.conn.commit()
@@ -222,7 +246,8 @@ class SQLiteDB(DataAccessObject):
     ) -> None:
         try:
             cur = self.conn.cursor()
-            cur.execute("INSERT INTO Question (number, exam, question) VALUES (?, ?, ?);",
+            cur.execute("INSERT INTO Question (number, exam, question) "
+                        "VALUES (?, ?, ?);",
                         (question_number, exam_id, question))
             question_id = cur.lastrowid
 
@@ -244,7 +269,8 @@ class SQLiteDB(DataAccessObject):
     ) -> None:
         try:
             cur = self.conn.cursor()
-            cur.execute("INSERT INTO Answer (question, answer, confidence) VALUES (?, ?, ?);",
+            cur.execute("INSERT INTO Answer (question, answer, confidence) "
+                        "VALUES (?, ?, ?);",
                         (questionId, answer, answer_confidence))
             self.conn.commit()
         except sqlite3.DatabaseError:
@@ -254,6 +280,32 @@ class SQLiteDB(DataAccessObject):
             self.conn.rollback()
             raise DataError
 
+    def add_favourite(self, user_id: int, exam_id: int) -> None:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("INSERT INTO Favourite (userId, examId) "
+                        "VALUES (?, ?);", (user_id, exam_id))
+            self.conn.commit()
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
+
+    def remove_favourite(self, user_id: int, exam_id: int) -> None:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("DELETE FROM Favourite "
+                        "WHERE user_id = ? "
+                        "AND exam_id = ?;", (user_id, exam_id))
+            self.conn.commit()
+        except sqlite3.DatabaseError:
+            self.conn.rollback()
+            raise DatabaseError
+        except sqlite3.DataError:
+            self.conn.rollback()
+            raise DataError
 
 if __name__ == "__main__":
     db = SQLiteDB()

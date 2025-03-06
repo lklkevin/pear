@@ -184,6 +184,15 @@ class DataAccessObject(ABC):
             DatabaseError: An error related to the database occurred.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def get_exam(self, 
+        exam_id: int
+    ) -> Optional[tuple[int, str, str, str, str, str, bool]]:
+        """
+        TODO: define this method
+        """
+        raise NotImplementedError
     
     @abstractmethod
     def get_exams(self, 
@@ -223,7 +232,7 @@ class DataAccessObject(ABC):
         color: str,
         description: str,
         public: bool
-    ) -> None:
+    ) -> int:
         raise NotImplementedError
         """Insert an empty exam for a given user, with the given options.
 
@@ -233,6 +242,9 @@ class DataAccessObject(ABC):
             color: The color used to label the exam. Given in hex format.
             description: The user-specified description of the exam.
             public: If the exam is public or not.
+
+        Returns:
+            The examId of the inserted exam.
         
         Raises:
             DatabaseError: An error related to the database occurred.
@@ -278,14 +290,48 @@ class DataAccessObject(ABC):
             answer_confidence (float): The confidence score of the answer.
 
         Raises:
-            DatabaseError: If an error occurs while interacting with the database.
+            DatabaseError: If an error occurs while interacting with the 
+                           database.
             DataError: If there is an issue with the provided data.
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def add_favourite(self, user_id: int, exam_id: int) -> None:
+        """Add the exam with given exam_id to the favourite exams of the user
+        with given user_id.
+
+        Args:
+            user_id: The id of the user.
+            exam_id: The exam of the user.
+        
+        Raises:
+            DatabaseError: If an error occurs while interacting with the 
+                           database.
+            DataError: If there is an issue with the provided data.
+        """
+        raise NotImplementedError
+
+    def remove_favourite(self, user_id: int, exam_id: int) -> None:
+        """Remove the exam with given exam_id from the favourite exams of the
+        user with given user_id.
+
+        Args:
+            user_id: The id of the user.
+            exam_id: The exam of the user.
+        
+        Raises:
+            DatabaseError: If an error occurs while interacting with the 
+                           database.
+            DataError: If there is an issue with the provided data.
+        """
+        raise NotImplementedError
 
 class DatabaseError(Exception):
+    """Exception raised for errors that are related to the database."""
     pass
 
 class DataError(Exception):
+    """Exception raised for errors caused by problems with the processed
+    data."""
     pass

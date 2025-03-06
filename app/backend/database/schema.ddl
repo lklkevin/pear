@@ -48,3 +48,10 @@ CREATE TABLE IF NOT EXISTS Answer (
     confidence REAL,  -- percentage
     FOREIGN KEY (question) REFERENCES question(questionId)
 );
+
+CREATE TABLE IF NOT EXISTS Favourite (
+    userId INTEGER,
+    examId INTEGER,
+    FOREIGN KEY (userId) REFERENCES User(id),
+    FOREIGN KEY (examId) REFERENCES Exam(examId)
+);
