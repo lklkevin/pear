@@ -148,7 +148,6 @@ class SQLiteDB(DataAccessObject):
         except sqlite3.DataError:
             raise DataError
 
-
     def set_revoked_status(self, token: str, revoked: bool) -> None:
         try:
             cur = self.conn.cursor()
@@ -193,7 +192,7 @@ class SQLiteDB(DataAccessObject):
 
     def get_exam(self, 
         exam_id: int
-    ) -> Optional[tuple[int, str, str, str, str]]:
+    ) -> Optional[tuple[int, str, str, str, str, str, bool, int]]:
         try:
             cur = self.conn.cursor()
             cur.execute("SELECT * FROM Exam "
@@ -285,6 +284,8 @@ class SQLiteDB(DataAccessObject):
             cur = self.conn.cursor()
             cur.execute("INSERT INTO Favourite (userId, examId) "
                         "VALUES (?, ?);", (user_id, exam_id))
+            cur.execute("UPDATE Exam SET num_fav = num_fav + 1 "
+                        "WHERE examId = ?;", (exam_id,))
             self.conn.commit()
         except sqlite3.DatabaseError:
             self.conn.rollback()
@@ -297,8 +298,10 @@ class SQLiteDB(DataAccessObject):
         try:
             cur = self.conn.cursor()
             cur.execute("DELETE FROM Favourite "
-                        "WHERE user_id = ? "
-                        "AND exam_id = ?;", (user_id, exam_id))
+                        "WHERE userId = ? "
+                        "AND examId = ?;", (user_id, exam_id))
+            cur.execute("UPDATE Exam SET num_fav = num_fav - 1 "
+                        "WHERE examId = ?;", (exam_id,))
             self.conn.commit()
         except sqlite3.DatabaseError:
             self.conn.rollback()

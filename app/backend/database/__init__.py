@@ -188,9 +188,25 @@ class DataAccessObject(ABC):
     @abstractmethod
     def get_exam(self, 
         exam_id: int
-    ) -> Optional[tuple[int, str, str, str, str, str, bool]]:
-        """
-        TODO: define this method
+    ) -> Optional[tuple[int, str, str, str, str, str, bool, int]]:
+        """Get the exam information for a given exam_id.
+
+        Args:
+            exam_id:
+        Returns:
+            A tuple (exam_id, name, date, owner, color, 
+            description, public, num_fav).
+
+            exam_id: The exam id.
+            name: The name of the exam.
+            date: The date which the exam was created.
+            owner: The user id of the exam's owner.
+            color: The color of the exam.
+            description: The description of the exam.
+            public: Whether this exam is public or not.
+            num_fav: The number of times this exam has been favourited.
+        Raises
+            DatabaseError: An error related to the database occurred.
         """
         raise NotImplementedError
     

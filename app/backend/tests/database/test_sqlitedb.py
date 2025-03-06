@@ -49,3 +49,14 @@ class TestSQLiteDB(BaseTestDAO):
                     "WHERE owner = (SELECT id FROM User WHERE username = ?)"
                     "AND name = ?;", (username, name))
         return cur.fetchone() is not None
+
+    def is_favourited(self, 
+        db: sqlitedb.SQLiteDB, 
+        user_id: int, 
+        exam_id: int
+    ) -> bool:
+        cur = db.conn.cursor()
+        cur.execute("SELECT * FROM Favourite WHERE userId = ? AND examID = ?;",
+                    (user_id, exam_id))
+
+        return cur.fetchone() is not None

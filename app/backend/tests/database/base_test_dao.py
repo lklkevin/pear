@@ -84,6 +84,21 @@ class BaseTestDAO(ABC):
             name: The name of the exam.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def is_favourited(self, 
+        db: DataAccessObject, 
+        user_id: int, 
+        exam_id: int
+    ) -> bool:
+        """
+        Return if the exam with exam_id is favourited by the user with user_id.
+
+        Args:
+            user_id: The id of the user.
+            exam_id: The id of the exam.
+        """
+        raise NotImplementedError
     
     def test_user_exists(self, db: DataAccessObject):
         self.add_user(db, "testuser", "test@example.com", "local")
@@ -269,9 +284,35 @@ class BaseTestDAO(ABC):
         res = db.get_exam(exam_id)
 
         assert res is not None
-        exam_id, name, date, owner, color, description, public = res
+        exam_id, name, date, owner, color, description, public, num_fav = res
         assert name == "testexam"
         assert owner == user_id
         assert color == "#FFFFFF"
         assert description == "test"
         assert not public
+        assert num_fav == 0
+
+    def test_add_favourites(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        exam_id = db.add_exam("testuser", "testexam", "#FFFFFF", "test", False)
+        db.add_favourite(user_id, exam_id)
+
+        res = db.get_exam(exam_id)
+        assert self.is_favourited(db, user_id, exam_id)
+        assert res[-1] == 1
+
+    def test_remove_favourites(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        exam_id = db.add_exam("testuser", "testexam", "#FFFFFF", "test", False)
+        db.add_favourite(user_id, exam_id)
+        db.remove_favourite(user_id, exam_id)
+
+        res = db.get_exam(exam_id)
+        assert not self.is_favourited(db, user_id, exam_id)
+        assert res[-1] == 0
