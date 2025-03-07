@@ -394,7 +394,7 @@ class BaseTestDAO(ABC):
         exam_id = db.add_exam("testuser", "testexam", "#FFFFFF", "test", True)
         exam_id2 = db.add_exam("testuser", "testexam2", "#000000", "test", True)
 
-        matches = db.get_exams(user_id, "N/A", "N/A", "")
+        matches = db.get_exams(user_id, "N/A", "N/A", "", 100, 1)
         assert len(matches) == 2
         assert matches[0][0] == exam_id
         assert matches[1][0] == exam_id2
@@ -408,7 +408,7 @@ class BaseTestDAO(ABC):
         exam_id2 = db.add_exam("testuser", "testexam2", "#000000", "test", True)
         db.add_favourite(user_id, exam_id)
 
-        matches = db.get_exams(user_id, "N/A", "favourites", "")
+        matches = db.get_exams(user_id, "N/A", "favourites", "", 100, 1)
         assert len(matches) == 1
         assert matches[0][0] == exam_id
 
@@ -424,7 +424,7 @@ class BaseTestDAO(ABC):
         exam_id = db.add_exam("testuser", "testexam", "#FFFFFF", "test", True)
         exam_id2 = db.add_exam("testuser2", "testexam2", "#000000", "test", True)
 
-        matches = db.get_exams(user_id, "N/A", "mine", "")
+        matches = db.get_exams(user_id, "N/A", "mine", "", 100, 1)
         assert len(matches) == 1
         assert matches[0][0] == exam_id
 
@@ -436,6 +436,6 @@ class BaseTestDAO(ABC):
         exam_id = db.add_exam("testuser", "abc", "#FFFFFF", "test", True)
         exam_id2 = db.add_exam("testuser", "def", "#000000", "test", True)
 
-        matches = db.get_exams(user_id, "N/A", "N/A", "a")
+        matches = db.get_exams(user_id, "N/A", "N/A", "a", 100, 1)
         assert len(matches) == 1
         assert matches[0][0] == exam_id
