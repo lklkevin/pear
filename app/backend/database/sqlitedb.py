@@ -281,7 +281,7 @@ class SQLiteDB(DataAccessObject):
 
     def add_exam(self,
         username: str,
-        examname: str,
+        name: str,
         color: str,
         description: str,
         public: bool
@@ -293,7 +293,7 @@ class SQLiteDB(DataAccessObject):
                         "VALUES "
                         "(?, datetime('now'), "
                         " (SELECT id FROM User WHERE username = ?), ?, ?, ?);",
-                        (examname, username, color, description, int(public)))
+                        (name, username, color, description, int(public)))
             exam_id = cur.lastrowid
             self.conn.commit()
             return exam_id
