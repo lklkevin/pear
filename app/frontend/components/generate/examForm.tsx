@@ -143,11 +143,11 @@ export default function ExamForm() {
 
         if (result.message) {
           useErrorStore.getState().setError(result.message);
+          useLoadingStore.getState().setLoading(false);
         } else {
-          console.log(result);
+          useLoadingStore.getState().setLoading(false);
+          router.push(`/exam/${result.exam_id}`)
         }
-
-        useLoadingStore.getState().setLoading(false);
       } catch (error) {
         if (error instanceof Error) {
           useErrorStore

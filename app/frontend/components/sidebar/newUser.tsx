@@ -33,7 +33,7 @@ export default function Sidebar() {
 
   // State for managing selected styling color
   const [selectedColor, setSelectedColor] = useState<Color>("teal");
-  const router = useRouter()
+  const router = useRouter();
 
   const handleSave = async () => {
     useLoadingStore.getState().setLoading(true);
@@ -79,8 +79,6 @@ export default function Sidebar() {
         result.color = selectedColorHex;
 
         const currSession = await getSession();
-
-        console.log(result);
         const saveResponse = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate/save-after`,
           {
@@ -95,26 +93,32 @@ export default function Sidebar() {
 
         const saveResult = await saveResponse.json();
         if (!saveResponse.ok) {
-          useErrorStore.getState().setError("Error saving exam");
+          useErrorStore
+            .getState()
+            .setError("Error saving exam, make sure you are signed in");
           useLoadingStore.getState().setLoading(false);
           return;
         }
 
         if (saveResult.message) {
           useErrorStore.getState().setError(saveResult.message);
+          useLoadingStore.getState().setLoading(false);
         } else {
-          console.log(saveResult); //exam_id
           localStorage.removeItem("browserSessionId");
-          router.push("/")
+          useLoadingStore.getState().setLoading(false);
+          router.push(`/exam/${saveResult.exam_id}`);
         }
-        useLoadingStore.getState().setLoading(false);
       }
     } catch (error) {
-      useErrorStore.getState().setError("Cannot fetch exam");
+      useErrorStore
+        .getState()
+        .setError("Error saving exam, make sure you are signed in");
       useLoadingStore.getState().setLoading(false);
       return;
     }
   };
+
+  const callbackUrl = encodeURIComponent(router.asPath);
 
   // Array of available color options with their corresponding CSS classes
   return (
@@ -126,13 +130,16 @@ export default function Sidebar() {
       <p className="text-zinc-300">
         If you want to save it for later or share it with the world, first{" "}
         <Link
-          href="/signup"
+          href={`/signup?callbackUrl=${callbackUrl}`}
           className="text-emerald-500 hover:text-emerald-400"
         >
           sign up
         </Link>{" "}
         or{" "}
-        <Link href="/login" className="text-emerald-500 hover:text-emerald-400">
+        <Link
+          href={`/login?callbackUrl=${callbackUrl}`}
+          className="text-emerald-500 hover:text-emerald-400"
+        >
           login
         </Link>
         .

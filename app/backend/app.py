@@ -422,5 +422,63 @@ def save_exam_after_generate(current_user):
     return jsonify({'exam_id': exam_id}), 201
 
 
+@app.route('/api/exam/<int:exam_id>', methods=['GET'])
+def get_exam_endpoint(exam_id):
+    try:
+        exam_data = db.get_exam(exam_id)
+        if not exam_data:
+            return jsonify({'message': 'Exam not found!'}), 404
+
+        _, title, _, ownerId, _, desc, public, _, exam = exam_data
+
+        if public:
+            vis = "Public"
+        else:
+            token = None
+        
+            # Get token from Authorization header
+            if 'Authorization' in request.headers:
+                auth_header = request.headers['Authorization']
+                if auth_header.startswith('Bearer '):
+                    token = auth_header.split(' ')[1]
+        
+            if not token:
+                return jsonify({'message': 'Access token is missing!'}), 401
+        
+            try:
+                data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            
+                if data.get('type') != 'access':
+                    return jsonify({'message': 'Invalid token type!'}), 401
+                
+                if (data['user_id'] != ownerId):
+                    return jsonify({'message': 'You do not have permission to access this exam'}), 401
+
+            except jwt.ExpiredSignatureError:
+                return jsonify({'message': 'Token has expired!', 'code': 'token_expired'}), 401
+            except jwt.InvalidTokenError:
+                return jsonify({'message': 'Invalid token!'}), 401
+            except dao.DatabaseError:
+                return jsonify({'message': 'Error retrieving user information!'})
+            
+            vis = "Private"
+
+        return jsonify({
+            "title": title,
+            "description": desc,
+            "privacy": vis,
+            "questions": [
+                {
+                    "question": q,
+                    "answers": exam.get_all_answers(q)  # Include all answers with confidence
+                }
+                for q in exam.get_question()
+            ]
+        }), 200
+
+    except Exception as e:
+        return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True)

@@ -14,13 +14,14 @@ export interface RawExam {
   title: string;
   description: string;
   questions: RawExamQuestion[];
+  privacy?: string;
 }
 
 export function parseExam(examJson: RawExam): Exam {
   return {
     title: examJson.title,
     description: examJson.description,
-    privacy: "Unsaved",
+    privacy: examJson.privacy || "Unsaved",
     questions: examJson.questions.map((q: any): Question => {
       // Convert the answers object into an array of [answer, confidence] pairs.
       // Use a type assertion to ensure the entries are [string, number] tuples.
@@ -96,7 +97,6 @@ export default function Page() {
           setExam(newExam);
         }
       } catch (error) {
-        console.log(error);
         useErrorStore.getState().setError("Cannot fetch exam");
         router.push(`/generate`);
         return;
