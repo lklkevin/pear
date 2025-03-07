@@ -9,7 +9,7 @@ import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 
 import backend.database as dao
-import backend.database.sqlitedb as sqlitedb
+import backend.database.db_factory as db_factory
 import backend.examGenerator as eg
 
 import os
@@ -29,7 +29,7 @@ redis_client = redis.Redis(host=redis_host, port=redis_port, password=redis_pass
 # JWT configuration
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)
-db = sqlitedb.SQLiteDB()
+db = db_factory.get_db_instance()
 
 # Token generation functions
 def generate_access_token(user_id):
@@ -108,6 +108,9 @@ def signup():
     if db.user_exists(email=data['email']):
         return jsonify({'message': 'User already exists!'}), 409
     
+    if db.user_exists(email=data['username']):
+        return jsonify({'message': 'User already exists!'}), 409
+    
     # Generate hashed password
     hashed_password = generate_password_hash(data['password'], method='pbkdf2:sha256')
 
@@ -151,7 +154,7 @@ def login():
         return jsonify({'message': 'Invalid credentials!'}), 401
     
     # Update last login time
-    db.set_last_login(user[0], datetime.datetime.now(datetime.timezone.utc))
+    db.set_last_login(username, datetime.datetime.now(datetime.timezone.utc))
     
     # Generate tokens
     access_token = generate_access_token(user_id)
@@ -185,7 +188,7 @@ def google_auth():
             db.set_oauth_id(user_id, data['oauth_id'])
         
         # Update last login time
-        db.set_last_login(user_id, datetime.datetime.now(datetime.timezone.utc))
+        db.set_last_login(username, datetime.datetime.now(datetime.timezone.utc))
     else:
         # For Google users, if a username is not provided, generate one based on the email.
         email_prefix = data['email'].split('@')[0]
@@ -196,6 +199,8 @@ def google_auth():
             # password is None here as no password is required when signing in
             # using Google as the auth provider
             user_id = db.add_user(username, data['email'], None, 'google', data['oauth_id'])
+
+            db.set_last_login(username, datetime.datetime.now(datetime.timezone.utc))
         except dao.DataError:
             return jsonify({'message': 'Error creating user!'}), 500
     
@@ -226,9 +231,11 @@ def refresh():
         return jsonify({'message': 'Invalid refresh token!'}), 401
 
     user_id, expires_at, created_at = token_record
+    if expires_at.tzinfo is None:
+        expires_at = expires_at.replace(tzinfo=datetime.timezone.utc)
     
     # Check if token is expired
-    if datetime.datetime.strptime(expires_at, "%Y-%m-%d %H:%M:%S.%f%z") < datetime.datetime.now(datetime.timezone.utc):
+    if expires_at < datetime.datetime.now(datetime.timezone.utc):
         db.set_revoked_status(data['token'], True)
         return jsonify({'message': 'Refresh token has expired!'}), 401
     
@@ -376,7 +383,7 @@ def generate_and_save_exam(current_user):
     # Save the exam to the database
     exam_id = db.add_exam(
         username=current_user[1],  # Assuming current_user tuple: (id, username, email, ...)
-        examname=title,
+        name=title,
         color=color,
         description=description,
         public=privacy
@@ -409,7 +416,7 @@ def save_exam_after_generate(current_user):
     # Save the exam to the database
     exam_id = db.add_exam(
         username=current_user[1],  # Assuming current_user is a tuple (id, username, email, ...)
-        examname=title,
+        name=title,
         color=color,
         description=description,
         public=privacy
@@ -480,6 +487,7 @@ def get_exam_endpoint(exam_id):
         }), 200
 
     except Exception as e:
+        print(str(e))
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
 
 @app.route("/api/browse", methods=["GET"])
@@ -526,6 +534,7 @@ def get_exams_endpoint():
         redis_client.setex(cache_key, 60, json.dumps(results))
         return jsonify(results), 200
     except Exception as e:
+        print(str(e))
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
     
 @app.route("/api/browse/personal", methods=["GET"])
@@ -572,6 +581,7 @@ def get_exams_personal(current_user):
             redis_client.setex(cache_key, 60, json.dumps(results))
         return jsonify(results), 200
     except Exception as e:
+        print(str(e))
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
     
 @app.route("/api/favourite", methods=["POST"])

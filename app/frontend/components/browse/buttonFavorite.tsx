@@ -13,7 +13,7 @@ export default function Favorite({ examId }: FavoriteProps) {
 
   // Call useEffect unconditionally. Inside, check if session exists.
   useEffect(() => {
-    if (!session) return;
+    if (!session || isLoading) return;
     const checkFavorite = async () => {
       setIsLoading(true);
       try {
@@ -43,7 +43,7 @@ export default function Favorite({ examId }: FavoriteProps) {
     };
 
     checkFavorite();
-  }, [examId, session]);
+  }, [examId]);
 
   // Now it's safe to conditionally render, because hooks were always called.
   if (!session) {
