@@ -2,6 +2,7 @@ import { useState } from "react";
 import { DM_Mono } from "next/font/google";
 import { Exam } from "./exam";
 import AnswerSection from "./answers";
+import { handleDownload } from "@/utils/exportPDF";
 
 // Load the DM Mono font from Google Fonts
 const dmMono = DM_Mono({
@@ -62,7 +63,10 @@ export default function ExamContent({ exam }: { exam: Exam }) {
           </span>
           {allRevealed ? "Hide" : "Reveal"} All Answers
         </button>
-        <button className="px-3 sm:px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center">
+        <button
+          className="px-3 sm:px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
+          onClick={() => handleDownload(exam)}
+        >
           <span className="material-icons sm:mr-2 text-xl">download</span>
           <p className="hidden sm:block">Download</p>
         </button>

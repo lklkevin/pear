@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS Exam (
     color TEXT,  -- hex
     description TEXT,
     public INTEGER DEFAULT FALSE,
+    num_fav INTEGER DEFAULT 0,  -- how many times this exam has been favourited
     FOREIGN KEY (owner) REFERENCES User(id)
 );
 
@@ -47,4 +48,11 @@ CREATE TABLE IF NOT EXISTS Answer (
     answer TEXT NOT NULL,
     confidence REAL,  -- percentage
     FOREIGN KEY (question) REFERENCES question(questionId)
+);
+
+CREATE TABLE IF NOT EXISTS Favourite (
+    userId INTEGER,
+    examId INTEGER,
+    FOREIGN KEY (userId) REFERENCES User(id),
+    FOREIGN KEY (examId) REFERENCES Exam(examId)
 );

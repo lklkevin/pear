@@ -19,11 +19,11 @@ export default function GenerateLayout({
       {/* Page Content with Sidebar */}
       <div className="flex relative h-full">
         {/* Animated placeholder that reserves sidebar space */}
-        <motion.div
+        {/* <motion.div
           className="flex-shrink-0 "
           animate={{ width: isCollapsed ? 0 : expandedWidth }}
           transition={{ duration: 0.3, ease: "easeInOut" }}
-        />
+        /> */}
 
         {/* Main Content*/}
         <div
@@ -35,13 +35,13 @@ export default function GenerateLayout({
         </div>
 
         {/* Absolutely Positioned Sidebar */}
-        <div className="absolute left-0 h-full">
+        {/* <div className="absolute left-0 h-full">
           <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
             <div className="py-8 px-4">
               <TestSearch/>
             </div>
           </Sidebar>
-        </div>
+        </div> */}
       </div>
     </div>
   );

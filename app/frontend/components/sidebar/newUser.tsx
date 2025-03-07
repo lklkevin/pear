@@ -1,10 +1,31 @@
 import { useState } from "react";
 import Link from "next/link";
 import Button from "../ui/buttonGreen";
+import {
+  VisibilityOption,
+  Visibility,
+} from "@/components/form/visibilityOption";
+import {
+  StylingOptions,
+  Color,
+  colors,
+} from "@/components/form/stylingOptions";
+import { useErrorStore, useLoadingStore } from "@/store/store";
+import { getSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
-// Define types for visibility and color selection
-type Visibility = "private" | "public";
-type Color = "teal" | "blue" | "purple" | "red" | "brown" | "gray" | "pink";
+interface RawExamQuestion {
+  question: string;
+  answers: Record<string, number>;
+}
+
+export interface RawExam {
+  title: string;
+  description: string;
+  questions: RawExamQuestion[];
+  privacy?: string;
+  color?: string;
+}
 
 export default function Sidebar() {
   // State for managing visibility setting (Private/Public)
@@ -12,118 +33,151 @@ export default function Sidebar() {
 
   // State for managing selected styling color
   const [selectedColor, setSelectedColor] = useState<Color>("teal");
+  const router = useRouter();
+
+  const handleSave = async () => {
+    useLoadingStore.getState().setLoading(true);
+
+    if (!localStorage.getItem("browserSessionId")) {
+      useErrorStore.getState().setError("Cannot fetch exam");
+      useLoadingStore.getState().setLoading(false);
+      return;
+    }
+
+    const sessionId = localStorage.getItem("browserSessionId");
+    const cacheKey = `exam:${sessionId}`;
+
+    try {
+      const response = await fetch(`/api/fetchExam`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cacheKey: cacheKey,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        useErrorStore.getState().setError("Cannot fetch exam");
+        useLoadingStore.getState().setLoading(false);
+        return;
+      }
+
+      if (result.message) {
+        useErrorStore.getState().setError(result.message);
+        useLoadingStore.getState().setLoading(false);
+        return;
+      } else {
+        const privacyValue = visibility === "public" ? "1" : "0";
+        const selectedColorHex =
+          colors.find((c) => c.value === selectedColor)?.hex || "#3f3f46";
+
+        result.privacy = privacyValue;
+        result.color = selectedColorHex;
+
+        const currSession = await getSession();
+        const saveResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate/save-after`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${currSession?.accessToken}`,
+            },
+            method: "POST",
+            body: JSON.stringify(result),
+          }
+        );
+
+        const saveResult = await saveResponse.json();
+        if (!saveResponse.ok) {
+          useErrorStore
+            .getState()
+            .setError("Error saving exam, make sure you are signed in");
+          useLoadingStore.getState().setLoading(false);
+          return;
+        }
+
+        if (saveResult.message) {
+          useErrorStore.getState().setError(saveResult.message);
+          useLoadingStore.getState().setLoading(false);
+        } else {
+          localStorage.removeItem("browserSessionId");
+          useLoadingStore.getState().setLoading(false);
+          router.push(`/exam/${saveResult.exam_id}`);
+        }
+      }
+    } catch (error) {
+      useErrorStore
+        .getState()
+        .setError("Error saving exam, make sure you are signed in");
+      useLoadingStore.getState().setLoading(false);
+      return;
+    }
+  };
+
+  const callbackUrl = encodeURIComponent(router.asPath);
 
   // Array of available color options with their corresponding CSS classes
-  const colors: { value: Color; class: string }[] = [
-    { value: "teal", class: "bg-teal-700" },
-    { value: "blue", class: "bg-blue-700" },
-    { value: "purple", class: "bg-purple-700" },
-    { value: "pink", class: "bg-pink-700" },
-    { value: "red", class: "bg-red-700" },
-    { value: "brown", class: "bg-amber-600" },
-    { value: "gray", class: "bg-zinc-700" },
-  ];
-
   return (
-    <div>
+    <div className="pl-1 flex flex-col">
       {/* Information Text */}
       <p className="text-zinc-300 my-4">Enjoy your new exam!</p>
 
       {/* Login/Signup Call to Action */}
-      <p className="text-zinc-300 mb-6">
+      <p className="text-zinc-300">
         If you want to save it for later or share it with the world, first{" "}
-        <Link href="/signup" className="text-emerald-500 hover:text-emerald-400">
+        <Link
+          href={`/signup?callbackUrl=${callbackUrl}`}
+          className="text-emerald-500 hover:text-emerald-400"
+        >
           sign up
         </Link>{" "}
         or{" "}
-        <Link href="/login" className="text-emerald-500 hover:text-emerald-400">
+        <Link
+          href={`/login?callbackUrl=${callbackUrl}`}
+          className="text-emerald-500 hover:text-emerald-400"
+        >
           login
         </Link>
         .
       </p>
 
       {/* Visibility Selection (Private/Public) */}
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-3">Visibility</h3>
-        <div className="space-y-2">
-          {/* Private Visibility Option */}
-          <label
-            className={`${
-              visibility === "private" ? "border border-emerald-500" : ""
-            } flex items-center gap-3 p-3 rounded-lg pl-4 cursor-pointer hover:bg-zinc-800`}
-          >
-            <div className="relative flex items-center">
-              <input
-                type="radio"
-                name="visibility"
-                checked={visibility === "private"}
-                onChange={() => setVisibility("private")}
-                className="appearance-none w-4 h-4 rounded-full border-2 border-zinc-600 checked:border-emerald-500 checked:bg-emerald-500 transition-colors cursor-pointer"
-              />
-              {/* Custom Radio Button Indicator */}
-              <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                {visibility === "private" && (
-                  <span className="block w-1.5 h-1.5 rounded-full bg-white" />
-                )}
-              </span>
-            </div>
-            <div className="ml-1">
-              <div className="font-medium">Private</div>
-              <div className="text-sm text-zinc-400">Exam is only visible to you</div>
-            </div>
-          </label>
-
-          {/* Public Visibility Option */}
-          <label
-            className={`${
-              visibility === "public" ? "border border-emerald-500" : ""
-            } flex items-center gap-3 p-3 rounded-lg pl-4 cursor-pointer hover:bg-zinc-800`}
-          >
-            <div className="relative flex items-center">
-              <input
-                type="radio"
-                name="visibility"
-                checked={visibility === "public"}
-                onChange={() => setVisibility("public")}
-                className="appearance-none w-4 h-4 rounded-full border-2 border-zinc-600 checked:border-emerald-500 checked:bg-emerald-500 transition-colors cursor-pointer"
-              />
-              {/* Custom Radio Button Indicator */}
-              <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                {visibility === "public" && (
-                  <span className="block w-1.5 h-1.5 rounded-full bg-white" />
-                )}
-              </span>
-            </div>
-            <div className="ml-1">
-              <div className="font-medium">Public</div>
-              <div className="text-sm text-zinc-400">Exam is visible to everyone</div>
-            </div>
-          </label>
+      <div>
+        <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-8 mb-2 sm:mb-4">
+          Visibility
+        </h3>
+        <div className="flex-col flex gap-4 w-full">
+          <VisibilityOption
+            option="private"
+            selected={visibility === "private"}
+            label="Private"
+            subText="Only visible to you"
+            onChange={() => setVisibility("private")}
+          />
+          <VisibilityOption
+            option="public"
+            selected={visibility === "public"}
+            label="Public"
+            subText="Visible to everyone"
+            onChange={() => setVisibility("public")}
+          />
         </div>
       </div>
 
       {/* Styling Selection */}
-      <div className="mb-8 flex justify-between">
-        <h3 className="flex text-lg font-semibold">Styling</h3>
-        {/* Color Selection Buttons */}
-        <div className="flex gap-2 items-center">
-          {colors.map((color) => (
-            <button
-              key={color.value}
-              onClick={() => setSelectedColor(color.value)}
-              className={`w-5 h-5 rounded-full flex items-center justify-center transition-transform ${
-                selectedColor === color.value ? "ring-2 ring-zinc-100" : ""
-              }`}
-            >
-              {/* Color Preview Circle */}
-              <div className={`w-full h-full rounded-full ${color.class}`} />
-            </button>
-          ))}
-        </div>
-      </div>
+      <StylingOptions
+        selectedColor={selectedColor}
+        setSelectedColor={setSelectedColor}
+      />
 
       {/* Save Button */}
-      <Button text={"Save"} />
+      <div className="mt-4 mb-8">
+        <Button text={"Save"} onClick={handleSave} />
+      </div>
     </div>
   );
 }

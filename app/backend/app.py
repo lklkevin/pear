@@ -327,6 +327,8 @@ def generate_exam():
 @app.route('/api/exam/generate/save', methods=['POST'])
 @token_required
 def generate_and_save_exam(current_user):
+    max_questions = 10
+
     if 'files' not in request.files:
         return jsonify({'message': 'No files provided!'}), 400
 
@@ -335,6 +337,17 @@ def generate_and_save_exam(current_user):
     description = request.form.get('description')
     color = request.form.get('color')
     privacy = request.form.get('privacy')
+    num_questions = request.form.get('num_questions')
+
+    try:
+        num_questions = int(num_questions)
+    except (TypeError, ValueError):
+        return jsonify({'message': 'Invalid number of questions'}), 400
+
+    if num_questions > max_questions:
+        return jsonify({'message': f"Too many questions for user (max {max_questions})."}), 400
+    elif num_questions <= 0:
+        return jsonify({'message': 'Cannot generate fewer than 1 question.'}), 400
 
     if not title or not description or not color or privacy is None:
         return jsonify({'message': 'Title, description, color, and privacy are required!'}), 400
@@ -350,7 +363,7 @@ def generate_and_save_exam(current_user):
         pdf_data_list = [file.stream.read() for file in files]
 
         # Process the PDF files and generate the exam
-        exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, 10))  # Adjust num_questions as needed
+        exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, num_questions))  # Adjust num_questions as needed
     except Exception as e:
         print(f"Error generating exam: {e}")
         return jsonify({'message': 'An error occurred while generating the exam'}), 500
@@ -369,7 +382,7 @@ def generate_and_save_exam(current_user):
         answers = exam.get_all_answers(question_text)
         db.insert_question(index, exam_id, question_text, set(answers.items()))
 
-    return jsonify({'exam_id': exam_id, 'message': 'Exam successfully created and saved!'}), 201
+    return jsonify({'exam_id': exam_id}), 201
 
 
 @app.route('/api/exam/generate/save-after', methods=['POST'])
@@ -386,7 +399,7 @@ def save_exam_after_generate(current_user):
     title = data["title"]
     description = data["description"]
     color = data["color"]
-    privacy = bool(data["privacy"])  # Ensure privacy is a boolean
+    privacy = bool(int(data["privacy"]))  # Ensure privacy is a boolean
     questions = data["questions"]
 
     # Save the exam to the database
@@ -407,6 +420,64 @@ def save_exam_after_generate(current_user):
         db.insert_question(index, exam_id, question_text, set(answers.items()))
 
     return jsonify({'exam_id': exam_id}), 201
+
+
+@app.route('/api/exam/<int:exam_id>', methods=['GET'])
+def get_exam_endpoint(exam_id):
+    try:
+        exam_data = db.get_exam(exam_id)
+        if not exam_data:
+            return jsonify({'message': 'Exam not found!'}), 404
+
+        _, title, _, ownerId, _, desc, public, _, exam = exam_data
+
+        if public:
+            vis = "Public"
+        else:
+            token = None
+        
+            # Get token from Authorization header
+            if 'Authorization' in request.headers:
+                auth_header = request.headers['Authorization']
+                if auth_header.startswith('Bearer '):
+                    token = auth_header.split(' ')[1]
+        
+            if not token:
+                return jsonify({'message': 'Access token is missing!'}), 401
+        
+            try:
+                data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            
+                if data.get('type') != 'access':
+                    return jsonify({'message': 'Invalid token type!'}), 401
+                
+                if (data['user_id'] != ownerId):
+                    return jsonify({'message': 'You do not have permission to access this exam'}), 401
+
+            except jwt.ExpiredSignatureError:
+                return jsonify({'message': 'Token has expired!', 'code': 'token_expired'}), 401
+            except jwt.InvalidTokenError:
+                return jsonify({'message': 'Invalid token!'}), 401
+            except dao.DatabaseError:
+                return jsonify({'message': 'Error retrieving user information!'})
+            
+            vis = "Private"
+
+        return jsonify({
+            "title": title,
+            "description": desc,
+            "privacy": vis,
+            "questions": [
+                {
+                    "question": q,
+                    "answers": exam.get_all_answers(q)  # Include all answers with confidence
+                }
+                for q in exam.get_question()
+            ]
+        }), 200
+
+    except Exception as e:
+        return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
 
 
 if __name__ == '__main__':

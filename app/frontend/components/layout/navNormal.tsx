@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { useRouter } from "next/router";
 import ButtonG from "../ui/buttonGreen";
 import Button from "../ui/buttonGray";
 import { signOut, useSession } from "next-auth/react";
 
 export default function Navbar({ landing = false }: { landing?: boolean }) {
   const { data: session } = useSession(); // Get authentication state
+
+  const router = useRouter();
+  const callbackUrl = encodeURIComponent(router.asPath); // Preserve current URL
 
   return (
     <nav
@@ -14,7 +18,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     >
       <div className="flex items-center h-full space-x-4 md:space-x-8">
         <Link href="/" passHref>
-          <div className="h-9 w-9 bg-zinc-950 border border-zinc-700 rounded-full"></div>
+          <div className="items-center flex justify-center text-lg text-emerald-400 h-9 w-9 bg-emerald-900 border border-emerald-400 rounded-full">:3</div>
         </Link>
         <Link className="hidden sm:block hover:text-white" href="/browse">
           Browse
@@ -25,6 +29,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
       </div>
 
       <div className="text-zinc-200 flex items-center h-full space-x-4 md:space-x-6">
+        {/* Preserve the callback URL for login */}
         {session ? (
           // Show this when user is logged in
           <>
@@ -39,10 +44,10 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
         ) : (
           // Show this when user is logged out
           <>
-            <Link href="/login">
+            <Link href={`/login?callbackUrl=${callbackUrl}`}>
               <Button text="Login" />
             </Link>
-            <Link href="/signup">
+            <Link href={`/signup?callbackUrl=${callbackUrl}`}>
               <ButtonG text="Sign Up" />
             </Link>
           </>

@@ -76,7 +76,7 @@ export default function GenerateLayout({ children }: { children: React.ReactNode
       {loading && (
         <div className="fixed inset-0 bg-zinc-950/25 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
-            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-zinc-900 border-t-white animate-spin mb-4"></div>
+            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
             <p className="text-lg font-medium text-white">Generating your new exam...</p>
             <p className="font-medium text-zinc-400">
               Check back in a few minutes, do not refresh this page
