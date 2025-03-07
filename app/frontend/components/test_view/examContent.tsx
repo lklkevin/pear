@@ -73,11 +73,11 @@ export default function ExamContent({ exam }: { exam: Exam }) {
       </div>
 
       {/* Render each question */}
-      <div className="space-y-8">
+      <div className="space-y-6 sm:space-y-8">
         {exam.questions.map((question, index) => (
           <div key={index}>
             {/* Question title */}
-            <h2 className="text-xl font-semibold mb-4">Question {index + 1}</h2>
+            <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">Question {index + 1}</h2>
 
             {/* Question text in a styled preformatted box */}
             <div className="bg-zinc-900 p-4 rounded-t-lg font-mono border border-zinc-800">

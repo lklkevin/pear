@@ -27,10 +27,10 @@ export default function GenerateLayout({
 
         {/* Main Content*/}
         <div
-          className={`overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-950 max-w-screen flex-1 flex flex-col max-w-7xl px-4 sm:px-8 py-8 sm:py-12 mx-auto min-h-[calc(100vh-72px)] ${
+          className={`max-w-screen flex-1 flex flex-col max-w-7xl px-4 sm:px-8 py-8 sm:py-12 mx-auto min-h-[calc(100vh-72px)] ${
             isCollapsed
               ? ""
-              : "w-0 sm:w-full opacity-0 sm:opacity-100"
+              : "max-h-[calc(100vh-72px)] sm:max-h-none w-0 sm:w-full opacity-0 sm:opacity-100"
           }`}
         >
           {children}
