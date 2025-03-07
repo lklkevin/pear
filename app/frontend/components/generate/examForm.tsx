@@ -211,7 +211,7 @@ export default function ExamForm() {
               <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-8 mb-2 sm:mb-4">
                 Visibility
               </h3>
-              <div className="flex-col lg:flex-row flex gap-4 w-full overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-960">
+              <div className="flex-col xl:flex-row flex gap-4 w-full overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-960">
                 <VisibilityOption
                   option="private"
                   selected={visibility === "private"}

@@ -19,7 +19,7 @@ export function VisibilityOption({
   const borderClass = selected ? "border border-emerald-500" : "border border-zinc-800";
   return (
     <label
-      className={`min-w-36 flex-1 ${borderClass} flex items-center gap-3 p-3 rounded-lg pl-4 cursor-pointer hover:bg-zinc-800`}
+      className={`min-w-28 flex-1 ${borderClass} flex items-center gap-3 p-3 rounded-lg pl-4 cursor-pointer hover:bg-zinc-800`}
     >
       <div className="relative flex items-center">
         <input
