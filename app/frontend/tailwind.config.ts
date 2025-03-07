@@ -14,7 +14,7 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [require("tailwind-scrollbar")],
   corePlugins: {
     transform: true, // Ensure transform utilities are enabled
     skew: true, // Ensure skew utilities are enabled

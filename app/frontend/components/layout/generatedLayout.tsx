@@ -27,7 +27,7 @@ export default function GenerateLayout({
 
         {/* Main Content*/}
         <div
-          className={`flex-1 flex flex-col max-w-7xl px-8 py-8 sm:pt-12 sm:pb-16 mx-auto min-h-[calc(100vh-72px)] ${
+          className={`max-w-screen flex-1 flex flex-col max-w-7xl px-4 sm:px-8 py-8 sm:py-12 mx-auto min-h-[calc(100vh-72px)] ${
             !isCollapsed ? "hidden sm:flex" : ""
           }`}
         >
@@ -38,7 +38,7 @@ export default function GenerateLayout({
         <div className="absolute left-0 h-full">
           <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
             <div className="p-8">
-            <h2 className="text-2xl sm:text-3xl font-semibold">
+              <h2 className="text-2xl sm:text-3xl font-semibold">
                 Saving & Sharing
               </h2>
               <Generated />

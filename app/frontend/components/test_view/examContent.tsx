@@ -33,23 +33,23 @@ export default function ExamContent({ exam }: { exam: Exam }) {
   const allRevealed = revealedAnswers.every(Boolean);
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto">
       {/* Exam visibility badge (Public or Private) */}
       <div className="flex items-center gap-4 mb-4">
         <span
-          className={`px-3 py-1 text-sm rounded-full ${
-            exam.isPublic
-              ? "bg-emerald-900/20 text-emerald-400"
-              : "bg-zinc-800 text-zinc-400"
-          }`}
+          className={`px-3 py-1 text-sm rounded-full bg-zinc-800 text-zinc-400`}
         >
-          {exam.isPublic ? "Public" : "Private"}
+          {`${exam.privacy}`}
         </span>
       </div>
 
       {/* Exam title and description */}
-      <h1 className="text-4xl font-bold mb-4">{exam.title}</h1>
-      <p className="text-zinc-400 mb-8">{exam.description}</p>
+      <h1 className="text-3xl sm:text-5xl font-bold tracking-tight">
+        {exam.title}
+      </h1>
+      <p className="text-sm sm:text-base text-zinc-400 mt-2 sm:mt-4 mb-4 sm:mb-8">
+        {exam.description}
+      </p>
 
       {/* Buttons: Reveal/Hide All Answers & Download */}
       <div className="flex items-center justify-between mb-12">

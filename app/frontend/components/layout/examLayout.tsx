@@ -27,7 +27,7 @@ export default function GenerateLayout({
 
         {/* Main Content*/}
         <div
-          className={`flex-1 flex flex-col max-w-7xl px-8 py-8 sm:pt-12 sm:pb-16 mx-auto min-h-[calc(100vh-72px)] ${
+          className={`max-w-screen flex-1 flex flex-col max-w-7xl px-4 sm:px-8 py-8 sm:py-12 mx-auto min-h-[calc(100vh-72px)] ${
             !isCollapsed ? "hidden sm:flex" : ""
           }`}
         >

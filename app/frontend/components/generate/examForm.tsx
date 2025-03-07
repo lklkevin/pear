@@ -1,17 +1,26 @@
 import InputField from "../form/inputField";
 import FileUpload from "../form/fileUpload";
 import GreenButton from "../ui/longButtonGreen";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 import { useSession, getSession } from "next-auth/react";
 import Counter from "./counter";
 import { useErrorStore, useLoadingStore } from "@/store/store";
+import { useRouter } from "next/router";
 
 export default function ExamForm() {
+  const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
   const [count, setCount] = useState(5);
   const [examTitle, setExamTitle] = useState("");
   const [examDescription, setExamDescription] = useState("");
   const { data: session } = useSession();
+
+  useEffect(() => {
+    if (!localStorage.getItem("browserSessionId")) {
+      localStorage.setItem("browserSessionId", uuidv4());
+    }
+  }, []);
 
   const handleGenerate = async () => {
     // If there's no active session (i.e., guest user)
@@ -44,7 +53,6 @@ export default function ExamForm() {
         const result = await response.json();
 
         if (!response.ok) {
-          // Throw an error to be caught below if response not OK
           useErrorStore.getState().setError("Error generating exam");
           useLoadingStore.getState().setLoading(false);
           return;
@@ -55,8 +63,36 @@ export default function ExamForm() {
           useLoadingStore.getState().setLoading(false);
           return;
         } else {
-          //cache it here -> redirect
-          console.log("Exam generated successfully:", result);
+          const browserSessionId = localStorage.getItem("browserSessionId");
+          try {
+            const cacheResponse = await fetch(`/api/cacheExam`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                sessionId: browserSessionId,
+                results: result,
+              }),
+            });
+
+            const cacheResult = await cacheResponse.json();
+
+            if (!cacheResponse.ok || cacheResult.message) {
+              useErrorStore
+                .getState()
+                .setError("Error retrieving the generated exam");
+              useLoadingStore.getState().setLoading(false);
+              return;
+            }
+
+            useLoadingStore.getState().setLoading(false);
+            router.push("/generated");
+          } catch (error) {
+            useErrorStore
+              .getState()
+              .setError("Error retrieving the generated exam");
+          }
           useLoadingStore.getState().setLoading(false);
         }
       } catch (error) {
@@ -77,7 +113,7 @@ export default function ExamForm() {
   };
 
   return (
-    <div className="mt-6 grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-16 h-full">
+    <div className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8  h-full">
       {/* Left: File Upload */}
       <div className="flex flex-col h-full">
         <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">
