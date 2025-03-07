@@ -12,16 +12,23 @@ import backend.database as dao
 import backend.database.sqlitedb as sqlitedb
 import backend.examGenerator as eg
 
+import os
+from dotenv import load_dotenv
+import redis
+import json
 
 app = Flask(__name__)
-
-# Allow all origins for testing purposes
 CORS(app)
+load_dotenv()
+
+redis_host = os.environ.get("REDIS_HOST")
+redis_port = int(os.environ.get("REDIS_PORT"))
+redis_password = os.environ.get("REDIS_PASSWORD")
+redis_client = redis.Redis(host=redis_host, port=redis_port, password=redis_password, ssl=True)
 
 # JWT configuration
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)  # Short-lived access tokens
-app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)    # Long-lived refresh tokens
-app.config['SECRET_KEY'] = 'testingtestingtesting'
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)
 db = sqlitedb.SQLiteDB()
 
 # Token generation functions
@@ -31,7 +38,7 @@ def generate_access_token(user_id):
         'exp': datetime.datetime.now(datetime.timezone.utc) + app.config['JWT_ACCESS_TOKEN_EXPIRES'],
         'iat': datetime.datetime.now(datetime.timezone.utc),
         'type': 'access'
-    }, app.config['SECRET_KEY'], algorithm="HS256")
+    }, os.environ.get("SECRET_KEY"), algorithm="HS256")
 
 def generate_refresh_token(user_id: int) -> str:
     token_value = secrets.token_hex(64)
@@ -65,7 +72,7 @@ def token_required(f):
         
         try:
             # Verify and decode token
-            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+            data = jwt.decode(token, os.environ.get("SECRET_KEY"), algorithms=["HS256"])
             
             # Verify it's an access token
             if data.get('type') != 'access':
@@ -273,7 +280,6 @@ def get_profile(current_user):
         'auth_provider': current_user[4]
     }), 200
 
-
 @app.route('/api/exam/generate', methods=['POST'])
 def generate_exam():
     max_questions = 10
@@ -322,7 +328,6 @@ def generate_exam():
     except Exception as e:
         print(f"Error generating exam: {e}")
         return jsonify({'message': 'An error occurred while generating the exam'}), 500
-
 
 @app.route('/api/exam/generate/save', methods=['POST'])
 @token_required
@@ -384,7 +389,6 @@ def generate_and_save_exam(current_user):
 
     return jsonify({'exam_id': exam_id}), 201
 
-
 @app.route('/api/exam/generate/save-after', methods=['POST'])
 @token_required
 def save_exam_after_generate(current_user):
@@ -421,7 +425,6 @@ def save_exam_after_generate(current_user):
 
     return jsonify({'exam_id': exam_id}), 201
 
-
 @app.route('/api/exam/<int:exam_id>', methods=['GET'])
 def get_exam_endpoint(exam_id):
     try:
@@ -446,7 +449,7 @@ def get_exam_endpoint(exam_id):
                 return jsonify({'message': 'Access token is missing!'}), 401
         
             try:
-                data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+                data = jwt.decode(token, os.environ.get("SECRET_KEY"), algorithms=["HS256"])
             
                 if data.get('type') != 'access':
                     return jsonify({'message': 'Invalid token type!'}), 401
@@ -478,6 +481,139 @@ def get_exam_endpoint(exam_id):
 
     except Exception as e:
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
+
+@app.route("/api/browse", methods=["GET"])
+def get_exams_endpoint():
+    # Retrieve query parameters with default values
+    sorting = request.args.get("sorting", "popular")
+    title = request.args.get("title", "")
+    
+    try:
+        limit = int(request.args.get("limit", 10))
+    except ValueError:
+        limit = 10
+
+    try:
+        page = int(request.args.get("page", 1))
+    except ValueError:
+        page = 1
+
+    cache_key = f"exams:{sorting}:{title}:{limit}:{page}"
+    cached_data = redis_client.get(cache_key)
+    if cached_data:
+        exams = json.loads(cached_data)
+        return jsonify(exams), 200
+    
+    # Call getExams on the db instance.
+    # Here, user_id is not supplied (None) and filter is always "N/A".
+    try:
+        exams = db.get_exams(None, sorting, "N/A", title, limit, page)
+
+        results = [
+            {
+            "exam_id": exam[0],
+            "name": exam[1],
+            "date": exam[2],
+            "owner": exam[3],
+            "color": exam[4],
+            "description": exam[5],
+            "public": exam[6],
+            "num_fav": exam[7]
+            }
+            for exam in exams
+        ]
+
+        redis_client.setex(cache_key, 60, json.dumps(results))
+        return jsonify(results), 200
+    except Exception as e:
+        return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
+    
+@app.route("/api/browse/personal", methods=["GET"])
+@token_required
+def get_exams_personal(current_user):
+    title = request.args.get("title", "")
+    filter = request.args.get("filter", "mine")
+    
+    try:
+        limit = int(request.args.get("limit", 10))
+    except ValueError:
+        limit = 10
+
+    try:
+        page = int(request.args.get("page", 1))
+    except ValueError:
+        page = 1
+
+    if filter == "mine":
+        cache_key = f"exams:{current_user[0]}:{filter}:{title}:{limit}:{page}"
+        cached_data = redis_client.get(cache_key)
+        if cached_data:
+            exams = json.loads(cached_data)
+            return jsonify(exams), 200
+
+    try:
+        exams = db.get_exams(current_user[0], "recent", filter, title, limit, page)
+
+        results = [
+            {
+            "exam_id": exam[0],
+            "name": exam[1],
+            "date": exam[2],
+            "owner": exam[3],
+            "color": exam[4],
+            "description": exam[5],
+            "public": exam[6],
+            "num_fav": exam[7]
+            }
+            for exam in exams
+        ]
+
+        if filter == "mine":
+            redis_client.setex(cache_key, 60, json.dumps(results))
+        return jsonify(results), 200
+    except Exception as e:
+        return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
+    
+@app.route("/api/favourite", methods=["POST"])
+@token_required
+def fav(current_user):
+    data = request.get_json()
+    exam_id = data.get("exam_id")
+    action = data.get("action")
+    
+    if exam_id is None or action is None:
+        return jsonify({"error": "Missing exam_id or action in request body"}), 400
+    
+    user_id = current_user[0]
+    
+    try:
+        if action.lower() == "fav":
+            db.add_favourite(user_id, exam_id)
+            return jsonify({"message": "Exam favourited successfully."}), 200
+        elif action.lower() == "unfav":
+            db.remove_favourite(user_id, exam_id)
+            return jsonify({"message": "Exam unfavourited successfully."}), 200
+        else:
+            return jsonify({"error": "Invalid action specified. Use 'fav' or 'unfav'."}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+    
+@app.route("/api/favourite/check", methods=["POST"])
+@token_required
+def check_favourite(current_user):
+    data = request.get_json()
+    exam_id = data.get("exam_id")
+    
+    if exam_id is None:
+        return jsonify({"error": "Missing exam_id in request body"}), 400
+
+    user_id = current_user[0]
+    
+    try:
+        exists = db.is_favourite(user_id, exam_id)
+        return jsonify({"is_favourite": exists}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == '__main__':

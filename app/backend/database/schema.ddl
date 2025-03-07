@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS Answer (
 CREATE TABLE IF NOT EXISTS Favourite (
     userId INTEGER,
     examId INTEGER,
+    UNIQUE(userId, examId),
     FOREIGN KEY (userId) REFERENCES User(id),
     FOREIGN KEY (examId) REFERENCES Exam(examId)
 );

@@ -19,7 +19,7 @@ export default function GenerateLayout({ children }: { children: React.ReactNode
         {/* Animated placeholder that reserves sidebar space */}
         <motion.div
           className="flex-shrink-0"
-          animate={{ width: isCollapsed ? 0 : expandedWidth }}
+          animate={{ width: isCollapsed ? 0 : expandedWidth }}  
           transition={{ duration: 0.3, ease: "easeInOut" }}
         />
 

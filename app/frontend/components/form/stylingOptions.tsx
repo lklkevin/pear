@@ -22,15 +22,15 @@ export const colors: ColorOption[] = [
   },
   {
     value: "purple",
-    class: "bg-purple-700",
-    outline: "ring-purple-300",
-    hex: "#6b21a8",
+    class: "bg-violet-700",
+    outline: "ring-violet-300",
+    hex: "#6d28d9",
   },
   {
     value: "pink",
-    class: "bg-pink-700",
-    outline: "ring-pink-300",
-    hex: "#be185d",
+    class: "bg-rose-700",
+    outline: "ring-rose-300",
+    hex: "#be123c",
   },
   {
     value: "red",
@@ -40,9 +40,9 @@ export const colors: ColorOption[] = [
   },
   {
     value: "orange",
-    class: "bg-orange-700",
-    outline: "ring-orange-300",
-    hex: "#c2410c",
+    class: "bg-amber-700",
+    outline: "ring-amber-300",
+    hex: "#b45309",
   },
   {
     value: "gray",
