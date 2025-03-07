@@ -10,13 +10,11 @@ const exams = [
     title: "MAT223 Practice Final",
     author: "kimlan07",
     color: "linear-gradient(to bottom, #1e3a8a, #1e293b)",
-    description: "This is a practice final exam for MAT223. It covers all the topics that will be on the final exam.",
   },
   {
     title: "MAT223 Practice Final",
     author: "kimlan07",
     color: "linear-gradient(to bottom, #059669, #065f46)",
-    description: "This is a practice final exam for MAT223. It covers all the topics that will be on the final exam.",
   },
   {
     title: "MAT223 Practice Final",
