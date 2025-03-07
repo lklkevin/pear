@@ -37,7 +37,7 @@ export default function GenerateLayout({
         {/* Absolutely Positioned Sidebar */}
         <div className="absolute left-0 h-full">
           <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
-            <div className="p-8">
+            <div className="py-8 px-4">
               <TestSearch/>
             </div>
           </Sidebar>

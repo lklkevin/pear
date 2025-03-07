@@ -10,7 +10,7 @@ export default function InputField({ label, value, onChange, placeholder, textar
   const inputId = label ? label.toLowerCase().replace(/\s+/g, "-") : undefined;
 
   return (
-    <div className="flex">
+    <div className="flex flex-col">
       {label && (
         <label htmlFor={inputId} className="block text-sm font-medium text-zinc-300">
           {label}
