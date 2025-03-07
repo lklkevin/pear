@@ -1,18 +1,27 @@
-import React, { useState } from "react";
-import { useRouter } from "next/router"; 
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/router";
 import { FaGoogle } from "react-icons/fa";
 import InputField from "../form/inputField";
 import PasswordField from "../form/passwordField";
 import SubmitButton from "../form/submitButton";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useErrorStore } from "../../store/store";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const router = useRouter(); 
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    // If the user already has a valid session, redirect to landing
+    if (session) {
+      useErrorStore.getState().setError("You are already signed in!");
+      router.push("/");
+    }
+  }, [session, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +39,7 @@ const Login: React.FC = () => {
         throw new Error(result.error);
       }
 
-      router.push("/"); 
+      router.push("/");
     } catch (error) {
       if (error instanceof Error) {
         useErrorStore.getState().setError(error.message || "Login failed");
@@ -46,13 +55,18 @@ const Login: React.FC = () => {
     <div>
       <div>
         <form className="space-y-4" onSubmit={handleLogin}>
-          <InputField label="Email / Username" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <InputField
+            label="Email"
+            auth={true}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <PasswordField 
-            label="Password" 
-            value={password} 
-            onChange={(e) => setPassword(e.target.value)} 
-            showForgotPassword={true} 
+          <PasswordField
+            label="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            showForgotPassword={true}
           />
 
           <SubmitButton text="Log in" loading={loading} />
@@ -64,13 +78,21 @@ const Login: React.FC = () => {
           <hr className="flex-grow border-zinc-700" />
         </div>
 
-        <button className="w-full flex items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700"
-          onClick={() => signIn("google")}>
-          <span className="mr-2"><FaGoogle /></span> Continue with Google
+        <button
+          className="w-full flex items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700"
+          onClick={() => signIn("google")}
+        >
+          <span className="mr-2">
+            <FaGoogle />
+          </span>{" "}
+          Continue with Google
         </button>
 
         <p className="text-center text-sm text-zinc-400 mt-4">
-          Don&apos;t have an account? <Link href="/signup" className="text-white underline">Sign up</Link>
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="text-white underline">
+            Sign up
+          </Link>
         </p>
       </div>
     </div>

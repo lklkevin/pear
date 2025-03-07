@@ -65,16 +65,16 @@ const Signup: React.FC = () => {
         <form className="space-y-4" onSubmit={handleSignup}>
           <InputField
             label="Email"
-            type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            auth={true}
           />
 
           <InputField
             label="Username"
-            type="text"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            auth={true}
           />
 
           <PasswordField
