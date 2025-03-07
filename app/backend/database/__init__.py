@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Literal, Optional
 
+from backend.exam import Exam
+
 AuthProvider = Literal["local", "google"]
 SortOrder = Literal["popular", "recent", "N/A"]
 Filter = Literal["favourites", "mine", "N/A"]
@@ -21,7 +23,7 @@ class DataAccessObject(ABC):
             email: The email to check.
         
         Raises:
-            TypeError: At least one argument (username, email) is required,
+            ValueError: At least one argument (username, email) is required,
                        but none were provided.
             DatabaseError: An error related to the database occurred.
             DataError: An error related to the processed data occurred.
@@ -158,7 +160,7 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_oauth_id(user_id: str, oauth_id: str) -> None:
+    def set_oauth_id(self, user_id: str, oauth_id: str) -> None:
         """Set the oauth_id of the user given by the user_id to the
         value oauth_id.
 
@@ -173,7 +175,7 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def set_last_login(self, username: str, time: datetime) -> bool:
+    def set_last_login(self, username: str, time: datetime) -> None:
         """Set the last login time of the user to the given time.
         
         Args:
@@ -184,6 +186,32 @@ class DataAccessObject(ABC):
             DatabaseError: An error related to the database occurred.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def get_exam(self, 
+        exam_id: int
+    ) -> Optional[tuple[int, str, str, str, str, str, bool, int, Exam]]:
+        """Get the exam information for a given exam_id.
+
+        Args:
+            exam_id:
+        Returns:
+            A tuple (exam_id, name, date, owner, color, 
+            description, public, num_fav).
+
+            exam_id (int): The exam id.
+            name (str): The name of the exam.
+            date (str): The date which the exam was created.
+            owner (int): The user id of the exam's owner.
+            color (str): The color of the exam.
+            description (str): The description of the exam.
+            public (bool): Whether this exam is public or not.
+            num_fav (int): The number of times this exam has been favourited.
+            exam (Exam): The exam object.
+        Raises
+            DatabaseError: An error related to the database occurred.
+        """
+        raise NotImplementedError
     
     @abstractmethod
     def get_exams(self, 
@@ -191,7 +219,7 @@ class DataAccessObject(ABC):
         sorting: SortOrder,
         filter: Filter,
         title: Optional[str]
-    ) -> list[tuple[int, str, str, str, str]]:
+    ) -> list[tuple[int, str, str, str, str, str, bool, int]]:
         """Fetch public exams matching the query.
 
         Args:
@@ -205,14 +233,18 @@ class DataAccessObject(ABC):
             title: The title of the exam that is being searched for.
 
         Returns:
-            A list of tuples (exam_id, title, description, colour, author) 
-            of exam information matching the search query.
+            A list of tuples (exam_id, name, date, owner, color, 
+            description, public, num_fav) of exam information matching 
+            the search query.
             
-            exam_id (str): The id of the exam.
-            title (str): The title of the exam.
+            exam_id (int): The exam id.
+            name (str): The name of the exam.
+            date (str): The date which the exam was created.
+            owner (int): The user id of the exam's owner.
+            color (str): The color of the exam.
             description (str): The description of the exam.
-            colour (str): The hex code of the exam colour.
-            author (str): The username of the exam author.
+            public (bool): Whether this exam is public or not.
+            num_fav (int): The number of times this exam has been favourited.
         """
         raise NotImplementedError
 
@@ -223,7 +255,7 @@ class DataAccessObject(ABC):
         color: str,
         description: str,
         public: bool
-    ) -> None:
+    ) -> int:
         raise NotImplementedError
         """Insert an empty exam for a given user, with the given options.
 
@@ -233,6 +265,9 @@ class DataAccessObject(ABC):
             color: The color used to label the exam. Given in hex format.
             description: The user-specified description of the exam.
             public: If the exam is public or not.
+
+        Returns:
+            The examId of the inserted exam.
         
         Raises:
             DatabaseError: An error related to the database occurred.
@@ -278,14 +313,48 @@ class DataAccessObject(ABC):
             answer_confidence (float): The confidence score of the answer.
 
         Raises:
-            DatabaseError: If an error occurs while interacting with the database.
+            DatabaseError: If an error occurs while interacting with the 
+                           database.
             DataError: If there is an issue with the provided data.
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def add_favourite(self, user_id: int, exam_id: int) -> None:
+        """Add the exam with given exam_id to the favourite exams of the user
+        with given user_id.
+
+        Args:
+            user_id: The id of the user.
+            exam_id: The exam of the user.
+        
+        Raises:
+            DatabaseError: If an error occurs while interacting with the 
+                           database.
+            DataError: If there is an issue with the provided data.
+        """
+        raise NotImplementedError
+
+    def remove_favourite(self, user_id: int, exam_id: int) -> None:
+        """Remove the exam with given exam_id from the favourite exams of the
+        user with given user_id.
+
+        Args:
+            user_id: The id of the user.
+            exam_id: The exam of the user.
+        
+        Raises:
+            DatabaseError: If an error occurs while interacting with the 
+                           database.
+            DataError: If there is an issue with the provided data.
+        """
+        raise NotImplementedError
 
 class DatabaseError(Exception):
+    """Exception raised for errors that are related to the database."""
     pass
 
 class DataError(Exception):
+    """Exception raised for errors caused by problems with the processed
+    data."""
     pass
