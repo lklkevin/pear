@@ -116,7 +116,7 @@ export default NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET,
   session: { strategy: "jwt" },
-  pages: { signIn: "/auth/signin" },
+  pages: { signIn: "/login" },
 });
 
 /**

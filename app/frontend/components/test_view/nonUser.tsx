@@ -1,11 +1,125 @@
 import ExamLayout from "@/components/layout/generatedLayout";
-import { sampleExam } from "./sampleExam";
+import { AlternativeAnswer, Question, Exam } from "./exam";
 import ExamContent from "./examContent";
+import { useErrorStore, useLoadingStore } from "@/store/store";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/router";
+
+interface RawExamQuestion {
+  question: string;
+  answers: Record<string, number>;
+}
+
+export interface RawExam {
+  title: string;
+  description: string;
+  questions: RawExamQuestion[];
+  privacy?: string;
+}
+
+export function parseExam(examJson: RawExam): Exam {
+  return {
+    title: examJson.title,
+    description: examJson.description,
+    privacy: examJson.privacy || "Unsaved",
+    questions: examJson.questions.map((q: any): Question => {
+      // Convert the answers object into an array of [answer, confidence] pairs.
+      // Use a type assertion to ensure the entries are [string, number] tuples.
+      const answersEntries = Object.entries(q.answers) as [string, number][];
+
+      // Sort the entries in descending order based on confidence.
+      answersEntries.sort((a, b) => b[1] - a[1]);
+
+      // The first entry becomes the main answer.
+      const [mainAnswer, mainAnswerConfidence] = answersEntries[0];
+
+      // The remaining entries are mapped as alternative answers.
+      const alternativeAnswers: AlternativeAnswer[] = answersEntries
+        .slice(1)
+        .map(([answer, confidence]) => ({
+          answer,
+          confidence,
+        }));
+
+      return {
+        question: q.question,
+        mainAnswer,
+        mainAnswerConfidence,
+        alternativeAnswers,
+      };
+    }),
+  };
+}
 
 export default function Page() {
+  const { loading } = useLoadingStore();
+  const router = useRouter();
+  const [exam, setExam] = useState<Exam>();
+  
+  useEffect(() => {
+    async function fetchData() {
+      if (!localStorage.getItem("browserSessionId")) {
+        useErrorStore
+          .getState()
+          .setError("You have not generated an exam yet!");
+        router.push(`/generate`);
+        return;
+      }
+
+      const sessionId = localStorage.getItem("browserSessionId");
+      const cacheKey = `exam:${sessionId}`;
+
+      try {
+        const response = await fetch(`/api/fetchExam`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            cacheKey: cacheKey,
+          }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          useErrorStore.getState().setError("Cannot fetch exam");
+          router.push(`/generate`);
+          return;
+        }
+
+        if (result.message) {
+          useErrorStore.getState().setError(result.message);
+          router.push(`/generate`);
+          return;
+        } else {
+          const newExam = parseExam(result);
+          setExam(newExam);
+        }
+      } catch (error) {
+        useErrorStore.getState().setError("Cannot fetch exam");
+        router.push(`/generate`);
+        return;
+      }
+    }
+
+    fetchData();
+  }, []);
+
   return (
     <ExamLayout>
-      <ExamContent exam={sampleExam} />
+      {(exam && !loading) ? (
+        <ExamContent exam={exam} />
+      ) : (
+        <div className="fixed inset-0 bg-zinc-950/25 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-2">
+            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
+            <p className="text-lg font-medium text-white">
+              Loading...
+            </p>
+          </div>
+        </div>
+      )}
     </ExamLayout>
   );
 }

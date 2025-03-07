@@ -218,9 +218,11 @@ class DataAccessObject(ABC):
         user_id: str,
         sorting: SortOrder,
         filter: Filter,
-        title: Optional[str]
+        title: Optional[str],
+        limit: int,
+        page: int
     ) -> list[tuple[int, str, str, str, str, str, bool, int]]:
-        """Fetch public exams matching the query.
+        """Fetch public exams matching the query with pagination support.
 
         Args:
             user_id: The id of the user making this query.
@@ -228,15 +230,17 @@ class DataAccessObject(ABC):
                      "popular", "recent", or "N/A", determining the order that
                      queries are returned in.
             filter: The filtering settings for this query. This is either
-                    "favourites", "mine", or "N/A", determining the type of 
-                    exams being returned.
+                     "favourites", "mine", or "N/A", determining the type of 
+                     exams being returned.
             title: The title of the exam that is being searched for.
+            limit: The maximum number of exam records to return.
+            page: The number of exam records to skip before starting to return results.
 
         Returns:
             A list of tuples (exam_id, name, date, owner, color, 
             description, public, num_fav) of exam information matching 
             the search query.
-            
+
             exam_id (int): The exam id.
             name (str): The name of the exam.
             date (str): The date which the exam was created.
@@ -256,7 +260,6 @@ class DataAccessObject(ABC):
         description: str,
         public: bool
     ) -> int:
-        raise NotImplementedError
         """Insert an empty exam for a given user, with the given options.
 
         Args:
@@ -347,6 +350,20 @@ class DataAccessObject(ABC):
             DatabaseError: If an error occurs while interacting with the 
                            database.
             DataError: If there is an issue with the provided data.
+        """
+        raise NotImplementedError
+    
+    @abstractmethod
+    def is_favourite(self, user_id: int, exam_id: int) -> bool:
+        """
+        Check if a favourite exists for the given user and exam.
+
+        Args:
+            user_id (int): The ID of the user.
+            exam_id (int): The ID of the exam.
+
+        Returns:
+            bool: True if the favourite exists, otherwise False.
         """
         raise NotImplementedError
 

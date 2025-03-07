@@ -5,7 +5,7 @@ export const sampleExam: Exam = {
   title: "MAT223 Midterm 2",
   description:
     "This midterm assesses foundational concepts such as vectors and vector spaces, matrix operations, solving systems of linear equations, determinants, and linear transformations.",
-  isPublic: false,
+  privacy: "Private",
   questions: [
     {
       question:

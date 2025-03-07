@@ -27,8 +27,10 @@ export default function GenerateLayout({
 
         {/* Main Content*/}
         <div
-          className={`flex-1 flex flex-col max-w-7xl px-8 py-8 sm:pt-12 sm:pb-16 mx-auto min-h-[calc(100vh-72px)] ${
-            !isCollapsed ? "hidden sm:flex" : ""
+          className={`max-w-screen flex-1 flex flex-col max-w-7xl px-4 sm:px-8 py-8 sm:py-12 mx-auto min-h-[calc(100vh-72px)] ${
+            isCollapsed
+              ? ""
+              : "max-h-[calc(100vh-72px)] sm:max-h-none w-0 sm:w-full opacity-0 sm:opacity-100"
           }`}
         >
           {children}
@@ -37,8 +39,8 @@ export default function GenerateLayout({
         {/* Absolutely Positioned Sidebar */}
         <div className="absolute left-0 h-full">
           <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
-            <div className="p-8">
-            <h2 className="text-2xl sm:text-3xl font-semibold">
+            <div className="px-8">
+              <h2 className="text-2xl sm:text-3xl font-semibold">
                 Saving & Sharing
               </h2>
               <Generated />
