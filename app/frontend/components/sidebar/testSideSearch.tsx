@@ -1,5 +1,7 @@
 import { useState } from "react";
 import Link from "next/link";
+import SearchBar from "../ui/searchBar";
+import Tabs from "../ui/tabs";
 
 // Define the structure of an exam item
 interface ExamItem {
@@ -50,20 +52,13 @@ export default function SideSearch() {
   return (
     <>
       {/* Search Bar */}
-      <div className="relative mb-4">
-        <span className="material-icons absolute left-3 top-2.5 text-zinc-400">
-          search
-        </span>
-        <input
-          type="text"
-          placeholder="Search exams"
-          className="w-full pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-white placeholder:text-zinc-400 focus:outline-none focus:border-zinc-700"
-        />
+      <div className="mb-4">
+        <SearchBar placeholder="Search exams" />
       </div>
 
       {/* Tabs for filtering exams */}
-      <div className="mb-4 border-b border-zinc-800">
-        <div className="flex gap-4 justify-center">
+      <div className="mb-4">
+        {/* <div className="flex gap-4 justify-center border-b border-zinc-800">
           {TABS.map((tab) => (
             <button
               key={tab}
@@ -77,7 +72,8 @@ export default function SideSearch() {
               {tab}
             </button>
           ))}
-        </div>
+        </div> */}
+        <Tabs activeTab={activeTab} setActiveTab={setActiveTab} className="text-sm justify-center gap-4"/>
       </div>
 
       {/* List of available exams */}

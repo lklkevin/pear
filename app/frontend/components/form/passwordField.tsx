@@ -47,7 +47,7 @@ export default function PasswordField({
           className="absolute inset-y-0 right-3 top-1 flex items-center text-zinc-400 hover:text-zinc-200"
         >
           <span className="material-icons scale-90">
-            {showPassword ? "visibility_off" : "visibility"}
+            {showPassword ? "visibility" : "visibility_off"}
           </span>
         </button>
       </div>
