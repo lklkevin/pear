@@ -23,7 +23,8 @@ class PostgresDB(DataAccessObject):
         """
         self.pool = psycopg2.pool.SimpleConnectionPool(
             1, 10,
-            dsn=connection_string
+            dsn=connection_string,
+            sslmode='require'
         )
         
         # Initialize schema if needed
@@ -47,7 +48,9 @@ class PostgresDB(DataAccessObject):
     
     def _get_conn(self):
         """Get a connection from the pool."""
-        return self.pool.getconn()
+        conn = self.pool.getconn()
+        conn.reset()  # Reset the connection to clean any previous state
+        return conn
     
     def _release_conn(self, conn):
         """Release a connection back to the pool."""
