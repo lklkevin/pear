@@ -174,7 +174,7 @@ export default function ExamForm() {
       </div>
 
       {/* Right: Form Fields */}
-      <div className="flex flex-col h-full gap-8">
+      <div className="flex flex-col h-full gap-8 justify-between">
         <div>
           <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">
             Exam Title
@@ -211,7 +211,7 @@ export default function ExamForm() {
               <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-8 mb-2 sm:mb-4">
                 Visibility
               </h3>
-              <div className="flex-col sm:flex-row flex gap-4 w-full">
+              <div className="flex-col lg:flex-row flex gap-4 w-full overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-960">
                 <VisibilityOption
                   option="private"
                   selected={visibility === "private"}
@@ -245,7 +245,7 @@ export default function ExamForm() {
           )}
         </div>
         {/* mt-auto pushes the button container to the bottom */}
-        <div className="text-lg mt-auto">
+        <div className="text-lg">
           <GreenButton text="Generate" onClick={handleGenerate} />
         </div>
       </div>
