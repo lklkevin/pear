@@ -2,8 +2,11 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import ButtonG from "../ui/buttonGreen";
 import Button from "../ui/buttonGray";
+import { signOut, useSession } from "next-auth/react";
 
-export default function Home({ landing = false }: { landing?: boolean }) {
+export default function Navbar({ landing = false }: { landing?: boolean }) {
+  const { data: session } = useSession(); // Get authentication state
+
   const router = useRouter();
   const callbackUrl = encodeURIComponent(router.asPath); // Preserve current URL
 
@@ -24,14 +27,31 @@ export default function Home({ landing = false }: { landing?: boolean }) {
           Generate
         </Link>
       </div>
+
       <div className="text-zinc-200 flex items-center h-full space-x-4 md:space-x-6">
         {/* Preserve the callback URL for login */}
-        <Link href={`/login?callbackUrl=${callbackUrl}`}>
-          <Button text="Login" />
-        </Link>
-        <Link href={`/signup?callbackUrl=${callbackUrl}`}>
-          <ButtonG text="Sign Up" />
-        </Link>
+        {session ? (
+          // Show this when user is logged in
+          <>
+            <span className="text-white">Welcome, {session.user?.name}</span>
+            <button
+              onClick={() => signOut()}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md"
+            >
+              Logout
+            </button>
+          </>
+        ) : (
+          // Show this when user is logged out
+          <>
+            <Link href={`/login?callbackUrl=${callbackUrl}`}>
+              <Button text="Login" />
+            </Link>
+            <Link href={`/signup?callbackUrl=${callbackUrl}`}>
+              <ButtonG text="Sign Up" />
+            </Link>
+          </>
+        )}
       </div>
     </nav>
   );
