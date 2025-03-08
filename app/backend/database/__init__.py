@@ -221,7 +221,7 @@ class DataAccessObject(ABC):
         title: Optional[str],
         limit: int,
         page: int
-    ) -> list[tuple[int, str, str, str, str, str, bool, int]]:
+    ) -> list[tuple[int, str, str, str, str, str, bool, int, bool]]:
         """Fetch public exams matching the query with pagination support.
 
         Args:
@@ -249,6 +249,7 @@ class DataAccessObject(ABC):
             description (str): The description of the exam.
             public (bool): Whether this exam is public or not.
             num_fav (int): The number of times this exam has been favourited.
+            is_liked (bool): If user is provided, whether the user has liked the exam
         """
         raise NotImplementedError
 

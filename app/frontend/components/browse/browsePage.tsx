@@ -8,8 +8,9 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useErrorStore } from "@/store/store";
 
 export default function BrowsePage() {
-  const { data: session } = useSession();
-  // Show "My Exams" and "Favorites" only if logged in.
+  const { data: session, status } = useSession();
+
+  // Only allow "Popular" and "Explore" tabs for unauthenticated users.
   const availableTabs = session
     ? ["Popular", "Explore", "My Exams", "Favorites"]
     : ["Popular", "Explore"];
@@ -20,44 +21,44 @@ export default function BrowsePage() {
   const [results, setResults] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-
   const limit = 10; // Number of items per page
 
-  // Fetch exams based on active tab, current page, and search query.
-  // Optionally, an override for the search term can be provided.
-  const fetchExams = async (
-    reset: boolean = false,
-    overrideSearch?: string
-  ) => {
+  const fetchExams = async (reset = false, overrideSearch?: string) => {
+    // Guard: if session status is still loading, don't fetch.
+    if (status === "loading") return;
+
     const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     let endpoint = "";
     const params = new URLSearchParams();
     params.append("limit", limit.toString());
-    // Determine which page to fetch
     const pageToFetch = reset ? 1 : page;
     params.append("page", pageToFetch.toString());
-    // Use overrideSearch if provided; otherwise, use the current searchQuery.
-    const queryTitle =
-      overrideSearch !== undefined ? overrideSearch : searchQuery;
+    const queryTitle = overrideSearch !== undefined ? overrideSearch : searchQuery;
     params.append("title", queryTitle);
 
-    if (activeTab === "Popular") {
-      endpoint = `${baseUrl}/api/browse`;
-      params.append("sorting", "popular");
-    } else if (activeTab === "Explore") {
-      endpoint = `${baseUrl}/api/browse`;
-      params.append("sorting", "recent");
-    } else if (activeTab === "My Exams") {
+    // If authenticated, use the personal endpoint for all tabs so that extra data (e.g. is_liked) is provided.
+    if (session) {
       endpoint = `${baseUrl}/api/browse/personal`;
-      params.append("filter", "mine");
-    } else if (activeTab === "Favorites") {
-      endpoint = `${baseUrl}/api/browse/personal`;
-      params.append("filter", "favourites");
+      if (activeTab === "Popular") {
+        params.append("sorting", "popular");
+      } else if (activeTab === "Explore") {
+        params.append("sorting", "recent");
+      } else if (activeTab === "My Exams") {
+        params.append("filter", "mine");
+      } else if (activeTab === "Favorites") {
+        params.append("filter", "favourites");
+      }
+    } else {
+      // Unauthenticated visitors can only access the public endpoint.
+      endpoint = `${baseUrl}/api/browse`;
+      if (activeTab === "Popular") {
+        params.append("sorting", "popular");
+      } else if (activeTab === "Explore") {
+        params.append("sorting", "recent");
+      }
     }
 
     const url = `${endpoint}?${params.toString()}`;
-
-    // Prepare fetch options and attach bearer token if calling the personal endpoint.
     const fetchOptions: RequestInit = {
       method: "GET",
       headers: {
@@ -65,17 +66,19 @@ export default function BrowsePage() {
       },
     };
 
-    // Only add Authorization header if we're calling the personal endpoints.
-    if (activeTab === "My Exams" || activeTab === "Favorites") {
-      const currSession = await getSession();
+    // Attach the token if the user is authenticated.
+    if (session) {
       fetchOptions.headers = {
         ...fetchOptions.headers,
-        Authorization: `Bearer ${currSession?.accessToken}`,
+        Authorization: `Bearer ${session.accessToken}`,
       };
     }
 
     try {
       const res = await fetch(url, fetchOptions);
+      if (res.status === 401) {
+        throw new Error("Unauthorized");
+      }
       const data = await res.json();
       if (reset) {
         setResults(data);
@@ -84,23 +87,22 @@ export default function BrowsePage() {
         setResults((prev) => [...prev, ...data]);
         setPage((prev) => prev + 1);
       }
-      // If fewer items than the limit are returned, there is no more data.
       setHasMore(data.length === limit);
     } catch (error) {
       useErrorStore.getState().setError(error as string);
     }
   };
 
-  // When activeTab changes, clear the search query immediately and fetch with an empty title.
+  // When activeTab or session status changes, reset the search and results.
   useEffect(() => {
-    setSearchQuery(""); // Clear search bar immediately.
+    if (status === "loading") return; // Wait until the session is ready.
+    setSearchQuery("");
     setPage(1);
     setResults([]);
     setHasMore(true);
     fetchExams(true, "");
-  }, [activeTab]);
+  }, [activeTab, status]);
 
-  // Trigger search when the search icon is clicked or the user presses Enter.
   const handleSearch = () => {
     setPage(1);
     setResults([]);
@@ -115,13 +117,24 @@ export default function BrowsePage() {
     Explore: "Explore Exams",
   };
 
+  if (status === "loading") {
+    return (
+      <BrowseLayout>
+        <div className="flex flex-col items-center justify-center h-full py-20">
+          <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin"></div>
+          <p className="text-lg font-medium text-white mt-4">Loading...</p>
+        </div>
+      </BrowseLayout>
+    );
+  }
+
   return (
     <BrowseLayout>
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 sm:gap-8">
         <h1 className="text-3xl sm:text-5xl font-bold tracking-tight min-w-[200px] md:min-w-[330px]">
           {tabTitles[activeTab] || "Popular"}
         </h1>
-        <div className="mt-1 w-full md:w-auto md:flex-1 md:max-w-[550px] min-w-[250px] md:mb-0 mb-0">
+        <div className="mt-1 w-full md:w-auto md:flex-1 md:max-w-[550px] min-w-[250px]">
           <SearchBar
             placeholder="Search"
             value={searchQuery}

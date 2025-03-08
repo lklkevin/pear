@@ -39,7 +39,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
 
   const colors = [
     "bg-cyan-700",
-    "bg-blue-700",
+    "bg-indigo-700",
     "bg-violet-700",
     "bg-rose-700",
     "bg-red-700",
@@ -57,7 +57,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
 
   return (
     <nav
-      className={`text-zinc-400 text-sm md:text-base flex flex-row w-screen h-[72px] px-5 sm:px-8 md:px-10 justify-between py-3 ${
+      className={`text-zinc-400 text-sm md:text-base flex flex-row w-screen h-[72px] px-4 sm:px-8 justify-between py-3 ${
         landing
           ? "bg-transparent"
           : `bg-zinc-950 ${mobileMenuOpen ? "" : "border-b border-zinc-800"}`
@@ -69,10 +69,20 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
             :3
           </div>
         </Link>
-        <Link className="hidden sm:block hover:text-white" href="/browse">
+        <Link
+          className={`hidden sm:block hover:text-white ${
+            router.pathname === "/browse" ? "text-white" : "text-gray-400"
+          }`}
+          href="/browse"
+        >
           Browse
         </Link>
-        <Link className="hidden sm:block hover:text-white" href="/generate">
+        <Link
+          className={`hidden sm:block hover:text-white ${
+            router.pathname === "/generate" ? "text-white" : "text-gray-400"
+          }`}
+          href="/generate"
+        >
           Generate
         </Link>
       </div>
@@ -87,7 +97,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
               className={`h-9 w-9 rounded-full text-white font-semibold ${getColorFromName(
                 session.user?.name || "User"
               )}
-              transition-all duration-200 hover:ring-4 hover:ring-zinc-700 hover:ring-opacity-50 hidden sm:block`}
+              transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
               onClick={(e) => {
                 e.stopPropagation(); // Prevents triggering the document click event
                 toggleMenu();

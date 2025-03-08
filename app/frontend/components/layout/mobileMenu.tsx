@@ -19,7 +19,7 @@ export default function MobileMenu({
   return (
     <div
       className="fixed top-[72px] inset-x-0 w-screen bg-zinc-950 text-white flex flex-col items-center z-50 
-      shadow-md shadow-zinc-800 sm:hidden"
+      border-b border-zinc-800 sm:hidden"
       onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside
       aria-hidden={!mobileMenuOpen}
     >

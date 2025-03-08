@@ -35,6 +35,7 @@ export default function ExamCard({
     date: string;
     color: string;
     description: string;
+    liked: boolean;
     // ...other exam properties if needed
   };
 }) {
@@ -48,7 +49,7 @@ export default function ExamCard({
           background: `linear-gradient(to bottom, ${exam.color}, ${darkerColor})`,
         }}
       >
-        <Favorite examId={exam.exam_id}/>
+        <Favorite examId={exam.exam_id} initialFavorite={exam.liked}/>
         <div className="absolute bottom-0 py-3 px-4 text-white bg-zinc-900 w-full rounded-b-lg border-t border-zinc-800">
           <h3 className="text-md font-medium mb-1">{exam.name}</h3>
           <p className="text-xs text-zinc-400">{exam.date}</p>

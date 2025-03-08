@@ -1,51 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useSession, getSession } from "next-auth/react";
 import { useErrorStore } from "@/store/store";
 
 interface FavoriteProps {
   examId: number;
+  initialFavorite: boolean;
 }
 
-export default function Favorite({ examId }: FavoriteProps) {
+export default function Favorite({ examId, initialFavorite }: FavoriteProps) {
   const { data: session } = useSession();
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(initialFavorite);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Call useEffect unconditionally. Inside, check if session exists.
-  useEffect(() => {
-    if (!session || isLoading) return;
-    const checkFavorite = async () => {
-      setIsLoading(true);
-      try {
-        const currSession = await getSession();
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/favourite/check`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${currSession?.accessToken}`,
-            },
-            body: JSON.stringify({ exam_id: examId }),
-          }
-        );
-        const data = await response.json();
-        if (response.ok && data) {
-          setIsFavorite(data.is_favourite);
-        } else if (data?.error) {
-          useErrorStore.getState().setError(data.error);
-        }
-      } catch (error) {
-        useErrorStore.getState().setError("Failed to fetch favorite status");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkFavorite();
-  }, [examId]);
-
-  // Now it's safe to conditionally render, because hooks were always called.
   if (!session) {
     return null;
   }
@@ -102,7 +68,7 @@ export default function Favorite({ examId }: FavoriteProps) {
     >
       <span
         className={`drop-shadow-sm material-icons ${
-          isFavorite ? "text-rose-600" : "text-zinc-200 hover:text-white"
+          isFavorite ? "text-white" : "text-zinc-300 hover:text-white"
         } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
       >
         {isFavorite ? "favorite" : "favorite_border"}

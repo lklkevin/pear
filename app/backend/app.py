@@ -192,7 +192,7 @@ def google_auth():
     else:
         # For Google users, if a username is not provided, generate one based on the email.
         email_prefix = data['email'].split('@')[0]
-        username = f"{email_prefix}_{secrets.token_hex(8)}"
+        username = f"{email_prefix}_{secrets.token_hex(4)}"
         auth_provider = 'google'
         
         try:
@@ -249,12 +249,12 @@ def refresh():
     access_token = generate_access_token(user_id)
     
     # Token rotation: revoke the old refresh token and generate a new one
-    db.set_revoked_status(data['refresh_token'], True)
-    new_refresh_token = generate_refresh_token(user_id)
+    # db.set_revoked_status(data['refresh_token'], True)
+    # new_refresh_token = generate_refresh_token(user_id)
     
     return jsonify({
         'access_token': access_token,
-        'refresh_token': new_refresh_token
+        'refresh_token': data['refresh_token']
     }), 200
 
 @app.route('/api/auth/logout', methods=['POST'])
@@ -526,7 +526,8 @@ def get_exams_endpoint():
             "color": exam[4],
             "description": exam[5],
             "public": exam[6],
-            "num_fav": exam[7]
+            "num_fav": exam[7],
+            "liked": False
             }
             for exam in exams
         ]
@@ -541,7 +542,8 @@ def get_exams_endpoint():
 @token_required
 def get_exams_personal(current_user):
     title = request.args.get("title", "")
-    filter = request.args.get("filter", "mine")
+    filter = request.args.get("filter", "N/A")
+    sorting = request.args.get("sorting", "recent")
     
     try:
         limit = int(request.args.get("limit", 10))
@@ -553,15 +555,15 @@ def get_exams_personal(current_user):
     except ValueError:
         page = 1
 
-    if filter == "mine":
-        cache_key = f"exams:{current_user[0]}:{filter}:{title}:{limit}:{page}"
+    if filter != "favourites":
+        cache_key = f"exams:{current_user[0]}:{sorting}:{filter}:{title}:{limit}:{page}"
         cached_data = redis_client.get(cache_key)
         if cached_data:
             exams = json.loads(cached_data)
             return jsonify(exams), 200
 
     try:
-        exams = db.get_exams(current_user[0], "recent", filter, title, limit, page)
+        exams = db.get_exams(current_user[0], sorting, filter, title, limit, page)
 
         results = [
             {
@@ -572,12 +574,13 @@ def get_exams_personal(current_user):
             "color": exam[4],
             "description": exam[5],
             "public": exam[6],
-            "num_fav": exam[7]
+            "num_fav": exam[7],
+            "liked": exam[8]
             }
             for exam in exams
         ]
 
-        if filter == "mine":
+        if filter != "favourites":
             redis_client.setex(cache_key, 60, json.dumps(results))
         return jsonify(results), 200
     except Exception as e:

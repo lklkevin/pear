@@ -1,26 +1,25 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
-import signOutWithBackend from "@/utils/signOut";
-import { SessionProvider, useSession } from "next-auth/react";
+import { SessionProvider, useSession, signOut } from "next-auth/react";
 import { useEffect } from "react";
 import Toast from "../components/ui/toast";
 
 import { DM_Sans } from "next/font/google";
 
-//👇 Configure our font object
 const dmSans = DM_Sans({
   subsets: ["latin"],
   display: "swap",
 });
 
 function AuthWatcher() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
   useEffect(() => {
-    if (session?.error === "RefreshAccessTokenError") {
-      signOutWithBackend(session.refreshToken);
+    if (status === "authenticated" && session?.error === "RefreshAccessTokenError") {
+      console.warn("Session error detected, signing out...");
+      signOut();
     }
-  }, [session]);
+  }, [session, status]);
 
   return null;
 }
@@ -28,7 +27,7 @@ function AuthWatcher() {
 export default function App({ Component, pageProps }: AppProps) {
   return (
     <main className={dmSans.className}>
-      <SessionProvider session={pageProps.session}>
+      <SessionProvider session={pageProps.session} refetchInterval={5 * 60}>
         <AuthWatcher />
         <Toast />
         <Component {...pageProps} />

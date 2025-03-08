@@ -16,9 +16,9 @@ export const colors: ColorOption[] = [
   },
   {
     value: "blue",
-    class: "bg-blue-700",
-    outline: "ring-blue-300",
-    hex: "#1d4ed8",
+    class: "bg-indigo-700",
+    outline: "ring-indigo-300",
+    hex: "#4338ca",
   },
   {
     value: "purple",
