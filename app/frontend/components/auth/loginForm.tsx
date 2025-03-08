@@ -56,7 +56,7 @@ const Login: React.FC = () => {
 
   return (
     <>
-      <div className="relative flex items-center -mx-10 -my-6 bg-zinc-800 p-4 rounded-t-xl mb-4 h-20">
+      <div className="relative flex items-center -mx-3 sm:-mx-10 -my-6 bg-zinc-800 p-4 rounded-t-xl mb-4 h-20">
         <h2 className="w-full flex justify-center text-lg font-semibold">
           Welcome Back
         </h2>

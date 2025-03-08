@@ -75,9 +75,9 @@ const Signup: React.FC = () => {
 
   return (
     <>
-      <div className="relative flex items-center -mx-10 -my-6 bg-zinc-800 p-4 rounded-t-xl mb-4 h-20">
+      <div className="relative flex items-center -mx-3 sm:-mx-10 -my-6 bg-zinc-800 p-4 rounded-t-xl mb-4 h-20">
         <h2 className="w-full flex justify-center text-lg font-semibold">
-          Get Started
+          Get Started With Us!
         </h2>
         <button
           className="absolute right-8 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200"
