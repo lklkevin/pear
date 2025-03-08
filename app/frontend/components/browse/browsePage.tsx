@@ -138,19 +138,25 @@ export default function BrowsePage() {
           tabs={availableTabs}
         />
       </div>
-      <InfiniteScroll
-        dataLength={results.length}
-        next={() => fetchExams()}
-        hasMore={hasMore}
-        loader={
-          <div className="flex flex-col items-center gap-2">
-            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
-            <p className="text-lg font-medium text-white">Loading...</p>
-          </div>
-        }
-      >
-        <ExamGrid exams={results} />
-      </InfiniteScroll>
+      {results.length === 0 && !hasMore ? (
+        <div className="text-center text-zinc-400 text-lg mt-10">
+          No exams found. Try a different search.
+        </div>
+      ) : (
+        <InfiniteScroll
+          dataLength={results.length}
+          next={() => fetchExams()}
+          hasMore={hasMore}
+          loader={
+            <div className="flex flex-col items-center gap-2">
+              <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
+              <p className="text-lg font-medium text-white">Loading...</p>
+            </div>
+          }
+        >
+          <ExamGrid exams={results} />
+        </InfiniteScroll>
+      )}
     </BrowseLayout>
   );
 }
