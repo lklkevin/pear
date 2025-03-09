@@ -47,7 +47,7 @@ class GeminiPDFScanner(PDFScannerInterface):
 You are given a PDF of a math exam and your job is to extract the questions in a text applicable format.
 
 For each question, first determine if it can be represented logically and solvably in a text-based format.
-Make sure it is a computational question and not some explaination based question.
+Make sure it is a computational question and not some explanation or drawing based question.
 
 Then if so, write out a representation of the question in the form:
 [===]
@@ -58,6 +58,9 @@ Answer:
 Have separators between each question and answer pair. If there is no detectable answer, specify answer as N/A
 If there is an answer, keep only the numerical portion of the answer.
 Keep only the question part of the question, do not preserve any extra formatting like numerical ordering
+
+For tabular or graphical data relevant to the question, express it in a form that is understandable in text.
+For multi-part questions, add some context to questions to work as a standalone question.
 """
         pdf_objects = []
         print(f"Processing {len(list_of_pdfs)} PDFs")
@@ -182,7 +185,7 @@ if __name__ == "__main__":
     from werkzeug.datastructures import FileStorage
 
     # Simulate a Flask file upload
-    with open("./backend/tests/example_pdfs/math_12.pdf", "rb") as pdf_file:
+    with open("./backend/tests/example_pdfs/223.pdf", "rb") as pdf_file:
         pdf_bytes = pdf_file.read()  # Read the binary content
 
     # Create an in-memory file-like object
@@ -201,3 +204,4 @@ if __name__ == "__main__":
     # Print extracted questions
     for question in result:
         print(question)
+
