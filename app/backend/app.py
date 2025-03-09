@@ -18,7 +18,14 @@ import redis
 import json
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:3000", "https://avgr.vercel.app"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"],
+        "supports_credentials": True
+    },
+})
 load_dotenv()
 
 redis_host = os.environ.get("REDIS_HOST")
@@ -392,7 +399,9 @@ def generate_and_save_exam(current_user):
     # Insert questions and answers into the database
     for index, question_text in enumerate(exam.get_question(), start=1):
         answers = exam.get_all_answers(question_text)
-        db.insert_question(index, exam_id, question_text, set(answers.items()))
+
+        if answers is not None:
+            db.insert_question(index, exam_id, question_text, set(answers.items()))
 
     return jsonify({'exam_id': exam_id}), 201
 
@@ -428,7 +437,8 @@ def save_exam_after_generate(current_user):
         answers = question_data["answers"]  # Dictionary of answer -> confidence
 
         # Insert question (this will also insert answers internally)
-        db.insert_question(index, exam_id, question_text, set(answers.items()))
+        if answers is not None:
+            db.insert_question(index, exam_id, question_text, set(answers.items()))
 
     return jsonify({'exam_id': exam_id}), 201
 
@@ -611,23 +621,6 @@ def fav(current_user):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
-@app.route("/api/favourite/check", methods=["POST"])
-@token_required
-def check_favourite(current_user):
-    data = request.get_json()
-    exam_id = data.get("exam_id")
-    
-    if exam_id is None:
-        return jsonify({"error": "Missing exam_id in request body"}), 400
-
-    user_id = current_user[0]
-    
-    try:
-        exists = db.is_favourite(user_id, exam_id)
-        return jsonify({"is_favourite": exists}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
