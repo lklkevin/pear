@@ -46,6 +46,10 @@ async def generate_exam_from_pdfs(files, num_questions, max_parallel=3):
                                                                         text_model)
         possible_exam_questions.extend(generated_questions)  # Flattening all generated questions into one list
 
+
+    if len(possible_exam_questions) == 0:
+        raise Exception("No questions could be generated from the provided PDFs")
+
     # Randomly select `num_questions`
     print(f"Randomly selecting subset of {num_questions} questions")
     selected_questions = random.sample(possible_exam_questions, num_questions)
