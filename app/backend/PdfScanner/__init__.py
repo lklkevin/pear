@@ -20,7 +20,7 @@ class PDFScannerInterface(ABC):
         self.text_processor = text_processor
 
     @abstractmethod
-    def scan_pdfs(self, list_of_pdfs: list[str]) -> list[PDFObject]:
+    def scan_pdfs(self, list_of_pdfs: list[str | bytes]) -> list[PDFObject]:
         """
         Scans multiple PDFs and extracts question-answer pairs.
 

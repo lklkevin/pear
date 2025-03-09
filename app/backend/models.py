@@ -46,7 +46,13 @@ class GeminiModel(ModelProvider):
         super().__init__(model, max_retries)
         self.client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
-    async def call_model(self, prompt: str, preamble: Optional[str] = None, pdf_path: Optional[str] = None, accept_func: Callable = lambda x: True, **kwargs) -> str:
+    async def call_model(self,
+                         prompt: str,
+                         preamble: Optional[str] = None,
+                         pdf_data: Optional[bytes] = None,
+                         pdf_path: Optional[str] = None,
+                         accept_func: Callable = lambda x: True,
+                         **kwargs) -> str:
         """
         Reads the PDF as raw bytes, wraps it in a Part to preserve the document's content,
         and calls the Gemini API to generate a response based on the provided prompt.
@@ -66,6 +72,15 @@ class GeminiModel(ModelProvider):
             if pdf_part is None:
                 return 
             kwargs['contents'] = [pdf_part, prompt]
+        elif pdf_data is not None:
+            try:
+                pdf_part = Part.from_bytes(data=pdf_data, mime_type="application/pdf")
+                kwargs['contents'] = [pdf_part, prompt]
+            except Exception as e:
+                print(e)
+                return
+            if pdf_part is None:
+                return
         else:
             kwargs['contents'] = prompt
 
