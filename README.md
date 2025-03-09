@@ -157,6 +157,7 @@ Currently we only have test coverage across our `validator` module, however we p
 - Each team member works on a separate feature branch based on `main`.
 - Before starting work, they pull the latest changes to stay up to date.
 - Changes are committed and pushed to their respective feature branches.
+- As changes are committed, pre-commit hooks are triggered to ensure consistent style conventions.
 
  **2. Pull Requests (PRs) and Code Reviews**
 - After completing a feature, the developer opens a Pull Request (PR) on GitHub.
