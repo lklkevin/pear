@@ -32,24 +32,36 @@ Students often face a shortage of practice material, especially when preparing f
 - Ensures a clean and printable format for exam preparation.
 
 
-## **Beta Usage (Testing Only)**
+## **Instructions for Use**
 
-### **Demo of PDF Extraction + Problem/Final Answer Generation Pipeline**
-1. Navigate to this streamlit deployment: https://subteam-deployment-dklckspcc565nsvcvnpbmp.streamlit.app/ 
+### **Accessing the Application**
+To use the application, follow these steps:
 
-2. Follow the instructions from the script, you do not need to worry about an API key or dependencies.
+1. **Go to** [https://avgr.vercel.app/](https://avgr.vercel.app/)
+2. Click on the **"Try Now"** button.
 
-3. The scope of our exams at the moment is limited to high school level math questions with simple final answers. If you want example questions you can find some we personally tested with in the ./app/backend/tests/example questions. An example PDF to test the extraction features is available in app/backend/tests/example_pdfs
+### **Using the Application**
+1. **Upload a Sample Exam**  
+   - Select a document to extract questions from.  
+   - Provide a **title** and **description** for the exam.
 
+2. **Generate Exam Questions**  
+   - Click on the generate button and wait for the system to process the exam.
 
+3. **View Results**  
+   - The generated questions and available answers will be displayed.
 
-### **Demo of Front End** - [Screenshots](https://imgur.com/a/group-27-deliverable-2-frontend-demo-pjQ5QVr)
-1. Navigate to our Vercel deployment: https://avenger-deliverable-2.vercel.app/
-   
-2. Walk through the various buttons and links on each page to see their functionality (Note that contact and pricing are not yet implemented)
-   
-3. If you wish to explictly check individual pages, the following routes are valid: /, /exam, /generate, /generated, /browse, /login, /signup
+4. **Download the Exam**  
+   - Click on the download option to save the exam for offline use.
 
+5. **Browse Other Exams**  
+   - Visit the **Browse** page to explore previously generated exams.
+
+6. **Sign Up / Log In (Optional)**  
+   - Create an account to:
+     - **Save** generated exams.
+     - Unlock **customization** options for better exam generation.
+    
 ## **Developer Instructions**
 ### **Setting Up the Project Locally**
 #### **Prerequisites**
@@ -108,3 +120,37 @@ Currently we only have test coverage across our `validator` module, however we p
 ### CI/CD
 1. We are using various pre-commit hooks to ensure consistent coding conventions and formatting such as ```black```.
 2. We run automated testing when a PR is merged using ```GitHub Actions``` to ensure correct functionality.
+
+## GitHub Workflow
+
+ **1. Branching and Development**
+- Each team member works on a separate feature branch based on `main`.
+- Before starting work, they pull the latest changes to stay up to date.
+- Changes are committed and pushed to their respective feature branches.
+
+ **2. Pull Requests (PRs) and Code Reviews**
+- After completing a feature, the developer opens a Pull Request (PR) on GitHub.
+- Other team members review the code, suggest improvements, and request changes if needed.
+
+ **3. Automated Tests on PRs**
+- Continuous Integration (CI) runs automated tests on each PR.
+- If tests fail, the developer must fix issues before merging.
+- If tests pass, the PR can be approved and merged.
+
+ **4. Merging and Deployment**
+- After approval, the PR is merged into `main`.
+- A deployment pipeline automatically deploys the changes.
+- Developers then pull the latest changes to stay updated.
+
+## **License: MIT**
+
+**Why MIT?**
+
+This application is designed to **help users generate, browse, and customize exams** efficiently.  
+By using the MIT License, we ensure that:
+- Educators and institutions can use and modify the tool without legal barriers.
+- Developers can contribute to improving the app without restrictive licensing terms.
+- Open-source adoption remains strong, allowing continued growth and enhancement.
+
+
+
