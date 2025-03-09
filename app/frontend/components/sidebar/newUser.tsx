@@ -80,7 +80,7 @@ export default function Sidebar() {
 
         const currSession = await getSession();
         const saveResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate/save-after`,
+          `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/exam/generate/save-after`,
           {
             headers: {
               "Content-Type": "application/json",

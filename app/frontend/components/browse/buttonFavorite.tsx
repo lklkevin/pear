@@ -34,7 +34,7 @@ export default function Favorite({ examId, initialFavorite }: FavoriteProps) {
     try {
       const currSession = await getSession();
       const saveResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/favourite`,
+        `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/favourite`,
         {
           method: "POST",
           headers: {

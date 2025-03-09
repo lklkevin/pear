@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
-import { useSession, getSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import BrowseLayout from "../layout/browseLayout";
 import Tabs from "../ui/tabs";
 import SearchBar from "../ui/searchBar";
 import ExamGrid from "./examGrid";
-import InfiniteScroll from "react-infinite-scroll-component";
 import { useErrorStore } from "@/store/store";
+import { DM_Mono } from "next/font/google";
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: "500",
+});
 
 export default function BrowsePage() {
   const { data: session, status } = useSession();
@@ -15,28 +20,25 @@ export default function BrowsePage() {
     ? ["Popular", "Explore", "My Exams", "Favorites"]
     : ["Popular", "Explore"];
 
-  // States for active tab, search query, fetched results, pagination, and loading.
+  // States for active tab, search query, current search term (for fetching), fetched results, pagination, and loading.
   const [activeTab, setActiveTab] = useState(availableTabs[0]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const limit = 10; // Number of items per page
+  const limit = 16; // Number of items per page
 
-  const fetchExams = async (reset = false, overrideSearch?: string) => {
-    // Guard: if session status is still loading, don't fetch.
+  const fetchExams = async () => {
     if (status === "loading") return;
 
     const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     let endpoint = "";
     const params = new URLSearchParams();
     params.append("limit", limit.toString());
-    const pageToFetch = reset ? 1 : page;
-    params.append("page", pageToFetch.toString());
-    const queryTitle = overrideSearch !== undefined ? overrideSearch : searchQuery;
-    params.append("title", queryTitle);
+    params.append("page", page.toString());
+    params.append("title", searchTerm);
 
-    // If authenticated, use the personal endpoint for all tabs so that extra data (e.g. is_liked) is provided.
     if (session) {
       endpoint = `${baseUrl}/api/browse/personal`;
       if (activeTab === "Popular") {
@@ -49,7 +51,6 @@ export default function BrowsePage() {
         params.append("filter", "favourites");
       }
     } else {
-      // Unauthenticated visitors can only access the public endpoint.
       endpoint = `${baseUrl}/api/browse`;
       if (activeTab === "Popular") {
         params.append("sorting", "popular");
@@ -66,7 +67,6 @@ export default function BrowsePage() {
       },
     };
 
-    // Attach the token if the user is authenticated.
     if (session) {
       fetchOptions.headers = {
         ...fetchOptions.headers,
@@ -80,34 +80,32 @@ export default function BrowsePage() {
         throw new Error("Unauthorized");
       }
       const data = await res.json();
-      if (reset) {
-        setResults(data);
-        setPage(2);
-      } else {
-        setResults((prev) => [...prev, ...data]);
-        setPage((prev) => prev + 1);
-      }
+      setResults(data);
+      // If we received a full page of items, assume there could be more.
       setHasMore(data.length === limit);
     } catch (error) {
       useErrorStore.getState().setError(error as string);
     }
   };
 
-  // When activeTab or session status changes, reset the search and results.
+  // Fetch exams when the page, activeTab, searchTerm, or status changes.
   useEffect(() => {
-    if (status === "loading") return; // Wait until the session is ready.
+    if (status === "loading") return;
+    fetchExams();
+  }, [page, activeTab, status, searchTerm]);
+
+  // Reset search and pagination when the active tab changes.
+  useEffect(() => {
+    if (status === "loading") return;
     setSearchQuery("");
+    setSearchTerm("");
     setPage(1);
-    setResults([]);
-    setHasMore(true);
-    fetchExams(true, "");
   }, [activeTab, status]);
 
+  // When the user triggers a search, update the search term and reset to page 1.
   const handleSearch = () => {
     setPage(1);
-    setResults([]);
-    setHasMore(true);
-    fetchExams(true);
+    setSearchTerm(searchQuery);
   };
 
   const tabTitles: { [key: string]: string } = {
@@ -151,25 +149,42 @@ export default function BrowsePage() {
           tabs={availableTabs}
         />
       </div>
-      {results.length === 0 && !hasMore ? (
-        <div className="text-center text-zinc-400 text-lg mt-10">
-          No exams found. Try a different search.
+      <div className="flex-1 flex flex-col justify-between h-full">
+        {results.length === 0 ? (
+          <div className="text-center text-zinc-400 text-lg mt-10">
+            No exams found. Try a different search.
+          </div>
+        ) : (
+          <>
+            <ExamGrid exams={results} />
+          </>
+        )}
+        <div className="justify-center flex items-center gap-3 w-full mt-4 sm:mt-8">
+          <button
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            disabled={page === 1}
+            aria-label="Previous page"
+            className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
+          >
+            <span className="material-icons text-zinc-400">chevron_left</span>
+          </button>
+
+          <div
+            className={`sm:text-lg ${dmMono.className} bg-zinc-900 w-16 h-9 px-2 border border-zinc-800 rounded text-center text-white flex items-center justify-center`}
+          >
+            {page}
+          </div>
+
+          <button
+            onClick={() => setPage((prev) => (hasMore ? prev + 1 : prev))}
+            disabled={!hasMore}
+            aria-label="Next page"
+            className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
+          >
+            <span className="material-icons text-zinc-400">chevron_right</span>
+          </button>
         </div>
-      ) : (
-        <InfiniteScroll
-          dataLength={results.length}
-          next={() => fetchExams()}
-          hasMore={hasMore}
-          loader={
-            <div className="flex flex-col items-center gap-2">
-              <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
-              <p className="text-lg font-medium text-white">Loading...</p>
-            </div>
-          }
-        >
-          <ExamGrid exams={results} />
-        </InfiniteScroll>
-      )}
+      </div>
     </BrowseLayout>
   );
 }
