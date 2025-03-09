@@ -22,8 +22,10 @@ CORS(app, resources={
     r"/api/*": {
         "origins": ["http://localhost:3000", "https://avgr.vercel.app"],
         "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-        "allow_headers": ["Content-Type", "Authorization"],
-        "supports_credentials": True
+        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+        "expose_headers": ["Access-Control-Allow-Origin"],
+        "supports_credentials": True,
+        "max_age": 3600  # Cache preflight requests for 1 hour
     },
 })
 load_dotenv()
@@ -66,6 +68,11 @@ def generate_refresh_token(user_id: int) -> str:
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Skip token validation for OPTIONS requests (CORS preflight)
+        if request.method == 'OPTIONS':
+            response = jsonify({'status': 'success'})
+            return response
+            
         token = None
         
         # Get token from Authorization header
@@ -294,12 +301,36 @@ def get_profile(current_user):
         'auth_provider': current_user[4]
     }), 200
 
-@app.route('/api/exam/generate', methods=['POST'])
+@app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
 def generate_exam():
+    # Handle preflight request for CORS
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'success'})
+        # Explicitly add CORS headers for this endpoint
+        origin = request.headers.get('Origin')
+        allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
+        if origin in allowed_origins:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
+            response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
+            response.headers.add('Access-Control-Max-Age', '3600')
+        return response
+        
     max_questions = 10
 
+    # Helper function to create CORS-compatible error responses
+    def create_cors_error(message, status_code):
+        response = jsonify({'message': message})
+        origin = request.headers.get('Origin')
+        allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
+        if origin in allowed_origins:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
+        return response, status_code
+
     if 'files' not in request.files:
-        return jsonify({'message': 'No files provided!'}), 400
+        return create_cors_error('No files provided!', 400)
 
     files = request.files.getlist('files')
     title = request.form.get('title')
@@ -307,18 +338,18 @@ def generate_exam():
     num_questions = request.form.get('num_questions')  # Correct field name
 
     if not title or not description:
-        return jsonify({'message': 'Title and description are required!'}), 400
+        return create_cors_error('Title and description are required!', 400)
 
     # Ensure num_questions is an integer
     try:
         num_questions = int(num_questions)
     except (TypeError, ValueError):
-        return jsonify({'message': 'Invalid number of questions'}), 400
+        return create_cors_error('Invalid number of questions', 400)
 
     if num_questions > max_questions:
-        return jsonify({'message': f"Too many questions for guest user (max {max_questions})."}), 400
+        return create_cors_error(f"Too many questions for guest user (max {max_questions}).", 400)
     elif num_questions <= 0:
-        return jsonify({'message': 'Cannot generate fewer than 1 question.'}), 400
+        return create_cors_error('Cannot generate fewer than 1 question.', 400)
 
     try:
         # Read PDF file data before passing
@@ -327,7 +358,7 @@ def generate_exam():
         # Process the PDF files and generate the exam
         exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, num_questions))
 
-        return jsonify({
+        response = jsonify({
             "title": title,
             "description": description,
             "questions": [
@@ -337,15 +368,29 @@ def generate_exam():
                 }
                 for q in exam.get_question()
             ]
-        }), 200
+        })
+        
+        # Explicitly add CORS headers to the response
+        origin = request.headers.get('Origin')
+        allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
+        if origin in allowed_origins:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+            response.headers.add('Access-Control-Allow-Credentials', 'true')
+        
+        return response, 200
 
     except Exception as e:
         print(f"Error generating exam: {e}")
-        return jsonify({'message': 'An error occurred while generating the exam'}), 500
+        return create_cors_error('An error occurred while generating the exam', 500)
 
-@app.route('/api/exam/generate/save', methods=['POST'])
+@app.route('/api/exam/generate/save', methods=['POST', 'OPTIONS'])
 @token_required
 def generate_and_save_exam(current_user):
+    # Handle preflight request for CORS
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'success'})
+        return response
+        
     max_questions = 10
 
     if 'files' not in request.files:
@@ -624,4 +669,33 @@ def fav(current_user):
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
+    
+    # Ensure CORS is properly enabled on the deployed app
+    @app.after_request
+    def after_request(response):
+        origin = request.headers.get('Origin')
+        allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
+        
+        if origin in allowed_origins:
+            # Don't add the header if it's already there
+            if 'Access-Control-Allow-Origin' not in response.headers:
+                response.headers.add('Access-Control-Allow-Origin', origin)
+            if 'Access-Control-Allow-Headers' not in response.headers:
+                response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
+            if 'Access-Control-Allow-Methods' not in response.headers:
+                response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+            if 'Access-Control-Allow-Credentials' not in response.headers:
+                response.headers.add('Access-Control-Allow-Credentials', 'true')
+            # Handle multipart form data properly
+            if request.method == 'OPTIONS':
+                if 'Access-Control-Max-Age' not in response.headers:
+                    response.headers.add('Access-Control-Max-Age', '3600')
+                    
+        # Handle 401 responses specially to ensure CORS headers are included
+        if response.status_code == 401 and origin in allowed_origins:
+            if 'Access-Control-Allow-Origin' not in response.headers:
+                response.headers.add('Access-Control-Allow-Origin', origin)
+        
+        return response
+    
     app.run(host="0.0.0.0", port=port)
