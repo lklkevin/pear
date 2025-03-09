@@ -39,28 +39,36 @@ To use the application, follow these steps:
 
 1. **Go to** [https://avgr.vercel.app/](https://avgr.vercel.app/)
 2. Click on the **"Try Now"** button.
+3. Alternatively, use the top navbar to quickly use any of our features.
 
 ### **Using the Application**
 1. **Upload a Sample Exam**  
-   - Select a document to extract questions from.  
-   - Provide a **title** and **description** for the exam.
+   - Select a PDF document to extract questions from.
+   - Choose how many questions you would like to generate (between 1-10).
+   - Optionally, provide a **title** and **description** for the exam.
 
 2. **Generate Exam Questions**  
    - Click on the generate button and wait for the system to process the exam.
+   - Do not refresh the page, this process will take 1-2 minutes depending on the number of questions.
 
 3. **View Results**  
    - The generated questions and available answers will be displayed.
+   - You can reveal answers for each question, or for all questions simultaneously, and see alternative answers with respective confidence levels.
 
 4. **Download the Exam**  
    - Click on the download option to save the exam for offline use.
 
 5. **Browse Other Exams**  
-   - Visit the **Browse** page to explore previously generated exams.
+   - Visit the **Browse** page to explore previously generated exams by other users.
+   - You can sort by popularity (number of favourites), or explore (recency).
+   - You can search by the title to find exams similar to your needs.
 
 6. **Sign Up / Log In (Optional)**  
    - Create an account to:
-     - **Save** generated exams.
-     - Unlock **customization** options for better exam generation.
+     - **Save** generated exams, either as public or private.
+     - **Favourite** exams to easily access them later in the browse tab. 
+     - Unlock **customization** options for better organization.
+   - You can create an account using username, email, and password, or simply use your Google account.
     
 ## **Developer Instructions**
 ### **Setting Up the Project Locally**
@@ -80,19 +88,18 @@ To use the application, follow these steps:
 - Run `source ~/.zshrc`.
 
     
-2. **Install Backend Dependencies:**
+2. **Install Backend Dependencies and start backend server:**
    ```sh
-   cd app/backend
+   cd app
    poetry install
+   poetry run python -m backend.app
    ```
 
-4. **Install Frontend Dependencies:**
+4. **Install Frontend Dependencies and start the frontend server:**
+   On a separate terminal at the root directory
    ```sh
-   cd ../frontend
+   cd app/frontend
    npm install
-   ```
-5. **Start Frontend Server:**
-   ```sh
    npm run dev
    ```
 
@@ -102,8 +109,31 @@ Ensure to add a `.env` file in the root directory with the following variables:
 ```
 COHERE_API_KEY=your_cohere_api_key
 GEMINI_API_KEY=your_gemini_key
+REDIS_HOST=
+REDIS_PORT=
+REDIS_PASSWORD=
+SECRET_KEY=
+DATABASE_URL=
+DB_MODE=postgres
 ```
-You can create a trial Cohere API key (for free) [here](https://dashboard.cohere.com/api-keys)
+- You can create a trial Cohere API key (for free) [here](https://dashboard.cohere.com/api-keys).
+- You will need to set up a serverless Redis service and fill in the Redis related environment variables.
+- You will need to set up a Postgres database with the schema defined in `app/backend/database/postgres_schema.sql`.
+- You need to define a secret key used for hashing the password.
+  
+Additionally, you will need a `.env.local` file in the app/frontend directory with the following variables:
+```
+NEXTAUTH_URL=localhost:3000
+NEXTAUTH_SECRET=your_secret
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+NEXT_PUBLIC_BACKEND_URL=
+NEXT_PUBLIC_OTHER_BACKEND_URL=
+REDIS_URL=
+```
+- The backend URLs should just be where you are running the backend server, typically this is `localhost:5000`.
+- Again, you will need to set up Redis like in the backend.
+- You need to set up OAuth 2.0 through Google, you can check [here](https://developers.google.com/identity/protocols/oauth2) for details.
 
 
 ### Tests
