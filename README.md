@@ -31,6 +31,20 @@ Students often face a shortage of practice material, especially when preparing f
 - Users can download the generated problems and answers in a structured PDF format.
 - Ensures a clean and printable format for exam preparation.
 
+### **5. Saving Exams (Account Bearers Only)**
+- Users can choose to save their exams to a database for access later.
+- Users can choose a public privacy option, which would allow other users to view the exam's content, or keep it private
+
+### **6. Browsing Exams**
+- Users can search for public exams.
+- Users can view popular and their own exams.
+
+### **7. Favouriting Exams**
+- Users can favourite an exam and view it later under a favourite tab.
+
+### **8. Account creation**
+- Users can sign up for an account using a username or password or externally using Google.
+- Logining in will provide users with more options for their exam creation (see 5.)
 
 ## **Instructions for Use**
 
