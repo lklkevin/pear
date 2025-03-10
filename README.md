@@ -7,12 +7,16 @@ The LLM-Based Math Practice Problem Generator is a web service designed to help 
 Students often face a shortage of practice material, especially when preparing for exams. Searching the internet for relevant problems is time-consuming, and existing AI tools may generate incorrect answers due to hallucinations. This tool provides reliable practice problems with accurate final answers, leveraging test-time scaling and majority voting techniques to ensure correctness.
 
 ### **Key Features**
-- **PDF Upload**: Users can upload PDFs containing math problems.
-- **Question Generation**: AI models generate new, relevant practice questions.
-- **Final Answer Validation**: Uses test-time scaling and majority voting to improve answer reliability.
-- **Confidence Metrics**: Provides confidence scores for generated answers.
-- **PDF Export**: Users can export generated questions into a structured PDF format for exam simulation.
-- **Cloud-Based Deployment**: Accessible via a web interface without requiring additional installations.
+- **PDF Upload**
+- **Question Generation**
+- **Final Answer Validation**
+- **Confidence Metrics**
+- **PDF Export**
+- **Saving Exam**
+- **Browsing Exams**
+- **Favouriting Exams**
+- **Account Signup/Login**
+- **Cloud-Based Deployment**
 
 ## **Feature Description**
 ### **1. Uploading a Document**
