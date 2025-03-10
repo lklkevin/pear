@@ -63,13 +63,12 @@ async def majority_vote(prompt: str, n: int, model: ModelProvider) -> Dict[str, 
 async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[str, int | float]:
     try:
         prompt = f"Solve this question:\n Question: {question}\n at the end of your reasoning give me the final answer " \
-                    f"in the EXACTLY format 'Final answer: <answer>'. Do **NOT** output your answer " \
-                    f"with ',' separating the numbers every magnitude of 1000. DO NOT USE MARKDOWN." \
-                    f"Avoid using units in your Final answer unless it is ambiguous. For example, if the question asks for the number of feet, do not include 'feet' in your answer."
+                 f"in the EXACTLY format 'Final answer: <answer>'. Do **NOT** output your answer " \
+                 f"with ',' separating the numbers every magnitude of 1000. DO NOT USE MARKDOWN." \
+                 f"Avoid using units in your Final answer unless it is ambiguous. For example, if the question asks for the number of feet, do not include 'feet' in your answer."
 
         comparator = validation.LLMAnswerComparator(tolerance=1e-5)
         result_dict = await majority_vote(prompt, 2, model)
-        
 
         # List of unique answers
         unique_answers = list(result_dict.keys())
@@ -129,9 +128,9 @@ async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[
             merged_dict[representative] = round(percentage, 2)
 
         return merged_dict
+
     except Exception as e:
         return {}
-
 
 
 # ---------------------- Example Usage ----------------------
@@ -150,3 +149,4 @@ if __name__ == "__main__":
     for question in questions:
         answers = asyncio.run(generate_answers(question, 20, model))
         print(f"Question: {question} \n Answers: {answers}\n")
+        
