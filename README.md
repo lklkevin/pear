@@ -67,6 +67,7 @@ To use the application, follow these steps:
 
 2. **Generate Exam Questions**  
    - Click on the generate button and wait for the system to process the exam.
+   - Due to free-tier deployment constraints, you may get an error due to timeout, please try again after logging in if this occurs.
    - Do not refresh the page, this process will take 1-2 minutes depending on the number of questions.
 
 3. **View Results**  
