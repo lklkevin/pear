@@ -76,7 +76,6 @@ async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[
 
         if num_answers == 0:
             return {}
-        return {next(iter(result_dict)): 20.0}
 
 
         # Initialize 2D matrix for equivalence checks
