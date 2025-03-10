@@ -62,7 +62,7 @@ To use the application, follow these steps:
 ### **Using the Application**
 1. **Upload a Sample Exam**  
    - Select a PDF document to extract questions from. Currently, we only support Math problems up to high school level, for examples download the example file [here](https://github.com/csc301-2025-s/project-27-the-avengers/blob/main/app/frontend/public/math_12.pdf)
-   - Choose how many questions you would like to generate (between 1-10).
+   - Choose how many questions you would like to generate (between 1-5).
    - Optionally, provide a **title** and **description** for the exam.
 
 2. **Generate Exam Questions**  
