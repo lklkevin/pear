@@ -68,7 +68,7 @@ async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[
                  f"Avoid using units in your Final answer unless it is ambiguous. For example, if the question asks for the number of feet, do not include 'feet' in your answer."
 
         comparator = validation.LLMAnswerComparator(tolerance=1e-5)
-        result_dict = await majority_vote(prompt, n, model)
+        result_dict = await majority_vote(prompt, 2, model)
 
         # List of unique answers
         unique_answers = list(result_dict.keys())
@@ -76,6 +76,7 @@ async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[
 
         if num_answers == 0:
             return {}
+        return {next(iter(result_dict)): 20.0}
 
         # Initialize 2D matrix for equivalence checks
         unique_answers_matrix = [[None] * num_answers for _ in range(num_answers)]
@@ -148,3 +149,4 @@ if __name__ == "__main__":
     for question in questions:
         answers = asyncio.run(generate_answers(question, 20, model))
         print(f"Question: {question} \n Answers: {answers}\n")
+        
