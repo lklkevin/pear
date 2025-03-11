@@ -39,7 +39,7 @@ export default function UserDropdown({
           }}
           className="w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-lg hover:bg-opacity-50"
         >
-          <span className="material-icons">logout</span>
+          <span className="material-icons scale-90">logout</span>
           Log Out
         </button>
       )}
