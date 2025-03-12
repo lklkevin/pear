@@ -61,8 +61,10 @@ export default function ExamForm() {
 
         const result = await response.json();
 
-        if (!response.ok) {
-          useErrorStore.getState().setError("Error generating exam");
+        if (!response.ok || result?.message) {
+          useErrorStore
+            .getState()
+            .setError(result?.message || "Error generating exam");
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
           return;
@@ -71,7 +73,9 @@ export default function ExamForm() {
         // New task-based flow - a task ID is returned instead of the direct result
         const taskId = result.task_id;
         if (!taskId) {
-          useErrorStore.getState().setError("No task ID returned from server");
+          useErrorStore
+            .getState()
+            .setError("Error generating exam, please try again later");
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
           return;
@@ -92,7 +96,12 @@ export default function ExamForm() {
             );
 
             if (!taskResponse.ok) {
-              throw new Error("Failed to fetch task status");
+              useErrorStore
+                .getState()
+                .setError("Error generating exam, please try again later");
+              useLoadingStore.getState().setLoading(false);
+              useLoadingStore.getState().setLoadingMessage(null);
+              return;
             }
 
             const taskResult = await taskResponse.json();
@@ -106,7 +115,8 @@ export default function ExamForm() {
               router.push("/generated");
               return;
             } else if (taskResult.state === "FAILURE") {
-              const errorMsg = taskResult.result?.error || "Task failed";
+              const errorMsg =
+                taskResult.result?.error?.exc_message || "Task failed";
               useErrorStore.getState().setError(errorMsg);
               useLoadingStore.getState().setLoading(false);
               useLoadingStore.getState().setLoadingMessage(null);
@@ -122,7 +132,7 @@ export default function ExamForm() {
             if (Date.now() - startTime >= maxPollTime) {
               useErrorStore
                 .getState()
-                .setError("Task timeout - please try again");
+                .setError("Error generating exam, please try again later");
               useLoadingStore.getState().setLoading(false);
               useLoadingStore.getState().setLoadingMessage(null);
               return;
@@ -131,9 +141,12 @@ export default function ExamForm() {
             // Schedule next poll
             setTimeout(pollTask, pollInterval);
           } catch (error) {
-            useErrorStore.getState().setError("Error checking task status");
+            useErrorStore
+              .getState()
+              .setError("Error generating exam, please try again later");
             useLoadingStore.getState().setLoading(false);
             useLoadingStore.getState().setLoadingMessage(null);
+            return;
           }
         };
 
@@ -143,12 +156,17 @@ export default function ExamForm() {
         if (error instanceof Error) {
           useErrorStore
             .getState()
-            .setError(error.message || "Error generating exam");
+            .setError(
+              error.message || "Error generating exam, please try again later"
+            );
         } else {
-          useErrorStore.getState().setError("Error generating exam");
+          useErrorStore
+            .getState()
+            .setError("Error generating exam, please try again later");
         }
         useLoadingStore.getState().setLoading(false);
         useLoadingStore.getState().setLoadingMessage(null);
+        return;
       }
     } else {
       const privacyValue = visibility === "public" ? "1" : "0";
@@ -177,29 +195,34 @@ export default function ExamForm() {
         );
 
         const result = await response.json();
-        if (!response.ok) {
-          useErrorStore.getState().setError("Error generating exam");
+        if (!response.ok || result?.message) {
+          useErrorStore
+            .getState()
+            .setError(
+              result?.message || "Error generating exam, please try again later"
+            );
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
           return;
         }
 
-        if (result.message) {
-          useErrorStore.getState().setError(result.message);
-          useLoadingStore.getState().setLoading(false);
-          useLoadingStore.getState().setLoadingMessage(null);
-        } else {
-          useLoadingStore.getState().setLoading(false);
-          useLoadingStore.getState().setLoadingMessage(null);
-          router.push(`/exam/${result.exam_id}`);
-        }
+        useErrorStore.getState().setError(result.message);
+        useLoadingStore.getState().setLoading(false);
+        useLoadingStore.getState().setLoadingMessage(null);
+        useLoadingStore.getState().setLoading(false);
+        useLoadingStore.getState().setLoadingMessage(null);
+        router.push(`/exam/${result.exam_id}`);
       } catch (error) {
         if (error instanceof Error) {
           useErrorStore
             .getState()
-            .setError(error.message || "Error generating exam");
+            .setError(
+              error.message || "Error generating exam, please try again later"
+            );
         } else {
-          useErrorStore.getState().setError("Error generating exam");
+          useErrorStore
+            .getState()
+            .setError("Error generating exam, please try again later");
         }
         useLoadingStore.getState().setLoading(false);
         useLoadingStore.getState().setLoadingMessage(null);

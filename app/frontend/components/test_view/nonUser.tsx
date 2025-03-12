@@ -69,6 +69,7 @@ export default function Page() {
       const taskId = localStorage.getItem("browserSessionId");
 
       try {
+        useLoadingStore.getState().setLoading(true);
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/task/${taskId}`,
           {
@@ -81,22 +82,19 @@ export default function Page() {
 
         const data = await response.json();
 
-        if (!response.ok) {
+        if (!response.ok || data?.state !== "SUCCESS") {
           useErrorStore.getState().setError("Cannot fetch exam");
+          useLoadingStore.getState().setLoading(false);
           router.push(`/generate`);
           return;
         }
 
-        if (data.message) {
-          useErrorStore.getState().setError(data.message);
-          router.push(`/generate`);
-          return;
-        } else {
-          const newExam = parseExam(data.result);
-          setExam(newExam);
-        }
+        const newExam = parseExam(data.result);
+        useLoadingStore.getState().setLoading(false);
+        setExam(newExam);
       } catch (error) {
         useErrorStore.getState().setError("Cannot fetch exam");
+        useLoadingStore.getState().setLoading(false);
         router.push(`/generate`);
         return;
       }

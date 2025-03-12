@@ -59,8 +59,10 @@ export default function Sidebar() {
 
       const data = await response.json();
 
-      if (!response.ok) {
-        useErrorStore.getState().setError("Cannot fetch exam");
+      if (!response.ok || data?.state !== "SUCCESS") {
+        useErrorStore
+          .getState()
+          .setError("Cannot fetch exam, please try again");
         useLoadingStore.getState().setLoading(false);
         return;
       }
@@ -86,22 +88,20 @@ export default function Sidebar() {
       );
 
       const saveResult = await saveResponse.json();
-      if (!saveResponse.ok) {
+      if (!saveResponse.ok || saveResult?.message) {
         useErrorStore
           .getState()
-          .setError("Error saving exam, make sure you are signed in");
+          .setError(
+            saveResult?.message ||
+              "Error saving exam, make sure you are signed in"
+          );
         useLoadingStore.getState().setLoading(false);
         return;
       }
 
-      if (saveResult.message) {
-        useErrorStore.getState().setError(saveResult.message);
-        useLoadingStore.getState().setLoading(false);
-      } else {
-        localStorage.removeItem("browserSessionId");
-        useLoadingStore.getState().setLoading(false);
-        router.push(`/exam/${saveResult.exam_id}`);
-      }
+      localStorage.removeItem("browserSessionId");
+      useLoadingStore.getState().setLoading(false);
+      router.push(`/exam/${saveResult.exam_id}`);
     } catch (error) {
       useErrorStore
         .getState()
