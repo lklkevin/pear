@@ -27,12 +27,15 @@ export default function BrowsePage() {
   const [results, setResults] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const limit = 16; // Number of items per page
 
   const fetchExams = async () => {
     if (status === "loading") return;
 
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    setIsLoading(true);
+
+    const baseUrl = process.env.NEXT_PUBLIC_OTHER_BACKEND_URL;
     let endpoint = "";
     const params = new URLSearchParams();
     params.append("limit", limit.toString());
@@ -85,14 +88,10 @@ export default function BrowsePage() {
       setHasMore(data.length === limit);
     } catch (error) {
       useErrorStore.getState().setError(error as string);
+    } finally {
+      setIsLoading(false);
     }
   };
-
-  // Fetch exams when the page, activeTab, searchTerm, or status changes.
-  useEffect(() => {
-    if (status === "loading") return;
-    fetchExams();
-  }, [page, activeTab, status, searchTerm]);
 
   // Reset search and pagination when the active tab changes.
   useEffect(() => {
@@ -101,6 +100,12 @@ export default function BrowsePage() {
     setSearchTerm("");
     setPage(1);
   }, [activeTab, status]);
+
+  // Fetch exams when the page, activeTab, searchTerm, or status changes.
+  useEffect(() => {
+    if (status === "loading") return;
+    fetchExams();
+  }, [page, activeTab, status, searchTerm]);
 
   // When the user triggers a search, update the search term and reset to page 1.
   const handleSearch = () => {
@@ -144,13 +149,21 @@ export default function BrowsePage() {
       <div className="mt-6">
         <Tabs
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(tab) => {
+            setPage(1); // Reset page immediately when tab changes
+            setActiveTab(tab);
+          }}
           className="text-md gap-6"
           tabs={availableTabs}
         />
       </div>
       <div className="flex-1 flex flex-col justify-between h-full">
-        {results.length === 0 ? (
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-full py-20">
+            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin"></div>
+            <p className="text-lg font-medium text-white mt-4">Loading...</p>
+          </div>
+        ) : results.length === 0 ? (
           <div className="text-center text-zinc-400 text-lg mt-10">
             No exams found. Try a different search.
           </div>

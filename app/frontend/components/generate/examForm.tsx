@@ -48,6 +48,9 @@ export default function ExamForm() {
     if (!session || visibility === "unsaved") {
       try {
         useLoadingStore.getState().setLoading(true);
+        useLoadingStore
+          .getState()
+          .setLoadingMessage("Preparing to generate exam...");
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate`,
           {
@@ -61,46 +64,81 @@ export default function ExamForm() {
         if (!response.ok) {
           useErrorStore.getState().setError("Error generating exam");
           useLoadingStore.getState().setLoading(false);
+          useLoadingStore.getState().setLoadingMessage(null);
           return;
         }
 
-        if (result.message) {
-          useErrorStore.getState().setError(result.message);
+        // New task-based flow - a task ID is returned instead of the direct result
+        const taskId = result.task_id;
+        if (!taskId) {
+          useErrorStore.getState().setError("No task ID returned from server");
           useLoadingStore.getState().setLoading(false);
+          useLoadingStore.getState().setLoadingMessage(null);
           return;
-        } else {
-          const browserSessionId = localStorage.getItem("browserSessionId");
+        }
+
+        console.log(taskId);
+
+        // Set up polling parameters
+        const pollInterval = 5000; // Poll every 5 seconds
+        const maxPollTime = 10 * 60 * 1000; // Poll for up to 10 minutes
+        const startTime = Date.now();
+
+        // Start polling
+        const pollTask = async () => {
           try {
-            const cacheResponse = await fetch(`/api/cacheExam`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                sessionId: browserSessionId,
-                results: result,
-              }),
-            });
+            const taskResponse = await fetch(
+              `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/task/${taskId}`
+            );
 
-            const cacheResult = await cacheResponse.json();
+            if (!taskResponse.ok) {
+              throw new Error("Failed to fetch task status");
+            }
 
-            if (!cacheResponse.ok || cacheResult.message) {
+            const taskResult = await taskResponse.json();
+
+            // Check task state
+            if (taskResult.state === "SUCCESS") {
+              // Store the task ID in localStorage
+              localStorage.setItem("browserSessionId", taskId);
+              useLoadingStore.getState().setLoading(false);
+              useLoadingStore.getState().setLoadingMessage(null);
+              router.push("/generated");
+              return;
+            } else if (taskResult.state === "FAILURE") {
+              const errorMsg = taskResult.result?.error || "Task failed";
+              useErrorStore.getState().setError(errorMsg);
+              useLoadingStore.getState().setLoading(false);
+              useLoadingStore.getState().setLoadingMessage(null);
+              return;
+            } else if (taskResult.state === "PROGRESS") {
+              // Update loading message if progress information is available
+              const progressInfo = taskResult.result?.status || "Processing...";
+              // Use the new loadingMessage state to display progress to the user
+              useLoadingStore.getState().setLoadingMessage(progressInfo);
+            }
+
+            // Check if we've reached the maximum polling time
+            if (Date.now() - startTime >= maxPollTime) {
               useErrorStore
                 .getState()
-                .setError("Error retrieving the generated exam");
+                .setError("Task timeout - please try again");
               useLoadingStore.getState().setLoading(false);
+              useLoadingStore.getState().setLoadingMessage(null);
               return;
             }
 
-            useLoadingStore.getState().setLoading(false);
-            router.push("/generated");
+            // Schedule next poll
+            setTimeout(pollTask, pollInterval);
           } catch (error) {
-            useErrorStore
-              .getState()
-              .setError("Error retrieving the generated exam");
+            useErrorStore.getState().setError("Error checking task status");
+            useLoadingStore.getState().setLoading(false);
+            useLoadingStore.getState().setLoadingMessage(null);
           }
-          useLoadingStore.getState().setLoading(false);
-        }
+        };
+
+        // Start polling
+        pollTask();
       } catch (error) {
         if (error instanceof Error) {
           useErrorStore
@@ -110,6 +148,7 @@ export default function ExamForm() {
           useErrorStore.getState().setError("Error generating exam");
         }
         useLoadingStore.getState().setLoading(false);
+        useLoadingStore.getState().setLoadingMessage(null);
       }
     } else {
       const privacyValue = visibility === "public" ? "1" : "0";
@@ -123,6 +162,9 @@ export default function ExamForm() {
 
       try {
         useLoadingStore.getState().setLoading(true);
+        useLoadingStore
+          .getState()
+          .setLoadingMessage("Generating and saving your exam...");
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate/save`,
           {
@@ -138,15 +180,18 @@ export default function ExamForm() {
         if (!response.ok) {
           useErrorStore.getState().setError("Error generating exam");
           useLoadingStore.getState().setLoading(false);
+          useLoadingStore.getState().setLoadingMessage(null);
           return;
         }
 
         if (result.message) {
           useErrorStore.getState().setError(result.message);
           useLoadingStore.getState().setLoading(false);
+          useLoadingStore.getState().setLoadingMessage(null);
         } else {
           useLoadingStore.getState().setLoading(false);
-          router.push(`/exam/${result.exam_id}`)
+          useLoadingStore.getState().setLoadingMessage(null);
+          router.push(`/exam/${result.exam_id}`);
         }
       } catch (error) {
         if (error instanceof Error) {
@@ -157,6 +202,7 @@ export default function ExamForm() {
           useErrorStore.getState().setError("Error generating exam");
         }
         useLoadingStore.getState().setLoading(false);
+        useLoadingStore.getState().setLoadingMessage(null);
       }
     }
   };
@@ -201,7 +247,7 @@ export default function ExamForm() {
               value={count}
               onChange={setCount}
               min={1}
-              max={10}
+              max={5}
               step={1}
             />
           </div>

@@ -44,21 +44,20 @@ export default function Sidebar() {
       return;
     }
 
-    const sessionId = localStorage.getItem("browserSessionId");
-    const cacheKey = `exam:${sessionId}`;
+    const taskId = localStorage.getItem("browserSessionId");
 
     try {
-      const response = await fetch(`/api/fetchExam`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          cacheKey: cacheKey,
-        }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/task/${taskId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
 
-      const result = await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         useErrorStore.getState().setError("Cannot fetch exam");
@@ -66,48 +65,42 @@ export default function Sidebar() {
         return;
       }
 
-      if (result.message) {
-        useErrorStore.getState().setError(result.message);
+      const privacyValue = visibility === "public" ? "1" : "0";
+      const selectedColorHex =
+        colors.find((c) => c.value === selectedColor)?.hex || "#3f3f46";
+
+      data.result.privacy = privacyValue;
+      data.result.color = selectedColorHex;
+
+      const currSession = await getSession();
+      const saveResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/exam/generate/save-after`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${currSession?.accessToken}`,
+          },
+          method: "POST",
+          body: JSON.stringify(data.result),
+        }
+      );
+
+      const saveResult = await saveResponse.json();
+      if (!saveResponse.ok) {
+        useErrorStore
+          .getState()
+          .setError("Error saving exam, make sure you are signed in");
         useLoadingStore.getState().setLoading(false);
         return;
+      }
+
+      if (saveResult.message) {
+        useErrorStore.getState().setError(saveResult.message);
+        useLoadingStore.getState().setLoading(false);
       } else {
-        const privacyValue = visibility === "public" ? "1" : "0";
-        const selectedColorHex =
-          colors.find((c) => c.value === selectedColor)?.hex || "#3f3f46";
-
-        result.privacy = privacyValue;
-        result.color = selectedColorHex;
-
-        const currSession = await getSession();
-        const saveResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/exam/generate/save-after`,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${currSession?.accessToken}`,
-            },
-            method: "POST",
-            body: JSON.stringify(result),
-          }
-        );
-
-        const saveResult = await saveResponse.json();
-        if (!saveResponse.ok) {
-          useErrorStore
-            .getState()
-            .setError("Error saving exam, make sure you are signed in");
-          useLoadingStore.getState().setLoading(false);
-          return;
-        }
-
-        if (saveResult.message) {
-          useErrorStore.getState().setError(saveResult.message);
-          useLoadingStore.getState().setLoading(false);
-        } else {
-          localStorage.removeItem("browserSessionId");
-          useLoadingStore.getState().setLoading(false);
-          router.push(`/exam/${saveResult.exam_id}`);
-        }
+        localStorage.removeItem("browserSessionId");
+        useLoadingStore.getState().setLoading(false);
+        router.push(`/exam/${saveResult.exam_id}`);
       }
     } catch (error) {
       useErrorStore

@@ -55,7 +55,7 @@ export default function Page() {
   const { loading } = useLoadingStore();
   const router = useRouter();
   const [exam, setExam] = useState<Exam>();
-  
+
   useEffect(() => {
     async function fetchData() {
       if (!localStorage.getItem("browserSessionId")) {
@@ -66,21 +66,20 @@ export default function Page() {
         return;
       }
 
-      const sessionId = localStorage.getItem("browserSessionId");
-      const cacheKey = `exam:${sessionId}`;
+      const taskId = localStorage.getItem("browserSessionId");
 
       try {
-        const response = await fetch(`/api/fetchExam`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            cacheKey: cacheKey,
-          }),
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/task/${taskId}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
 
-        const result = await response.json();
+        const data = await response.json();
 
         if (!response.ok) {
           useErrorStore.getState().setError("Cannot fetch exam");
@@ -88,12 +87,12 @@ export default function Page() {
           return;
         }
 
-        if (result.message) {
-          useErrorStore.getState().setError(result.message);
+        if (data.message) {
+          useErrorStore.getState().setError(data.message);
           router.push(`/generate`);
           return;
         } else {
-          const newExam = parseExam(result);
+          const newExam = parseExam(data.result);
           setExam(newExam);
         }
       } catch (error) {
@@ -104,19 +103,17 @@ export default function Page() {
     }
 
     fetchData();
-  }, []);
+  }, [router]);
 
   return (
     <ExamLayout>
-      {(exam && !loading) ? (
+      {exam && !loading ? (
         <ExamContent exam={exam} />
       ) : (
         <div className="fixed inset-0 bg-zinc-950/25 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="flex flex-col items-center gap-2">
             <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
-            <p className="text-lg font-medium text-white">
-              Loading...
-            </p>
+            <p className="text-lg font-medium text-white">Loading...</p>
           </div>
         </div>
       )}
