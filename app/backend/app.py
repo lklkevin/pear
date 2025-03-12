@@ -16,6 +16,7 @@ import os
 from dotenv import load_dotenv
 import redis
 import json
+from backend.task import generate_exam_task
 
 app = Flask(__name__)
 CORS(app, resources={
@@ -301,87 +302,142 @@ def get_profile(current_user):
         'auth_provider': current_user[4]
     }), 200
 
+# @app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
+# def generate_exam():
+#     # Handle preflight request for CORS
+#     if request.method == 'OPTIONS':
+#         response = jsonify({'status': 'success'})
+#         # Explicitly add CORS headers for this endpoint
+#         origin = request.headers.get('Origin')
+#         allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
+#         if origin in allowed_origins:
+#             response.headers.add('Access-Control-Allow-Origin', origin)
+#             response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
+#             response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+#             response.headers.add('Access-Control-Allow-Credentials', 'true')
+#             response.headers.add('Access-Control-Max-Age', '3600')
+#         return response
+        
+#     max_questions = 10
+
+#     # Helper function to create CORS-compatible error responses
+#     def create_cors_error(message, status_code):
+#         response = jsonify({'message': message})
+#         origin = request.headers.get('Origin')
+#         allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
+#         if origin in allowed_origins:
+#             response.headers.add('Access-Control-Allow-Origin', origin)
+#             response.headers.add('Access-Control-Allow-Credentials', 'true')
+#         return response, status_code
+
+#     if 'files' not in request.files:
+#         return create_cors_error('No files provided!', 400)
+
+#     files = request.files.getlist('files')
+#     title = request.form.get('title')
+#     description = request.form.get('description')
+#     num_questions = request.form.get('num_questions')  # Correct field name
+
+#     if not title or not description:
+#         return create_cors_error('Title and description are required!', 400)
+
+#     # Ensure num_questions is an integer
+#     try:
+#         num_questions = int(num_questions)
+#     except (TypeError, ValueError):
+#         return create_cors_error('Invalid number of questions', 400)
+
+#     if num_questions > max_questions:
+#         return create_cors_error(f"Too many questions for guest user (max {max_questions}).", 400)
+#     elif num_questions <= 0:
+#         return create_cors_error('Cannot generate fewer than 1 question.', 400)
+
+#     try:
+#         # Read PDF file data before passing
+#         pdf_data_list = [file.stream.read() for file in files]
+
+#         # Process the PDF files and generate the exam
+#         exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, num_questions))
+
+#         response = jsonify({
+#             "title": title,
+#             "description": description,
+#             "questions": [
+#                 {
+#                     "question": q,
+#                     "answers": exam.get_all_answers(q)  # Include all answers with confidence
+#                 }
+#                 for q in exam.get_question()
+#             ]
+#         })
+        
+#         # Explicitly add CORS headers to the response
+#         origin = request.headers.get('Origin')
+#         allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
+#         if origin in allowed_origins:
+#             response.headers.add('Access-Control-Allow-Origin', origin)
+#             response.headers.add('Access-Control-Allow-Credentials', 'true')
+        
+#         return response, 200
+
+#     except Exception as e:
+#         print(f"Error generating exam: {e}")
+#         return create_cors_error('An error occurred while generating the exam', 500)
+
 @app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
 def generate_exam():
-    # Handle preflight request for CORS
+    # Handle preflight CORS requests
     if request.method == 'OPTIONS':
         response = jsonify({'status': 'success'})
-        # Explicitly add CORS headers for this endpoint
-        origin = request.headers.get('Origin')
-        allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
-        if origin in allowed_origins:
-            response.headers.add('Access-Control-Allow-Origin', origin)
-            response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
-            response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-            response.headers.add('Access-Control-Allow-Credentials', 'true')
-            response.headers.add('Access-Control-Max-Age', '3600')
+        # (Add your CORS headers here as needed)
         return response
-        
+
     max_questions = 10
 
-    # Helper function to create CORS-compatible error responses
-    def create_cors_error(message, status_code):
-        response = jsonify({'message': message})
-        origin = request.headers.get('Origin')
-        allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
-        if origin in allowed_origins:
-            response.headers.add('Access-Control-Allow-Origin', origin)
-            response.headers.add('Access-Control-Allow-Credentials', 'true')
-        return response, status_code
-
     if 'files' not in request.files:
-        return create_cors_error('No files provided!', 400)
+        return jsonify({'message': 'No files provided!'}), 400
 
     files = request.files.getlist('files')
     title = request.form.get('title')
     description = request.form.get('description')
-    num_questions = request.form.get('num_questions')  # Correct field name
+    num_questions = request.form.get('num_questions')
 
     if not title or not description:
-        return create_cors_error('Title and description are required!', 400)
+        return jsonify({'message': 'Title and description are required!'}), 400
 
-    # Ensure num_questions is an integer
     try:
         num_questions = int(num_questions)
     except (TypeError, ValueError):
-        return create_cors_error('Invalid number of questions', 400)
+        return jsonify({'message': 'Invalid number of questions'}), 400
 
     if num_questions > max_questions:
-        return create_cors_error(f"Too many questions for guest user (max {max_questions}).", 400)
+        return jsonify({'message': f"Too many questions for guest user (max {max_questions})."}), 400
     elif num_questions <= 0:
-        return create_cors_error('Cannot generate fewer than 1 question.', 400)
+        return jsonify({'message': 'Cannot generate fewer than 1 question.'}), 400
 
     try:
-        # Read PDF file data before passing
+        # Read all PDF file data
         pdf_data_list = [file.stream.read() for file in files]
-
-        # Process the PDF files and generate the exam
-        exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, num_questions))
-
-        response = jsonify({
-            "title": title,
-            "description": description,
-            "questions": [
-                {
-                    "question": q,
-                    "answers": exam.get_all_answers(q)  # Include all answers with confidence
-                }
-                for q in exam.get_question()
-            ]
-        })
-        
-        # Explicitly add CORS headers to the response
-        origin = request.headers.get('Origin')
-        allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
-        if origin in allowed_origins:
-            response.headers.add('Access-Control-Allow-Origin', origin)
-            response.headers.add('Access-Control-Allow-Credentials', 'true')
-        
-        return response, 200
-
     except Exception as e:
-        print(f"Error generating exam: {e}")
-        return create_cors_error('An error occurred while generating the exam', 500)
+        return jsonify({'message': f'Error reading files: {str(e)}'}), 500
+
+    # Enqueue the exam generation task using Celery
+    task = generate_exam_task.delay(pdf_data_list, num_questions, title, description)
+    return jsonify({'task_id': task.id}), 202
+
+
+@app.route('/api/task/<task_id>', methods=['GET'])
+def get_task_status(task_id):
+    from backend.task import celery  # Import the Celery instance
+    task = celery.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {'state': task.state, 'status': 'Pending...'}
+    elif task.state != 'FAILURE':
+        response = {'state': task.state, 'result': task.result}
+    else:
+        response = {'state': task.state, 'status': str(task.info)}
+    return jsonify(response)
+
 
 @app.route('/api/exam/generate/save', methods=['POST', 'OPTIONS'])
 @token_required
@@ -698,4 +754,4 @@ if __name__ == '__main__':
         
         return response
     
-    app.run(host="0.0.0.0", port=port)
+    app.run(host='0.0.0.0', port=5000, debug=True) 
