@@ -70,7 +70,7 @@ jobs:
       - docker/check
       - run:
           name: Docker login to DigitalOcean
-          command: echo $DIGITALOCEAN_API_TOKEN | docker login registry.digitalocean.com -u $DIGITALOCEAN_EMAIL --password-stdin
+          command: echo $DIGITALOCEAN_API_TOKEN | docker login registry.digitalocean.com --username $DIGITALOCEAN_EMAIL --password-stdin
       - docker/build:
           path: ~/project/app
           dockerfile: Dockerfile
