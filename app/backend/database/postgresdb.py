@@ -299,6 +299,10 @@ class PostgresDB(DataAccessObject):
                 auth_provider: AuthProvider,
                 oauth_id: Optional[str] = None) -> int:
         """Add a new user to the database."""
+        if password is None and auth_provider == 'local':
+            raise DataError("A password must be provided "
+                            "if auth_provider is 'google'.")
+
         conn = self._get_conn()
         try:
             cur = conn.cursor()
