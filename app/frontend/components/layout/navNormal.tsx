@@ -41,7 +41,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     "bg-cyan-700",
     "bg-indigo-700",
     "bg-violet-700",
-    "bg-rose-700",
+    "bg-pink-700",
     "bg-red-700",
     "bg-amber-700",
   ];
