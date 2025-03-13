@@ -16,7 +16,7 @@ import os
 from dotenv import load_dotenv
 import redis
 import json
-from backend.task import generate_exam_task
+from backend.task import generate_exam_task, generate_and_save_exam_task
 
 app = Flask(__name__)
 CORS(app, resources={
@@ -302,88 +302,6 @@ def get_profile(current_user):
         'auth_provider': current_user[4]
     }), 200
 
-# @app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
-# def generate_exam():
-#     # Handle preflight request for CORS
-#     if request.method == 'OPTIONS':
-#         response = jsonify({'status': 'success'})
-#         # Explicitly add CORS headers for this endpoint
-#         origin = request.headers.get('Origin')
-#         allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
-#         if origin in allowed_origins:
-#             response.headers.add('Access-Control-Allow-Origin', origin)
-#             response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
-#             response.headers.add('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
-#             response.headers.add('Access-Control-Allow-Credentials', 'true')
-#             response.headers.add('Access-Control-Max-Age', '3600')
-#         return response
-        
-#     max_questions = 10
-
-#     # Helper function to create CORS-compatible error responses
-#     def create_cors_error(message, status_code):
-#         response = jsonify({'message': message})
-#         origin = request.headers.get('Origin')
-#         allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
-#         if origin in allowed_origins:
-#             response.headers.add('Access-Control-Allow-Origin', origin)
-#             response.headers.add('Access-Control-Allow-Credentials', 'true')
-#         return response, status_code
-
-#     if 'files' not in request.files:
-#         return create_cors_error('No files provided!', 400)
-
-#     files = request.files.getlist('files')
-#     title = request.form.get('title')
-#     description = request.form.get('description')
-#     num_questions = request.form.get('num_questions')  # Correct field name
-
-#     if not title or not description:
-#         return create_cors_error('Title and description are required!', 400)
-
-#     # Ensure num_questions is an integer
-#     try:
-#         num_questions = int(num_questions)
-#     except (TypeError, ValueError):
-#         return create_cors_error('Invalid number of questions', 400)
-
-#     if num_questions > max_questions:
-#         return create_cors_error(f"Too many questions for guest user (max {max_questions}).", 400)
-#     elif num_questions <= 0:
-#         return create_cors_error('Cannot generate fewer than 1 question.', 400)
-
-#     try:
-#         # Read PDF file data before passing
-#         pdf_data_list = [file.stream.read() for file in files]
-
-#         # Process the PDF files and generate the exam
-#         exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, num_questions))
-
-#         response = jsonify({
-#             "title": title,
-#             "description": description,
-#             "questions": [
-#                 {
-#                     "question": q,
-#                     "answers": exam.get_all_answers(q)  # Include all answers with confidence
-#                 }
-#                 for q in exam.get_question()
-#             ]
-#         })
-        
-#         # Explicitly add CORS headers to the response
-#         origin = request.headers.get('Origin')
-#         allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
-#         if origin in allowed_origins:
-#             response.headers.add('Access-Control-Allow-Origin', origin)
-#             response.headers.add('Access-Control-Allow-Credentials', 'true')
-        
-#         return response, 200
-
-#     except Exception as e:
-#         print(f"Error generating exam: {e}")
-#         return create_cors_error('An error occurred while generating the exam', 500)
-
 @app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
 def generate_exam():
     # Handle preflight CORS requests
@@ -431,11 +349,16 @@ def get_task_status(task_id):
     from backend.task import celery  # Import the Celery instance
     task = celery.AsyncResult(task_id)
     if task.state == 'PENDING':
-        response = {'state': task.state, 'status': 'Pending...'}
+        response = {'state': task.state, 'result': 'Pending...'}
     elif task.state != 'FAILURE':
         response = {'state': task.state, 'result': task.result}
     else:
-        response = {'state': task.state, 'status': str(task.info)}
+        try:
+            json.dumps(task.result)
+            status = task.result
+        except TypeError:
+            status = str(task.result)
+        response = {'state': task.state, 'result': status}
     return jsonify(response)
 
 
@@ -479,32 +402,24 @@ def generate_and_save_exam(current_user):
         return jsonify({'message': 'Privacy must be 0 (private) or 1 (public).'}), 400
 
     try:
-        # Read file contents
+        # Read all PDF file data
         pdf_data_list = [file.stream.read() for file in files]
-
-        # Process the PDF files and generate the exam
-        exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, num_questions))  # Adjust num_questions as needed
     except Exception as e:
-        print(f"Error generating exam: {e}")
-        return jsonify({'message': 'An error occurred while generating the exam'}), 500
+        return jsonify({'message': f'Error reading files: {str(e)}'}), 500
 
-    # Save the exam to the database
-    exam_id = db.add_exam(
-        username=current_user[1],  # Assuming current_user tuple: (id, username, email, ...)
-        name=title,
-        color=color,
-        description=description,
-        public=privacy
+    # Enqueue the exam generation and save task using Celery
+    task = generate_and_save_exam_task.delay(
+        pdf_data_list, 
+        num_questions, 
+        title, 
+        description, 
+        color, 
+        privacy, 
+        current_user[1]  # username
     )
+    
+    return jsonify({'task_id': task.id}), 202
 
-    # Insert questions and answers into the database
-    for index, question_text in enumerate(exam.get_question(), start=1):
-        answers = exam.get_all_answers(question_text)
-
-        if answers is not None:
-            db.insert_question(index, exam_id, question_text, set(answers.items()))
-
-    return jsonify({'exam_id': exam_id}), 201
 
 @app.route('/api/exam/generate/save-after', methods=['POST'])
 @token_required
@@ -542,6 +457,7 @@ def save_exam_after_generate(current_user):
             db.insert_question(index, exam_id, question_text, set(answers.items()))
 
     return jsonify({'exam_id': exam_id}), 201
+
 
 @app.route('/api/exam/<int:exam_id>', methods=['GET'])
 def get_exam_endpoint(exam_id):
@@ -601,6 +517,7 @@ def get_exam_endpoint(exam_id):
         print(str(e))
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
 
+
 @app.route("/api/browse", methods=["GET"])
 def get_exams_endpoint():
     # Retrieve query parameters with default values
@@ -649,6 +566,7 @@ def get_exams_endpoint():
         print(str(e))
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
     
+
 @app.route("/api/browse/personal", methods=["GET"])
 @token_required
 def get_exams_personal(current_user):
@@ -692,12 +610,13 @@ def get_exams_personal(current_user):
         ]
 
         if filter != "favourites":
-            redis_client.setex(cache_key, 60, json.dumps(results))
+            redis_client.setex(cache_key, 30, json.dumps(results))
         return jsonify(results), 200
     except Exception as e:
         print(str(e))
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
     
+
 @app.route("/api/favourite", methods=["POST"])
 @token_required
 def fav(current_user):
