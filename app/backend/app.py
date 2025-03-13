@@ -1,4 +1,3 @@
-import asyncio
 from functools import wraps
 import datetime
 import secrets
@@ -10,7 +9,6 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import backend.database as dao
 import backend.database.db_factory as db_factory
-import backend.examGenerator as eg
 
 import os
 from dotenv import load_dotenv
