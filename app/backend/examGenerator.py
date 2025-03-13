@@ -29,7 +29,7 @@ async def generate_exam_from_pdfs(files, num_questions, max_parallel=3):
         raise ValueError("Must provide between 1 and 5 PDF files.")
 
     pdf_model = GeminiModel()
-    text_model = Cohere('command-r-plus-08-2024')
+    text_model = Cohere('command-a-03-2025')
     scanner = GeminiPDFScanner(pdf_model, text_model)
 
     pdf_data_list = [bytes for bytes in files]
