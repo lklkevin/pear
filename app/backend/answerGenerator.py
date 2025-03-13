@@ -68,7 +68,7 @@ async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[
                  f"Avoid using units in your Final answer unless it is ambiguous. For example, if the question asks for the number of feet, do not include 'feet' in your answer."
 
         comparator = validation.LLMAnswerComparator(tolerance=1e-5)
-        result_dict = await majority_vote(prompt, 2, model)
+        result_dict = await majority_vote(prompt, n, model)
 
         # List of unique answers
         unique_answers = list(result_dict.keys())
