@@ -23,7 +23,7 @@ celery = Celery(
 celery.conf.update(result_expires=3600)
 
 # Shared async function that handles the core exam generation process
-async def _generate_exam_core(self, pdf_data_list, num_questions, title, description, max_parallel=3):
+async def _generate_exam_core(self, pdf_data_list, num_questions, title, description, max_parallel=5):
     """
     Core exam generation function used by both generate_exam_task and generate_and_save_exam_task
     Returns the generated exam object and formatted exam data
@@ -130,29 +130,14 @@ async def _generate_exam_core(self, pdf_data_list, num_questions, title, descrip
     semaphore = asyncio.Semaphore(max_parallel)
 
     # Define a function that acquires and releases the semaphore
-    async def generate_answers_with_semaphore(question, index, total):
+    async def generate_answers_with_semaphore(question):
         async with semaphore:
-            # This isn't that accurate since its async but oh well
-            progress = 5 + ((index + 1) / total)
-            self.update_state(
-                state='PROGRESS',
-                meta={
-                    'status': f'Generating answers for question {index + 1}/{total}',
-                    'current': progress,
-                    'total': 6,
-                    'stage': 'answer_generation',
-                    'question_progress': {
-                        'current': index + 1,
-                        'total': total
-                    }
-                }
-            )
-            return await answerGenerator.generate_answers(question, 20, text_model)
+            return await answerGenerator.generate_answers(question, 10, text_model)
 
     # Run answer generation asynchronously for all questions with semaphore
     answer_tasks = [
-        generate_answers_with_semaphore(question, i, len(selected_questions)) 
-        for i, question in enumerate(selected_questions)
+        generate_answers_with_semaphore(question) 
+        for _, question in enumerate(selected_questions)
     ]
     results = await asyncio.gather(*answer_tasks)  # Run all answer generations with controlled parallelism
 
