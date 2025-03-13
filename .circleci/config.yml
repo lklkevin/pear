@@ -75,10 +75,10 @@ workflows:
   build-and-test:
     jobs:
       - test-node
-      - build-node:
-          requires:
-            - test-node
-            - test-python
+      # - build-node:
+      #     requires:
+      #       - test-node
+      #       - test-python
       - test-python
     # - deploy:
     #     requires:
