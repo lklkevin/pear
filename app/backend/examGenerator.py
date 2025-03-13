@@ -11,13 +11,14 @@ import backend.answerGenerator as answerGenerator
 from backend.exam import Exam
 
 
-async def generate_exam_from_pdfs(files, num_questions):
+async def generate_exam_from_pdfs(files, num_questions, max_parallel=3):
     """
     Processes up to 5 PDF files, extracts text, and generates an AI-created exam.
 
     Args:
         files (list): List of uploaded PDF files.
         num_questions (int): The number of questions to add to the exam
+        max_parallel (int): Maximum number of parallel requests allowed
 
     Returns:
         dict: Generated exam with questions and possible answers.
@@ -40,10 +41,14 @@ async def generate_exam_from_pdfs(files, num_questions):
         print("Generating Questions from Exam")
         exam_questions = [qa_pair[0] for qa_pair in pdf.qa_pairs]  # Extract only questions
         generated_questions = await questionGenerator.generate_questions(exam_questions,
-                                                                         max(int(math.ceil(num_questions / len(files))),
-                                                                             len(exam_questions)),
-                                                                         text_model)
+                                                                        max(int(math.ceil(num_questions / len(files))),
+                                                                            len(exam_questions)),
+                                                                        text_model)
         possible_exam_questions.extend(generated_questions)  # Flattening all generated questions into one list
+
+
+    if len(possible_exam_questions) == 0:
+        raise Exception("No questions could be generated from the provided PDFs")
 
     # Randomly select `num_questions`
     print(f"Randomly selecting subset of {num_questions} questions")
@@ -53,10 +58,18 @@ async def generate_exam_from_pdfs(files, num_questions):
     for question in selected_questions:
         exam.add_question(question)
 
-    # Run answer generation asynchronously for all questions
-    print("Running AI Answer Generation for Each Question")
-    answer_tasks = [answerGenerator.generate_answers(question, 20, text_model) for question in selected_questions]
-    results = await asyncio.gather(*answer_tasks)  # Run all answer generations in parallel
+    # Create a semaphore to limit concurrent tasks
+    semaphore = asyncio.Semaphore(max_parallel)
+
+    # Define a function that acquires and releases the semaphore
+    async def generate_answers_with_semaphore(question):
+        async with semaphore:
+            return await answerGenerator.generate_answers(question, 20, text_model)
+
+    # Run answer generation asynchronously for all questions with semaphore
+    print(f"Running AI Answer Generation for Each Question (max {max_parallel} in parallel)")
+    answer_tasks = [generate_answers_with_semaphore(question) for question in selected_questions]
+    results = await asyncio.gather(*answer_tasks)  # Run all answer generations with controlled parallelism
 
     # Store answers in the exam
     for question, answers in zip(selected_questions, results):
