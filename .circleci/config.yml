@@ -67,7 +67,6 @@ jobs:
     steps:
       - checkout
       - setup_remote_docker:
-          version: 20.10.14
       - docker/check
       - run:
           name: Docker login to DigitalOcean
