@@ -56,7 +56,7 @@ async def _generate_exam_core(self, pdf_data_list, num_questions, title, descrip
     )
     
     pdf_model = GeminiModel()
-    text_model = Cohere('command-r-plus-08-2024')
+    text_model = Cohere('command-a-03-2025')
     scanner = GeminiPDFScanner(pdf_model, text_model)
 
     # 3. Scan PDFs
