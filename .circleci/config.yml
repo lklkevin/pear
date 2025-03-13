@@ -4,6 +4,7 @@ version: 2.1
 orbs:
   node: circleci/node@5
   python: circleci/python@2
+  docker: circleci/docker@2.1.4
 jobs:
   test-node:
     # Install node dependencies and run tests
@@ -59,27 +60,34 @@ jobs:
           command: cd backend && poetry run pytest --junitxml=../junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
       - store_test_results:
           path: junit.xml
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
+  build-and-push-docker:
     docker:
       - image: cimg/base:stable
+    working_directory: ~/project
     steps:
-      # Replace this with steps to deploy to users
+      - checkout
+      - setup_remote_docker:
+          version: 20.10.14
+      - docker/check
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
-      - run:
-          name: found github actions config
-          command: ':'
+          name: Docker login to DigitalOcean
+          command: echo $DIGITALOCEAN_API_TOKEN | docker login registry.digitalocean.com -u $DIGITALOCEAN_EMAIL --password-stdin
+      - docker/build:
+          path: ~/project/app
+          dockerfile: Dockerfile
+          image: registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app
+          tag: ${CIRCLE_SHA1},latest
+      - docker/push:
+          image: registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app
+          tag: ${CIRCLE_SHA1},latest
 workflows:
   build-and-test:
     jobs:
       - test-node
-      # - build-node:
-      #     requires:
-      #       - test-node
-      #       - test-python
       - test-python
-    # - deploy:
-    #     requires:
-    #       - build-node
+      - build-and-push-docker:
+          requires:
+            - test-python
+          filters:
+            branches:
+              only: main
