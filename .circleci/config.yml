@@ -63,9 +63,6 @@ jobs:
   build-and-push-docker:
     docker:
       - image: cimg/base:stable
-        auth:
-          username: $DIGITALOCEAN_EMAIL
-          password: $DIGITALOCEAN_API_TOKEN
     working_directory: ~/project
     steps:
       - checkout
