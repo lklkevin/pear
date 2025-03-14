@@ -88,6 +88,3 @@ workflows:
       - build-and-push-docker:
           requires:
             - test-python
-          filters:
-            branches:
-              only: main
