@@ -47,7 +47,7 @@ jobs:
             # Remove all existing files in fork (except .git)
             cd ~/frontend-fork
             find . -mindepth 1 -not -path "./.git/*" -not -name ".git" -delete
-            
+
             # Copy all frontend files except __tests__ directories
             cd ~/project/app/frontend
             find . -type d -not -path "*/node_modules/*" -not -path "*/__tests__*" -not -path "*/\.*" | while read dir; do
@@ -60,10 +60,10 @@ jobs:
           name: Commit and Push Changes to Fork
           command: |
             cd ~/frontend-fork
-            
+
             # Add all files to git
             git add -A
-            
+
             # Only commit and push if there are changes
             if git status | grep -q "Changes to be committed"; then
               git commit -m "Sync frontend from main repository [skip ci]"
@@ -76,8 +76,10 @@ jobs:
 workflows:
   frontend-sync:
     jobs:
-      - deploy-frontend
-      # - test-node
-      # - deploy-frontend:
-          # requires:
-          #   - test-node
+      - test-node
+      - deploy-frontend:
+          requires:
+            - test-node
+          filters:
+            branches:
+              only: main
