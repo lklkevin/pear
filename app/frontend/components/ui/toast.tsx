@@ -38,7 +38,7 @@ export default function Toast() {
         >
           <motion.div className="relative flex items-center w-[400px] max-w-[90vw] rounded-lg overflow-hidden border border-zinc-700 shadow-lg">
             {/* Background with blur */}
-            <div className="absolute inset-0 bg-zinc-950/50 backdrop-blur-lg"></div>
+            <div className="absolute inset-0 bg-zinc-950"></div>
 
             <div className="relative flex items-center gap-3 px-5 py-4 text-white w-full">
               <div className="flex-1">{errorMessage}</div>

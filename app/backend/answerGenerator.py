@@ -77,6 +77,7 @@ async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[
         if num_answers == 0:
             return {}
 
+
         # Initialize 2D matrix for equivalence checks
         unique_answers_matrix = [[None] * num_answers for _ in range(num_answers)]
         equivalence_tasks = []
@@ -148,3 +149,4 @@ if __name__ == "__main__":
     for question in questions:
         answers = asyncio.run(generate_answers(question, 20, model))
         print(f"Question: {question} \n Answers: {answers}\n")
+        

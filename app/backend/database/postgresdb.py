@@ -2,6 +2,7 @@ import psycopg2
 from psycopg2 import pool
 import datetime
 from typing import Optional
+import time
 
 from backend.database import (
     DataAccessObject,
@@ -21,12 +22,22 @@ class PostgresDB(DataAccessObject):
                  schema: str = "backend/database/postgres_schema.sql"):
         """Initialize the PostgreSQL database connection.
         """
-        self.pool = psycopg2.pool.SimpleConnectionPool(
-            1, 10,
-            dsn=connection_string,
-            sslmode='require'
-        )
-        
+        try:
+            self.pool = psycopg2.pool.ThreadedConnectionPool(  # Using ThreadedConnectionPool for thread safety
+                1, 20,  # Increased max connections
+                dsn=connection_string,
+                sslmode='require',
+                connect_timeout=10,  # Longer connect timeout
+                keepalives=1,
+                keepalives_idle=30,  # Send keepalive after 30 seconds of inactivity
+                keepalives_interval=10,
+                keepalives_count=5,  # Increased keepalive count
+                application_name='Backend301App'  # Better identification in database logs
+            )
+            print("Successfully initialized PostgreSQL connection pool")
+        except Exception as e:
+            raise DatabaseError(f"Failed to initialize database connection pool: {str(e)}")
+
         # Initialize schema if needed
         self._init_schema(schema)
     
@@ -46,15 +57,64 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
-    def _get_conn(self):
-        """Get a connection from the pool."""
-        conn = self.pool.getconn()
-        conn.reset()  # Reset the connection to clean any previous state
-        return conn
+    def _get_conn(self, retries=3):
+        """Retry connection in case of failure."""
+        last_exception = None
+        for attempt in range(retries):
+            try:
+                conn = self.pool.getconn()
+                if conn.closed:
+                    print(f"Attempt {attempt+1}: Connection was closed. Reconnecting...")
+                    # When reconnecting, set longer timeout and explicitly set SSL parameters
+                    conn = psycopg2.connect(
+                        dsn=self.pool.dsn, 
+                        sslmode='require',
+                        connect_timeout=10,  # Increased timeout
+                        keepalives=1,
+                        keepalives_idle=30,
+                        keepalives_interval=10,
+                        keepalives_count=3
+                    )
+                # Test the connection with a simple query
+                with conn.cursor() as cursor:
+                    cursor.execute("SELECT 1")
+                    cursor.fetchone()
+                return conn
+            except psycopg2.OperationalError as e:
+                last_exception = e
+                print(f"Attempt {attempt+1}: Database connection failed: {e}")
+                # Close the connection if it exists but is causing SSL errors
+                if 'SSL' in str(e) and 'conn' in locals() and conn and not conn.closed:
+                    try:
+                        conn.close()
+                    except Exception as close_error:
+                        print(f"Error closing problematic connection: {close_error}")
+                
+                # Exponential backoff for retries
+                if attempt < retries - 1:
+                    sleep_time = 2 ** attempt  # Exponential backoff: 1, 2, 4, etc. seconds
+                    print(f"Retrying in {sleep_time} seconds...")
+                    time.sleep(sleep_time)
+            except Exception as e:
+                last_exception = e
+                print(f"Unexpected error during connection: {e}")
+                if attempt < retries - 1:
+                    time.sleep(1)  # Wait 1 second before retrying
+        
+        # If we've exhausted all retries
+        error_msg = f"Failed to get a valid database connection after {retries} attempts."
+        if last_exception:
+            error_msg += f" Last error: {str(last_exception)}"
+        raise DatabaseError(error_msg)
+
     
     def _release_conn(self, conn):
-        """Release a connection back to the pool."""
-        self.pool.putconn(conn)
+        """Release a connection back to the pool safely."""
+        if conn and not conn.closed:
+            self.pool.putconn(conn)
+        else:
+            print("Skipping release of closed connection.")
+
 
     def user_exists(self,
                   username: Optional[str] = None,
@@ -153,28 +213,52 @@ class PostgresDB(DataAccessObject):
                         token: str,
                         revoked: Optional[bool] = None) -> Optional[tuple[int, datetime.datetime, datetime.datetime]]:
         """Get refresh token information."""
-        conn = self._get_conn()
-        try:
-            cur = conn.cursor()
-            
-            if revoked is None:
-                cur.execute(
-                    'SELECT user_id, expires_at, created_at FROM "RefreshToken" '
-                    'WHERE token = %s;',
-                    (token,)
-                )
-            else:
-                cur.execute(
-                    'SELECT user_id, expires_at, created_at FROM "RefreshToken" '
-                    'WHERE token = %s AND revoked = %s;',
-                    (token, revoked)
-                )
-            
-            return cur.fetchone()
-        except Exception as e:
-            raise DatabaseError(f"Error getting refresh token: {str(e)}")
-        finally:
-            self._release_conn(conn)
+        max_retries = 3
+        retry_delay = 1  # seconds
+        
+        for attempt in range(max_retries):
+            conn = None
+            try:
+                conn = self._get_conn()
+                cur = conn.cursor()
+                
+                if revoked is None:
+                    cur.execute(
+                        'SELECT user_id, expires_at, created_at FROM "RefreshToken" '
+                        'WHERE token = %s;',
+                        (token,)
+                    )
+                else:
+                    cur.execute(
+                        'SELECT user_id, expires_at, created_at FROM "RefreshToken" '
+                        'WHERE token = %s AND revoked = %s;',
+                        (token, revoked)
+                    )
+                
+                result = cur.fetchone()
+                self._release_conn(conn)
+                return result
+                
+            except psycopg2.OperationalError as e:
+                print(f"Attempt {attempt+1}: Database operation failed in get_refresh_token: {e}")
+                if conn:
+                    # Don't try to release a connection that caused an OperationalError
+                    # It's likely already closed or in a bad state
+                    if not conn.closed:
+                        try:
+                            conn.close()
+                        except Exception:
+                            pass
+                
+                if attempt < max_retries - 1:
+                    time.sleep(retry_delay)  # Wait before retrying
+                else:
+                    raise DatabaseError(f"Error getting refresh token after {max_retries} attempts: {str(e)}")
+                    
+            except Exception as e:
+                if conn:
+                    self._release_conn(conn)
+                raise DatabaseError(f"Error getting refresh token: {str(e)}")
 
     def set_revoked_status(self, token: str, revoked: bool) -> None:
         """Set the revoked status of a refresh token."""
@@ -278,58 +362,88 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
 
-    def get_exams(self,
-                user_id: str,
-                sorting: SortOrder,
-                filter: Filter,
-                title: Optional[str],
-                limit: int,
-                page: int) -> list[tuple[int, str, str, str, str, str, bool, int]]:
-        """Get a list of exams based on filter criteria."""
+    def get_exams(
+        self,
+        user_id: Optional[str],
+        sorting: SortOrder,
+        filter: Filter,
+        title: Optional[str],
+        limit: int,
+        page: int
+    ) -> list[tuple[int, str, str, str, str, str, bool, int, bool]]:
+        """Get a list of exams based on filter criteria, including whether the user liked each exam.
+    
+        If no user_id is provided, only public exams are returned with is_liked set to False.
+        """
         conn = self._get_conn()
         try:
             cur = conn.cursor()
-            
-            # Build the query based on filter
-            params = []
-            
-            if filter == "mine":
-                query = 'SELECT * FROM "Exam" WHERE owner = %s'
-                params.append(user_id)
-            elif filter == "favourites":
-                query = 'SELECT e.* FROM "Exam" e JOIN "Favourite" f ON e.examId = f.examId WHERE f.userId = %s'
-                params.append(user_id)
+
+            # If no user_id is provided, ignore any filters that require a user and
+            # return only public exams with is_liked as false.
+            if not user_id:
+                select_clause = (
+                    'SELECT e.examId, e.name, e.date, e.owner, e.color, e.description, '
+                    'e.public, e.num_fav, false AS is_liked'
+                )
+                base_query = 'FROM "Exam" e WHERE e.public = TRUE'
+                query_params = []
             else:
-                query = 'SELECT * FROM "Exam" WHERE "public" = TRUE'
-            
-            # Add title filter if provided
-            if title:
-                if "WHERE" in query:  # Ensure `AND` is only added if `WHERE` exists
-                    query += ' AND "name" LIKE %s'
+                # Build query based on the filter.
+                if filter == "mine":
+                    # For "mine", select exams owned by the user and check if the user has liked them.
+                    select_clause = (
+                        'SELECT e.examId, e.name, e.date, e.owner, e.color, e.description, '
+                            'e.public, e.num_fav, EXISTS(SELECT 1 FROM "Favourite" f WHERE f.examId = e.examId AND f.userId = %s) AS is_liked'
+                    )
+                    base_query = 'FROM "Exam" e WHERE e.owner = %s'
+                    # user_id is used twice: once for the EXISTS subquery and once for filtering owner.
+                    query_params = [user_id, user_id]
+                elif filter == "favourites":
+                    # For favourites, join the Favourite table. Since we're filtering on favourites,
+                    # each exam returned is already liked by the user.
+                    select_clause = (
+                        'SELECT e.examId, e.name, e.date, e.owner, e.color, e.description, '
+                        'e.public, e.num_fav, true AS is_liked'
+                    )
+                    base_query = 'FROM "Exam" e JOIN "Favourite" f ON e.examId = f.examId WHERE f.userId = %s'
+                    query_params = [user_id]
                 else:
-                    query += ' WHERE "name" LIKE %s'
-                params.append(f"%{title}%")
-            
-            # Add sorting
+                    # Default (public) filter: select public exams and determine if the user liked them.
+                    select_clause = (
+                        'SELECT e.examId, e.name, e.date, e.owner, e.color, e.description, '
+                        'e.public, e.num_fav, EXISTS(SELECT 1 FROM "Favourite" f WHERE f.examId = e.examId AND f.userId = %s) AS is_liked'
+                    )
+                    base_query = 'FROM "Exam" e WHERE e.public = TRUE'
+                    query_params = [user_id]
+
+            # Add title filter if provided.
+            if title:
+                base_query += ' AND e.name LIKE %s'
+                query_params.append(f"%{title}%")
+
+            # Add sorting.
             if sorting == "popular":
-                query += " ORDER BY num_fav DESC"
+                order_clause = "ORDER BY e.num_fav DESC"
             elif sorting == "recent":
-                query += " ORDER BY date DESC"
+                order_clause = "ORDER BY e.date DESC"
             else:
-                query += ' ORDER BY "name"'
-            
-            # Add pagination
-            query += " LIMIT %s OFFSET %s"
-            params.extend([limit, (page - 1) * limit])
-            
-            cur.execute(query, params)
+                order_clause = 'ORDER BY e.name'
+
+            # Add pagination.
+            pagination_clause = "LIMIT %s OFFSET %s"
+            query_params.extend([limit, (page - 1) * limit])
+
+            query = f"{select_clause} {base_query} {order_clause} {pagination_clause}"
+
+            cur.execute(query, query_params)
             results = cur.fetchall()
-            
             return results
         except Exception as e:
             raise DatabaseError(f"Error getting exams: {str(e)}")
         finally:
             self._release_conn(conn)
+
     
     def add_exam(self,
                username: str,

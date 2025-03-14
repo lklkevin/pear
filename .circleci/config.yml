@@ -1,0 +1,92 @@
+# This config was automatically generated from your source code
+# Stacks detected: cicd:github-actions:.github/workflows,deps:node:app/frontend,deps:python:app,package_manager:poetry:app,test:jest:
+version: 2.1
+orbs:
+  node: circleci/node@5
+  python: circleci/python@2
+  docker: circleci/docker@2.1.4
+jobs:
+  test-node:
+    # Install node dependencies and run tests
+    executor: node/default
+    working_directory: ~/project/app/frontend
+    environment:
+      JEST_JUNIT_OUTPUT_DIR: ./test-results/
+    steps:
+      - checkout:
+          path: ~/project
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          command: npm install jest-junit
+      - run:
+          name: Run tests with Jest
+          command: ./node_modules/.bin/jest --ci --runInBand --reporters=default --reporters=jest-junit
+      - store_test_results:
+          path: ./test-results/
+  build-node:
+    # Build node project
+    executor: node/default
+    working_directory: ~/project/app/frontend
+    steps:
+      - checkout:
+          path: ~/project
+      - node/install-packages:
+          pkg-manager: npm
+      - run:
+          command: npm run build
+      - run:
+          name: Create the ~/artifacts directory if it doesn't exist
+          command: mkdir -p ~/artifacts
+      # Copy output to artifacts dir
+      - run:
+          name: Copy artifacts
+          command: cp -R build dist public .output .next .docusaurus ~/artifacts 2>/dev/null || true
+      - store_artifacts:
+          path: ~/artifacts
+          destination: node-build
+  test-python:
+    # Install dependencies and run tests
+    docker:
+      - image: cimg/python:3.11-node
+    working_directory: ~/project/app
+    steps:
+      - checkout:
+          path: ~/project
+      - python/install-packages:
+          pkg-manager: poetry
+      - run:
+          name: Run tests from backend directory
+          command: cd backend && poetry run pytest --junitxml=../junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
+      - store_test_results:
+          path: junit.xml
+  build-and-push-docker:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/project
+    steps:
+      - checkout
+      - setup_remote_docker
+      - docker/check
+      - run:
+          name: Docker login to DigitalOcean
+          command: echo $DIGITALOCEAN_API_TOKEN | docker login registry.digitalocean.com --username $DIGITALOCEAN_EMAIL --password-stdin
+      - docker/build:
+          path: ~/project/app
+          dockerfile: Dockerfile
+          image: registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app
+          tag: ${CIRCLE_SHA1},latest
+      - docker/push:
+          image: registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app
+          tag: ${CIRCLE_SHA1},latest
+workflows:
+  build-and-test:
+    jobs:
+      - test-node
+      - test-python
+      - build-and-push-docker:
+          requires:
+            - test-python
+          filters:
+            branches:
+              only: main

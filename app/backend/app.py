@@ -1,4 +1,3 @@
-import asyncio
 from functools import wraps
 import datetime
 import secrets
@@ -10,15 +9,24 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 import backend.database as dao
 import backend.database.db_factory as db_factory
-import backend.examGenerator as eg
 
 import os
 from dotenv import load_dotenv
 import redis
 import json
+from backend.task import generate_exam_task, generate_and_save_exam_task
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={
+    r"/api/*": {
+        "origins": ["http://localhost:3000", "https://avgr.vercel.app"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+        "expose_headers": ["Access-Control-Allow-Origin"],
+        "supports_credentials": True,
+        "max_age": 3600  # Cache preflight requests for 1 hour
+    },
+})
 load_dotenv()
 
 redis_host = os.environ.get("REDIS_HOST")
@@ -59,6 +67,11 @@ def generate_refresh_token(user_id: int) -> str:
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
+        # Skip token validation for OPTIONS requests (CORS preflight)
+        if request.method == 'OPTIONS':
+            response = jsonify({'status': 'success'})
+            return response
+            
         token = None
         
         # Get token from Authorization header
@@ -192,7 +205,7 @@ def google_auth():
     else:
         # For Google users, if a username is not provided, generate one based on the email.
         email_prefix = data['email'].split('@')[0]
-        username = f"{email_prefix}_{secrets.token_hex(8)}"
+        username = f"{email_prefix}_{secrets.token_hex(4)}"
         auth_provider = 'google'
         
         try:
@@ -249,12 +262,12 @@ def refresh():
     access_token = generate_access_token(user_id)
     
     # Token rotation: revoke the old refresh token and generate a new one
-    db.set_revoked_status(data['refresh_token'], True)
-    new_refresh_token = generate_refresh_token(user_id)
+    # db.set_revoked_status(data['refresh_token'], True)
+    # new_refresh_token = generate_refresh_token(user_id)
     
     return jsonify({
         'access_token': access_token,
-        'refresh_token': new_refresh_token
+        'refresh_token': data['refresh_token']
     }), 200
 
 @app.route('/api/auth/logout', methods=['POST'])
@@ -287,8 +300,14 @@ def get_profile(current_user):
         'auth_provider': current_user[4]
     }), 200
 
-@app.route('/api/exam/generate', methods=['POST'])
+@app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
 def generate_exam():
+    # Handle preflight CORS requests
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'success'})
+        # (Add your CORS headers here as needed)
+        return response
+
     max_questions = 10
 
     if 'files' not in request.files:
@@ -297,12 +316,11 @@ def generate_exam():
     files = request.files.getlist('files')
     title = request.form.get('title')
     description = request.form.get('description')
-    num_questions = request.form.get('num_questions')  # Correct field name
+    num_questions = request.form.get('num_questions')
 
     if not title or not description:
         return jsonify({'message': 'Title and description are required!'}), 400
 
-    # Ensure num_questions is an integer
     try:
         num_questions = int(num_questions)
     except (TypeError, ValueError):
@@ -314,31 +332,42 @@ def generate_exam():
         return jsonify({'message': 'Cannot generate fewer than 1 question.'}), 400
 
     try:
-        # Read PDF file data before passing
+        # Read all PDF file data
         pdf_data_list = [file.stream.read() for file in files]
-
-        # Process the PDF files and generate the exam
-        exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, num_questions))
-
-        return jsonify({
-            "title": title,
-            "description": description,
-            "questions": [
-                {
-                    "question": q,
-                    "answers": exam.get_all_answers(q)  # Include all answers with confidence
-                }
-                for q in exam.get_question()
-            ]
-        }), 200
-
     except Exception as e:
-        print(f"Error generating exam: {e}")
-        return jsonify({'message': 'An error occurred while generating the exam'}), 500
+        return jsonify({'message': f'Error reading files: {str(e)}'}), 500
 
-@app.route('/api/exam/generate/save', methods=['POST'])
+    # Enqueue the exam generation task using Celery
+    task = generate_exam_task.delay(pdf_data_list, num_questions, title, description)
+    return jsonify({'task_id': task.id}), 202
+
+
+@app.route('/api/task/<task_id>', methods=['GET'])
+def get_task_status(task_id):
+    from backend.task import celery  # Import the Celery instance
+    task = celery.AsyncResult(task_id)
+    if task.state == 'PENDING':
+        response = {'state': task.state, 'result': 'Pending...'}
+    elif task.state != 'FAILURE':
+        response = {'state': task.state, 'result': task.result}
+    else:
+        try:
+            json.dumps(task.result)
+            status = task.result
+        except TypeError:
+            status = str(task.result)
+        response = {'state': task.state, 'result': status}
+    return jsonify(response)
+
+
+@app.route('/api/exam/generate/save', methods=['POST', 'OPTIONS'])
 @token_required
 def generate_and_save_exam(current_user):
+    # Handle preflight request for CORS
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'success'})
+        return response
+        
     max_questions = 10
 
     if 'files' not in request.files:
@@ -371,30 +400,24 @@ def generate_and_save_exam(current_user):
         return jsonify({'message': 'Privacy must be 0 (private) or 1 (public).'}), 400
 
     try:
-        # Read file contents
+        # Read all PDF file data
         pdf_data_list = [file.stream.read() for file in files]
-
-        # Process the PDF files and generate the exam
-        exam = asyncio.run(eg.generate_exam_from_pdfs(pdf_data_list, num_questions))  # Adjust num_questions as needed
     except Exception as e:
-        print(f"Error generating exam: {e}")
-        return jsonify({'message': 'An error occurred while generating the exam'}), 500
+        return jsonify({'message': f'Error reading files: {str(e)}'}), 500
 
-    # Save the exam to the database
-    exam_id = db.add_exam(
-        username=current_user[1],  # Assuming current_user tuple: (id, username, email, ...)
-        name=title,
-        color=color,
-        description=description,
-        public=privacy
+    # Enqueue the exam generation and save task using Celery
+    task = generate_and_save_exam_task.delay(
+        pdf_data_list, 
+        num_questions, 
+        title, 
+        description, 
+        color, 
+        privacy, 
+        current_user[1]  # username
     )
+    
+    return jsonify({'task_id': task.id}), 202
 
-    # Insert questions and answers into the database
-    for index, question_text in enumerate(exam.get_question(), start=1):
-        answers = exam.get_all_answers(question_text)
-        db.insert_question(index, exam_id, question_text, set(answers.items()))
-
-    return jsonify({'exam_id': exam_id}), 201
 
 @app.route('/api/exam/generate/save-after', methods=['POST'])
 @token_required
@@ -428,9 +451,11 @@ def save_exam_after_generate(current_user):
         answers = question_data["answers"]  # Dictionary of answer -> confidence
 
         # Insert question (this will also insert answers internally)
-        db.insert_question(index, exam_id, question_text, set(answers.items()))
+        if answers is not None:
+            db.insert_question(index, exam_id, question_text, set(answers.items()))
 
     return jsonify({'exam_id': exam_id}), 201
+
 
 @app.route('/api/exam/<int:exam_id>', methods=['GET'])
 def get_exam_endpoint(exam_id):
@@ -490,6 +515,7 @@ def get_exam_endpoint(exam_id):
         print(str(e))
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
 
+
 @app.route("/api/browse", methods=["GET"])
 def get_exams_endpoint():
     # Retrieve query parameters with default values
@@ -526,7 +552,8 @@ def get_exams_endpoint():
             "color": exam[4],
             "description": exam[5],
             "public": exam[6],
-            "num_fav": exam[7]
+            "num_fav": exam[7],
+            "liked": False
             }
             for exam in exams
         ]
@@ -537,11 +564,13 @@ def get_exams_endpoint():
         print(str(e))
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
     
+
 @app.route("/api/browse/personal", methods=["GET"])
 @token_required
 def get_exams_personal(current_user):
     title = request.args.get("title", "")
-    filter = request.args.get("filter", "mine")
+    filter = request.args.get("filter", "N/A")
+    sorting = request.args.get("sorting", "recent")
     
     try:
         limit = int(request.args.get("limit", 10))
@@ -553,15 +582,15 @@ def get_exams_personal(current_user):
     except ValueError:
         page = 1
 
-    if filter == "mine":
-        cache_key = f"exams:{current_user[0]}:{filter}:{title}:{limit}:{page}"
+    if filter != "favourites":
+        cache_key = f"exams:{current_user[0]}:{sorting}:{filter}:{title}:{limit}:{page}"
         cached_data = redis_client.get(cache_key)
         if cached_data:
             exams = json.loads(cached_data)
             return jsonify(exams), 200
 
     try:
-        exams = db.get_exams(current_user[0], "recent", filter, title, limit, page)
+        exams = db.get_exams(current_user[0], sorting, filter, title, limit, page)
 
         results = [
             {
@@ -572,18 +601,20 @@ def get_exams_personal(current_user):
             "color": exam[4],
             "description": exam[5],
             "public": exam[6],
-            "num_fav": exam[7]
+            "num_fav": exam[7],
+            "liked": exam[8]
             }
             for exam in exams
         ]
 
-        if filter == "mine":
-            redis_client.setex(cache_key, 60, json.dumps(results))
+        if filter != "favourites":
+            redis_client.setex(cache_key, 30, json.dumps(results))
         return jsonify(results), 200
     except Exception as e:
         print(str(e))
         return jsonify({'message': f'Error retrieving exam: {str(e)}'}), 500
     
+
 @app.route("/api/favourite", methods=["POST"])
 @token_required
 def fav(current_user):
@@ -608,24 +639,36 @@ def fav(current_user):
     except Exception as e:
         return jsonify({"error": str(e)}), 400
     
-@app.route("/api/favourite/check", methods=["POST"])
-@token_required
-def check_favourite(current_user):
-    data = request.get_json()
-    exam_id = data.get("exam_id")
-    
-    if exam_id is None:
-        return jsonify({"error": "Missing exam_id in request body"}), 400
-
-    user_id = current_user[0]
-    
-    try:
-        exists = db.is_favourite(user_id, exam_id)
-        return jsonify({"is_favourite": exists}), 200
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
+    
+    # Ensure CORS is properly enabled on the deployed app
+    @app.after_request
+    def after_request(response):
+        origin = request.headers.get('Origin')
+        allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
+        
+        if origin in allowed_origins:
+            # Don't add the header if it's already there
+            if 'Access-Control-Allow-Origin' not in response.headers:
+                response.headers.add('Access-Control-Allow-Origin', origin)
+            if 'Access-Control-Allow-Headers' not in response.headers:
+                response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
+            if 'Access-Control-Allow-Methods' not in response.headers:
+                response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+            if 'Access-Control-Allow-Credentials' not in response.headers:
+                response.headers.add('Access-Control-Allow-Credentials', 'true')
+            # Handle multipart form data properly
+            if request.method == 'OPTIONS':
+                if 'Access-Control-Max-Age' not in response.headers:
+                    response.headers.add('Access-Control-Max-Age', '3600')
+                    
+        # Handle 401 responses specially to ensure CORS headers are included
+        if response.status_code == 401 and origin in allowed_origins:
+            if 'Access-Control-Allow-Origin' not in response.headers:
+                response.headers.add('Access-Control-Allow-Origin', origin)
+        
+        return response
+    
+    app.run(host='0.0.0.0', port=5000, debug=True) 

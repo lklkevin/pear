@@ -1,63 +1,68 @@
 import { useState, useEffect } from "react";
-import { useSession, getSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import BrowseLayout from "../layout/browseLayout";
 import Tabs from "../ui/tabs";
 import SearchBar from "../ui/searchBar";
 import ExamGrid from "./examGrid";
-import InfiniteScroll from "react-infinite-scroll-component";
 import { useErrorStore } from "@/store/store";
+import { DM_Mono } from "next/font/google";
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: "500",
+});
 
 export default function BrowsePage() {
-  const { data: session } = useSession();
-  // Show "My Exams" and "Favorites" only if logged in.
+  const { data: session, status } = useSession();
+
+  // Only allow "Popular" and "Explore" tabs for unauthenticated users.
   const availableTabs = session
     ? ["Popular", "Explore", "My Exams", "Favorites"]
     : ["Popular", "Explore"];
 
-  // States for active tab, search query, fetched results, pagination, and loading.
+  // States for active tab, search query, current search term (for fetching), fetched results, pagination, and loading.
   const [activeTab, setActiveTab] = useState(availableTabs[0]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [results, setResults] = useState<any[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const limit = 16; // Number of items per page
 
-  const limit = 10; // Number of items per page
+  const fetchExams = async () => {
+    if (status === "loading") return;
 
-  // Fetch exams based on active tab, current page, and search query.
-  // Optionally, an override for the search term can be provided.
-  const fetchExams = async (
-    reset: boolean = false,
-    overrideSearch?: string
-  ) => {
-    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    setIsLoading(true);
+
+    const baseUrl = process.env.NEXT_PUBLIC_OTHER_BACKEND_URL;
     let endpoint = "";
     const params = new URLSearchParams();
     params.append("limit", limit.toString());
-    // Determine which page to fetch
-    const pageToFetch = reset ? 1 : page;
-    params.append("page", pageToFetch.toString());
-    // Use overrideSearch if provided; otherwise, use the current searchQuery.
-    const queryTitle =
-      overrideSearch !== undefined ? overrideSearch : searchQuery;
-    params.append("title", queryTitle);
+    params.append("page", page.toString());
+    params.append("title", searchTerm);
 
-    if (activeTab === "Popular") {
-      endpoint = `${baseUrl}/api/browse`;
-      params.append("sorting", "popular");
-    } else if (activeTab === "Explore") {
-      endpoint = `${baseUrl}/api/browse`;
-      params.append("sorting", "recent");
-    } else if (activeTab === "My Exams") {
+    if (session) {
       endpoint = `${baseUrl}/api/browse/personal`;
-      params.append("filter", "mine");
-    } else if (activeTab === "Favorites") {
-      endpoint = `${baseUrl}/api/browse/personal`;
-      params.append("filter", "favourites");
+      if (activeTab === "Popular") {
+        params.append("sorting", "popular");
+      } else if (activeTab === "Explore") {
+        params.append("sorting", "recent");
+      } else if (activeTab === "My Exams") {
+        params.append("filter", "mine");
+      } else if (activeTab === "Favorites") {
+        params.append("filter", "favourites");
+      }
+    } else {
+      endpoint = `${baseUrl}/api/browse`;
+      if (activeTab === "Popular") {
+        params.append("sorting", "popular");
+      } else if (activeTab === "Explore") {
+        params.append("sorting", "recent");
+      }
     }
 
     const url = `${endpoint}?${params.toString()}`;
-
-    // Prepare fetch options and attach bearer token if calling the personal endpoint.
     const fetchOptions: RequestInit = {
       method: "GET",
       headers: {
@@ -65,47 +70,47 @@ export default function BrowsePage() {
       },
     };
 
-    // Only add Authorization header if we're calling the personal endpoints.
-    if (activeTab === "My Exams" || activeTab === "Favorites") {
-      const currSession = await getSession();
+    if (session) {
       fetchOptions.headers = {
         ...fetchOptions.headers,
-        Authorization: `Bearer ${currSession?.accessToken}`,
+        Authorization: `Bearer ${session.accessToken}`,
       };
     }
 
     try {
       const res = await fetch(url, fetchOptions);
-      const data = await res.json();
-      if (reset) {
-        setResults(data);
-        setPage(2);
-      } else {
-        setResults((prev) => [...prev, ...data]);
-        setPage((prev) => prev + 1);
+      if (res.status === 401) {
+        throw new Error("Unauthorized");
       }
-      // If fewer items than the limit are returned, there is no more data.
+      const data = await res.json();
+      setResults(data);
+      // If we received a full page of items, assume there could be more.
       setHasMore(data.length === limit);
     } catch (error) {
       useErrorStore.getState().setError(error as string);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  // When activeTab changes, clear the search query immediately and fetch with an empty title.
+  // Reset search and pagination when the active tab changes.
   useEffect(() => {
-    setSearchQuery(""); // Clear search bar immediately.
+    if (status === "loading") return;
+    setSearchQuery("");
+    setSearchTerm("");
     setPage(1);
-    setResults([]);
-    setHasMore(true);
-    fetchExams(true, "");
-  }, [activeTab]);
+  }, [activeTab, status]);
 
-  // Trigger search when the search icon is clicked or the user presses Enter.
+  // Fetch exams when the page, activeTab, searchTerm, or status changes.
+  useEffect(() => {
+    if (status === "loading") return;
+    fetchExams();
+  }, [page, activeTab, status, searchTerm]);
+
+  // When the user triggers a search, update the search term and reset to page 1.
   const handleSearch = () => {
     setPage(1);
-    setResults([]);
-    setHasMore(true);
-    fetchExams(true);
+    setSearchTerm(searchQuery);
   };
 
   const tabTitles: { [key: string]: string } = {
@@ -115,13 +120,24 @@ export default function BrowsePage() {
     Explore: "Explore Exams",
   };
 
+  if (status === "loading") {
+    return (
+      <BrowseLayout>
+        <div className="flex flex-col items-center justify-center h-full py-20">
+          <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin"></div>
+          <p className="text-lg font-medium text-white mt-4">Loading...</p>
+        </div>
+      </BrowseLayout>
+    );
+  }
+
   return (
     <BrowseLayout>
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 sm:gap-8">
         <h1 className="text-3xl sm:text-5xl font-bold tracking-tight min-w-[200px] md:min-w-[330px]">
           {tabTitles[activeTab] || "Popular"}
         </h1>
-        <div className="mt-1 w-full md:w-auto md:flex-1 md:max-w-[550px] min-w-[250px] md:mb-0 mb-0">
+        <div className="mt-1 w-full md:w-auto md:flex-1 md:max-w-[550px] min-w-[250px]">
           <SearchBar
             placeholder="Search"
             value={searchQuery}
@@ -133,30 +149,55 @@ export default function BrowsePage() {
       <div className="mt-6">
         <Tabs
           activeTab={activeTab}
-          setActiveTab={setActiveTab}
+          setActiveTab={(tab) => {
+            setPage(1); // Reset page immediately when tab changes
+            setActiveTab(tab);
+          }}
           className="text-md gap-6"
           tabs={availableTabs}
         />
       </div>
-      {results.length === 0 && !hasMore ? (
-        <div className="text-center text-zinc-400 text-lg mt-10">
-          No exams found. Try a different search.
+      <div className="flex-1 flex flex-col justify-between h-full">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-full py-20">
+            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin"></div>
+            <p className="text-lg font-medium text-white mt-4">Loading...</p>
+          </div>
+        ) : results.length === 0 ? (
+          <div className="text-center text-zinc-400 text-lg mt-10">
+            No exams found. Try a different search.
+          </div>
+        ) : (
+          <>
+            <ExamGrid exams={results} />
+          </>
+        )}
+        <div className="justify-center flex items-center gap-3 w-full mt-4 sm:mt-8">
+          <button
+            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+            disabled={page === 1}
+            aria-label="Previous page"
+            className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
+          >
+            <span className="material-icons text-zinc-400">chevron_left</span>
+          </button>
+
+          <div
+            className={`sm:text-lg ${dmMono.className} bg-zinc-900 w-16 h-9 px-2 border border-zinc-800 rounded text-center text-white flex items-center justify-center`}
+          >
+            {page}
+          </div>
+
+          <button
+            onClick={() => setPage((prev) => (hasMore ? prev + 1 : prev))}
+            disabled={!hasMore}
+            aria-label="Next page"
+            className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
+          >
+            <span className="material-icons text-zinc-400">chevron_right</span>
+          </button>
         </div>
-      ) : (
-        <InfiniteScroll
-          dataLength={results.length}
-          next={() => fetchExams()}
-          hasMore={hasMore}
-          loader={
-            <div className="flex flex-col items-center gap-2">
-              <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
-              <p className="text-lg font-medium text-white">Loading...</p>
-            </div>
-          }
-        >
-          <ExamGrid exams={results} />
-        </InfiniteScroll>
-      )}
+      </div>
     </BrowseLayout>
   );
 }
