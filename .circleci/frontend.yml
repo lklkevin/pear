@@ -45,12 +45,17 @@ jobs:
           name: Sync Frontend to Fork (excluding __tests__ directories)
           command: |
             # Remove all existing files in fork (except .git)
-            find ~/frontend-fork -mindepth 1 -not -path "~/frontend-fork/.git*" -delete
+            cd ~/frontend-fork
+            find . -mindepth 1 -not -path "./.git/*" -not -name ".git" -delete
             
             # Copy all frontend files except __tests__ directories
             cd ~/project/app/frontend
-            find . -type d -not -path "*/node_modules/*" -not -path "*/__tests__*" -not -path "*/\.*" | xargs -I {} mkdir -p ~/frontend-fork/{}
-            find . -type f -not -path "*/node_modules/*" -not -path "*/__tests__*" -not -path "*/\.*" -exec cp {} ~/frontend-fork/{} \;
+            find . -type d -not -path "*/node_modules/*" -not -path "*/__tests__*" -not -path "*/\.*" | while read dir; do
+              mkdir -p ~/frontend-fork/"$dir"
+            done
+            find . -type f -not -path "*/node_modules/*" -not -path "*/__tests__*" -not -path "*/\.*" | while read file; do
+              cp "$file" ~/frontend-fork/"$file"
+            done
       - run:
           name: Commit and Push Changes to Fork
           command: |
