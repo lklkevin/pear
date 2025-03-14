@@ -57,7 +57,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
 
   return (
     <nav
-      className={`text-zinc-400 text-sm md:text-base flex flex-row w-screen h-[72px] px-4 sm:px-8 justify-between py-3 ${
+      className={`relative text-zinc-400 text-sm md:text-base flex flex-row w-screen h-[72px] px-5 sm:px-8 md:px-10 justify-between py-3 ${
         landing
           ? "bg-transparent"
           : `bg-zinc-950 ${mobileMenuOpen ? "" : "border-b border-zinc-800"}`
@@ -87,7 +87,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
         </Link>
       </div>
 
-      <div className="text-zinc-200 flex items-center h-full space-x-4 md:space-x-6 relative">
+      <div className="text-zinc-200 flex items-center h-full space-x-4 md:space-x-6">
         {/* Preserve the callback URL for login */}
         {session ? (
           // Show this when user is logged in
@@ -130,7 +130,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
         )}
 
         {/* Mobile Menu Button (Always Visible on Small Screens) */}
-        <div className="sm:hidden relative">
+        <div className="sm:hidden">
           <button
             className="block sm:hidden focus:outline-none"
             onClick={(e) => {
