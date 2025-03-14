@@ -81,10 +81,17 @@ jobs:
             docker push registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:$TAG
             docker push registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:latest
 workflows:
-  build-and-test:
+  tests:
     jobs:
       - test-node
+      - test-python
+
+  deploy:
+    jobs:
       - test-python
       - build-and-push-docker:
           requires:
             - test-python
+          filters:
+            branches:
+              only: main
