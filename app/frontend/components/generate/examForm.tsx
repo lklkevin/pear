@@ -38,8 +38,8 @@ export default function ExamForm() {
     taskId: string,
     onSuccess: (taskResult: any, taskId: string) => void
   ) => {
-    const pollInterval = 15000; // Poll every 15 seconds
-    const maxPollTime = 10 * 60 * 1000; // 10 minutes max
+    const pollInterval = 10000; // Poll every 10 seconds
+    const maxPollTime = 8 * 60 * 1000; // 8 minutes max
     const startTime = Date.now();
 
     const poll = async () => {
@@ -240,7 +240,7 @@ export default function ExamForm() {
               value={count}
               onChange={setCount}
               min={1}
-              max={5}
+              max={10}
               step={1}
             />
           </div>
