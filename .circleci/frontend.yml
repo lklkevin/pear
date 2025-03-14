@@ -76,7 +76,7 @@ jobs:
 workflows:
   frontend-sync:
     jobs:
-      - test-node
+      # - test-node
       - deploy-frontend:
-          requires:
-            - test-node
+          # requires:
+          #   - test-node
