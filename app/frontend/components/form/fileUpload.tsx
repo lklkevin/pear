@@ -106,7 +106,7 @@ export default function FileUpload({
 
   const hasFiles = internalFiles.length > 0;
   const isMaxFilesReached = internalFiles.length >= maxFiles;
-  const dropzoneClass = `h-full border border-zinc-800 rounded-lg p-6 text-center bg-zinc-900 transition-colors duration-300`;
+  const dropzoneClass = `h-full border border-zinc-800 rounded-lg p-4 sm:p-6 text-center bg-zinc-900 transition-colors duration-300`;
 
   return (
     <div
@@ -116,7 +116,7 @@ export default function FileUpload({
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <div className="h-full flex flex-col gap-6">
+      <div className="h-full flex flex-col gap-4 sm:gap-6">
         {hasFiles && (
           <div className="flex flex-wrap gap-3">
             {internalFiles.map((file, index) => (
