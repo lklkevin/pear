@@ -20,7 +20,7 @@ jobs:
           command: cd backend && poetry run pytest --junitxml=../junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
       - store_test_results:
           path: junit.xml
-  build-and-push-docker:
+  deploy-backend:
     docker:
       - image: cimg/base:stable
     working_directory: ~/project
@@ -44,6 +44,6 @@ workflows:
   deploy:
     jobs:
       - test-python
-      - build-and-push-docker:
+      - deploy-backend:
           requires:
             - test-python
