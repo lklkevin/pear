@@ -2,7 +2,7 @@ import ExamLayout from "../layout/examLayout";
 import ExamContent from "./examContent";
 import { parseExam } from "./nonUser";
 import { Exam } from "./exam";
-import { useErrorStore, useLoadingStore } from "@/store/store";
+import { useErrorStore, useLoadingStore } from "../../store/store";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getSession } from "next-auth/react";
