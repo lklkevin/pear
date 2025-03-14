@@ -80,6 +80,3 @@ workflows:
       - deploy-frontend:
           requires:
             - test-node
-          filters:
-            branches:
-              only: main
