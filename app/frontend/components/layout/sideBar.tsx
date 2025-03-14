@@ -22,7 +22,7 @@ export default function Sidebar({
             exit={{ x: 0, opacity: 0 }}
             transition={{ duration: 0.15, ease: "easeInOut" }}
             onClick={() => setIsCollapsed(false)}
-            className="fixed top-[72px] sm:top-20 left-0 sm:left-4 bg-zinc-900 rounded-full mt-4 ml-4 flex items-center justify-center w-12 h-12 flex-shrink-0 sm:bg-opacity-75 bg-opacity-50 sm:backdrop-blur-sm border border-zinc-800"
+            className="fixed top-[72px] sm:top-20 left-0 sm:left-4 bg-zinc-900 rounded-full mt-4 ml-4 flex items-center justify-center w-12 h-12 flex-shrink-0 sm:bg-opacity-75 bg-opacity-50 sm:backdrop-blur-sm border border-zinc-800 hover:bg-zinc-800/60 transition-colors"
           >
             <button
               onClick={() => setIsCollapsed(false)}
@@ -46,7 +46,7 @@ export default function Sidebar({
             <div className="flex">
               <button
                 onClick={() => setIsCollapsed(true)}
-                className="text-white focus:outline-none bg-zinc-900 rounded-full ml-8 my-6 flex items-center justify-center w-12 h-12 flex-shrink-0 bg-opacity-75 xl:bg-opacity-100 border border-zinc-800"
+                className="text-white focus:outline-none bg-zinc-900 rounded-full ml-8 my-6 flex items-center justify-center w-12 h-12 flex-shrink-0 bg-opacity-75 xl:bg-opacity-100 border border-zinc-800 hover:bg-zinc-800/60 transition-colors"
               >
                 <span className="material-icons mt-0.5 -ml-0.5 text-2xl">
                   keyboard_double_arrow_left

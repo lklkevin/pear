@@ -53,7 +53,7 @@ export default function ExamContent({ exam }: { exam: Exam }) {
       </p>
 
       {/* Buttons: Reveal/Hide All Answers & Download */}
-      <div className="flex items-center justify-between mb-12">
+      <div className="flex items-center justify-between mb-8 sm:mb-12">
         <button
           className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
           onClick={() => toggleAllAnswers(!allRevealed)}

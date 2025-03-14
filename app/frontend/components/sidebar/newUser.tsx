@@ -11,7 +11,7 @@ import {
   colors,
 } from "@/components/form/stylingOptions";
 import { useErrorStore, useLoadingStore } from "@/store/store";
-import { getSession } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
 interface RawExamQuestion {
@@ -30,6 +30,7 @@ export interface RawExam {
 export default function Sidebar() {
   // State for managing visibility setting (Private/Public)
   const [visibility, setVisibility] = useState<Visibility>("private");
+  const { data: session, status } = useSession();
 
   // State for managing selected styling color
   const [selectedColor, setSelectedColor] = useState<Color>("teal");
@@ -116,27 +117,36 @@ export default function Sidebar() {
   // Array of available color options with their corresponding CSS classes
   return (
     <div className="pl-1 flex flex-col">
-      {/* Information Text */}
-      <p className="text-zinc-300 my-4">Enjoy your new exam!</p>
-
       {/* Login/Signup Call to Action */}
-      <p className="text-zinc-300">
-        If you want to save it for later or share it with the world, first{" "}
-        <Link
-          href={`/signup?callbackUrl=${callbackUrl}`}
-          className="text-emerald-500 hover:text-emerald-400"
-        >
-          sign up
-        </Link>{" "}
-        or{" "}
-        <Link
-          href={`/login?callbackUrl=${callbackUrl}`}
-          className="text-emerald-500 hover:text-emerald-400"
-        >
-          login
-        </Link>
-        .
-      </p>
+      {session && status === "authenticated" ? (
+        <>
+          <p className="text-zinc-300 my-4">Changed your mind and want to save your exam?</p>
+          <p className="text-zinc-300">
+            Choose your visibility and styling options below and press save.
+          </p>
+        </>
+      ) : (
+        <>
+          <p className="text-zinc-300 my-4">Enjoy your new exam!</p>
+          <p className="text-zinc-300">
+            If you want to save it for later or share it with the world, first{" "}
+            <Link
+              href={`/signup?callbackUrl=${callbackUrl}`}
+              className="text-emerald-500 hover:text-emerald-400"
+            >
+              sign up
+            </Link>{" "}
+            or{" "}
+            <Link
+              href={`/login?callbackUrl=${callbackUrl}`}
+              className="text-emerald-500 hover:text-emerald-400"
+            >
+              login
+            </Link>
+            .
+          </p>
+        </>
+      )}
 
       {/* Visibility Selection (Private/Public) */}
       <div>
