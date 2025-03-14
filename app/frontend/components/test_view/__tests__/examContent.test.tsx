@@ -9,48 +9,72 @@ jest.mock("next/font/google", () => ({
 }));
 
 // Mock AnswerSection to isolate ExamContent testing
-jest.mock("../answers", () => ({ answer, isRevealed, onToggleReveal }: { answer: string; isRevealed: boolean; onToggleReveal: () => void }) => (
-  <div data-testid="answer-section">
-    {isRevealed ? <p>{answer}</p> : <p>Answer Hidden</p>}
-    <button onClick={onToggleReveal}>{isRevealed ? "Hide Answer" : "Reveal Answer"}</button>
-  </div>
-));
+jest.mock(
+  "../answers",
+  () =>
+    ({
+      answer,
+      isRevealed,
+      onToggleReveal,
+    }: {
+      answer: string;
+      isRevealed: boolean;
+      onToggleReveal: () => void;
+    }) =>
+      (
+        <div data-testid="answer-section">
+          {isRevealed ? <p>{answer}</p> : <p>Answer Hidden</p>}
+          <button onClick={onToggleReveal}>
+            {isRevealed ? "Hide Answer" : "Reveal Answer"}
+          </button>
+        </div>
+      )
+);
 
+// Mock handleDownload to avoid HTMLCanvasElement issues
+jest.mock("../../../utils/exportPDF", () => ({
+  handleDownload: jest.fn(),
+}));
+
+// Mock Exam Data with "privacy" instead of "isPublic"
 const mockExam = {
-    id: "sample-exam-1", // added id property
-    title: "Sample Exam",
-    description: "This is a sample exam description.",
-    isPublic: true,
-    questions: [
-      {
-        question: "What is 2 + 2?",
-        mainAnswer: "4",
-        mainAnswerConfidence: 90,
-        alternativeAnswers: [],
-      },
-      {
-        question: "What is the capital of France?",
-        mainAnswer: "Paris",
-        mainAnswerConfidence: 85,
-        alternativeAnswers: [],
-      },
-    ],
-  };
-  
+  id: "sample-exam-1",
+  title: "Sample Exam",
+  description: "This is a sample exam description.",
+  privacy: "Public", // Fix: Use "privacy" instead of "isPublic"
+  questions: [
+    {
+      question: "What is 2 + 2?",
+      mainAnswer: "4",
+      mainAnswerConfidence: 90,
+      alternativeAnswers: [],
+    },
+    {
+      question: "What is the capital of France?",
+      mainAnswer: "Paris",
+      mainAnswerConfidence: 85,
+      alternativeAnswers: [],
+    },
+  ],
+};
 
 describe("ExamContent component", () => {
   test("renders the exam title and description", () => {
     render(<ExamContent exam={mockExam} />);
 
     // Ensure title and description are present
-    expect(screen.getByRole("heading", { name: /sample exam/i })).toBeInTheDocument();
-    expect(screen.getByText(/this is a sample exam description/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /sample exam/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/this is a sample exam description/i)
+    ).toBeInTheDocument();
   });
 
   test("displays the correct visibility badge", () => {
     render(<ExamContent exam={mockExam} />);
 
-    // Ensure visibility badge is correct (Public in this case)
+    // Ensure visibility badge shows "Public"
     expect(screen.getByText("Public")).toBeInTheDocument();
   });
 
@@ -58,15 +82,21 @@ describe("ExamContent component", () => {
     render(<ExamContent exam={mockExam} />);
 
     // Ensure buttons are rendered
-    expect(screen.getByRole("button", { name: /reveal all answers/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /download/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /reveal all answers/i })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /download/i })
+    ).toBeInTheDocument();
   });
 
   test("reveals all answers when clicking Reveal All", () => {
     render(<ExamContent exam={mockExam} />);
 
     // Click "Reveal All" button
-    const revealAllButton = screen.getByRole("button", { name: /reveal all answers/i });
+    const revealAllButton = screen.getByRole("button", {
+      name: /reveal all answers/i,
+    });
     fireEvent.click(revealAllButton);
 
     // Ensure all answer sections now display their answers
@@ -74,7 +104,9 @@ describe("ExamContent component", () => {
     expect(screen.getByText("Paris")).toBeInTheDocument();
 
     // Ensure the button text updates to "Hide All Answers"
-    expect(screen.getByRole("button", { name: /hide all answers/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /hide all answers/i })
+    ).toBeInTheDocument();
   });
 
   test("renders all questions", () => {

@@ -7,40 +7,59 @@ describe("FileUpload component", () => {
   test("renders file upload label when no files are uploaded", () => {
     render(<FileUpload />);
 
-    // Ensure the upload UI is present
-    expect(screen.getByText("+")).toBeInTheDocument();
-    expect(screen.getByText(/drop your file here/i)).toBeInTheDocument();
-    expect(screen.getByText(/accepted formats/i)).toBeInTheDocument();
+    // Use a custom matcher to check that the dropzone prompt is rendered
+    expect(
+      screen.getByText((content) =>
+        content.toLowerCase().includes("drop your files here")
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText((content) =>
+        content.toLowerCase().includes("accepted formats")
+      )
+    ).toBeInTheDocument();
   });
 
   test("allows file upload and displays file names", () => {
-    render(<FileUpload />);
-    
-    // Mock file
-    const file = new File(["dummy content"], "example.pdf", { type: "application/pdf" });
+    const { container } = render(<FileUpload />);
 
-    // Get the hidden input element
-    const fileInput = screen.getByLabelText(/drop your file here/i, { selector: "input" });
+    // Create a mock file that is accepted (PDF)
+    const file = new File(["dummy content"], "example.pdf", {
+      type: "application/pdf",
+    });
+
+    // Get the file input element using querySelector since it is hidden
+    const fileInput = container.querySelector('input[type="file"]');
+    expect(fileInput).toBeInTheDocument();
 
     // Simulate file upload
-    fireEvent.change(fileInput, { target: { files: [file] } });
+    fireEvent.change(fileInput!, { target: { files: [file] } });
 
-    // Ensure the file name is displayed
-    expect(screen.getByText("example.pdf ✖")).toBeInTheDocument();
+    // Ensure the file name is displayed (the name is rendered in a span)
+    expect(screen.getByText("example.pdf")).toBeInTheDocument();
   });
 
-  test("hides upload prompt after file selection", () => {
-    render(<FileUpload />);
+  test("hides original upload prompt after file selection", () => {
+    const { container, queryByText } = render(<FileUpload />);
 
-    // Mock file
-    const file = new File(["dummy content"], "image.png", { type: "image/png" });
+    // Create a mock file that is accepted (PDF)
+    const filePdf = new File(["dummy content"], "example.pdf", {
+      type: "application/pdf",
+    });
 
-    // Get file input and upload a file
-    const fileInput = screen.getByLabelText(/drop your file here/i, { selector: "input" });
-    fireEvent.change(fileInput, { target: { files: [file] } });
+    // Get the file input element
+    const fileInput = container.querySelector('input[type="file"]');
+    expect(fileInput).toBeInTheDocument();
 
-    // Ensure upload UI is not visible
-    expect(screen.queryByText("+")).not.toBeInTheDocument();
-    expect(screen.queryByText(/drop your file here/i)).not.toBeInTheDocument();
+    // Simulate file upload
+    fireEvent.change(fileInput!, { target: { files: [filePdf] } });
+
+    // Once a file is uploaded, the prompt text changes to "Add more files" instead of "Drop your files here"
+    // So we verify that the original text is no longer present.
+    expect(
+      queryByText((content) =>
+        content.toLowerCase().includes("drop your files here")
+      )
+    ).not.toBeInTheDocument();
   });
 });

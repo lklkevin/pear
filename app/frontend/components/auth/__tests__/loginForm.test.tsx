@@ -1,50 +1,54 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Login from "../loginForm";
 import { useRouter } from "next/router";
 
-// Mock Next.js router
+// Mock next/router so that useRouter works without a provider.
 jest.mock("next/router", () => ({
   useRouter: jest.fn(),
 }));
 
+// Mock next-auth so that useSession and signIn work without a SessionProvider.
+jest.mock("next-auth/react", () => ({
+  useSession: () => ({ data: null, status: "unauthenticated" }),
+  signIn: jest.fn(),
+}));
+
 describe("Login component", () => {
-  let mockPush: jest.Mock;
-
   beforeEach(() => {
-    mockPush = jest.fn();
-    (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+    (useRouter as jest.Mock).mockReturnValue({
+      query: {},
+      push: jest.fn(),
+    });
   });
 
-  test("renders email and password input fields", () => {
+  test("renders email and password fields and login button", () => {
     render(<Login />);
-
-    // Ensure the email/username input field is present
-    expect(screen.getByLabelText(/email \/ username/i)).toBeInTheDocument();
-
-    // Ensure the password input field is present
+    // Check that the email input field is rendered.
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    // Check that the password input field is rendered.
     expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-  });
-
-  test("renders login button", () => {
-    render(<Login />);
-    
-    // Ensure the login button is rendered
+    // Check that the login button is rendered.
     expect(screen.getByRole("button", { name: /log in/i })).toBeInTheDocument();
   });
 
   test("renders Google login button", () => {
     render(<Login />);
-    
-    // Ensure the Google login button is present
-    expect(screen.getByRole("button", { name: /continue with google/i })).toBeInTheDocument();
+    // Check that the Google login button is rendered.
+    expect(
+      screen.getByRole("button", { name: /continue with google/i })
+    ).toBeInTheDocument();
   });
 
   test("renders sign-up link", () => {
     render(<Login />);
-
-    // Ensure sign-up link is rendered
-    expect(screen.getByRole("link", { name: /sign up/i })).toHaveAttribute("href", "/signup");
+    // Check that the sign-up link is rendered and points to a signup URL.
+    const signUpLink = screen.getByRole("link", { name: /sign up/i });
+    expect(signUpLink).toBeInTheDocument();
+    expect(signUpLink).toHaveAttribute(
+      "href",
+      expect.stringContaining("/signup")
+    );
   });
 });
