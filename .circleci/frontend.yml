@@ -30,8 +30,8 @@ jobs:
       - run:
           name: Setup Git User
           command: |
-            git config --global user.email "ci-build@circleci.com"
-            git config --global user.name "CircleCI Build"
+            git config --global user.email "${GITHUB_EMAIL}"
+            git config --global user.name "${GITHUB_USERNAME}"
       - run:
           name: Add GitHub to known_hosts
           command: |
