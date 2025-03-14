@@ -175,3 +175,14 @@ class TestPostgresDB(BaseTestDAO):
 
         user = db.get_user(user_id=user_id)
         assert user[-1] == time
+
+    def test_case_insensitive_search(self, db: PostgresDB):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        exam_id = db.add_exam("testuser", "abc", "#FFFFFF", "test", True)
+
+        matches = db.get_exams(user_id, "N/A", "N/A", "ABc", 100, 1)
+        assert len(matches) == 1
+        assert matches[0][0] == exam_id

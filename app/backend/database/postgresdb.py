@@ -563,7 +563,7 @@ class PostgresDB(DataAccessObject):
 
             # Add title filter if provided.
             if title:
-                base_query += ' AND e.name LIKE %s'
+                base_query += ' AND e.name ILIKE %s'
                 query_params.append(f"%{title}%")
 
             # Add sorting.
