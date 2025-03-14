@@ -63,22 +63,26 @@ jobs:
   build-and-push-docker:
     docker:
       - image: cimg/base:stable
+        auth:
+          username: $DIGITALOCEAN_EMAIL
+          password: $DIGITALOCEAN_API_TOKEN
     working_directory: ~/project
     steps:
       - checkout
-      - setup_remote_docker
-      - docker/check
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
-          name: Docker login to DigitalOcean
-          command: echo $DIGITALOCEAN_API_TOKEN | docker login registry.digitalocean.com --username $DIGITALOCEAN_EMAIL --password-stdin
-      - docker/build:
-          path: ~/project/app
-          dockerfile: Dockerfile
-          image: registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app
-          tag: ${CIRCLE_SHA1},latest
-      - docker/push:
-          image: registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app
-          tag: ${CIRCLE_SHA1},latest
+          name: Build Docker image
+          command: |
+            TAG=${CIRCLE_SHA1}
+            docker build -t registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:$TAG -t registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:latest ~/project/app
+      - run:
+          name: Push Docker image to DigitalOcean
+          command: |
+            TAG=${CIRCLE_SHA1}
+            echo $DIGITALOCEAN_API_TOKEN | docker login registry.digitalocean.com -u $DIGITALOCEAN_EMAIL --password-stdin
+            docker push registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:$TAG
+            docker push registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:latest
 workflows:
   build-and-test:
     jobs:
