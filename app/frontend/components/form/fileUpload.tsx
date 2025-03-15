@@ -182,7 +182,7 @@ export default function FileUpload({
           {hasFiles && (
             <motion.div
               layout
-              style={{ overflow: "hidden" }}
+              style={{ overflow: "hidden", zIndex: 1 }}
               className="flex flex-wrap gap-3 sm:gap-4 p-4 sm:p-6 bg-zinc-950/25 rounded-t-lg border-b border-zinc-800"
               initial="hidden"
               animate="visible"
@@ -225,7 +225,7 @@ export default function FileUpload({
         </AnimatePresence>
         <motion.div
           layout
-          style={{ overflow: "hidden" }}
+          style={{ overflow: "hidden", position: "relative", zIndex: 2 }}
           transition={{
             layout: {
               duration: 0.4,
