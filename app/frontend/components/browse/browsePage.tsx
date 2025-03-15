@@ -36,7 +36,7 @@ export default function BrowsePage() {
 
   // Function to build fetch URL and options
   const buildFetchParams = useCallback(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_OTHER_BACKEND_URL;
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     let endpoint = "";
     const params = new URLSearchParams();
     params.append("limit", limit.toString());

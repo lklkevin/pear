@@ -20,7 +20,7 @@ export default function Page({ id }: { id: string }) {
         const currSession = await getSession(); // Get session
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/exam/${id}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/${id}`,
           {
             method: "GET",
             headers: {

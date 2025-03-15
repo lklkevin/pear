@@ -77,7 +77,7 @@ export default function Sidebar() {
 
       const currSession = await getSession();
       const saveResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/exam/generate/save-after`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate/save-after`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -120,9 +120,9 @@ export default function Sidebar() {
       {/* Login/Signup Call to Action */}
       {session && status === "authenticated" ? (
         <>
-          <p className="text-zinc-300 my-4">Changed your mind and want to save your exam?</p>
+          <p className="text-zinc-300 my-4">Enjoy your new exam!</p>
           <p className="text-zinc-300">
-            Choose your visibility and styling options below and press save.
+            Want to save? Choose your options below and press save.
           </p>
         </>
       ) : (

@@ -40,7 +40,7 @@ export default function GenerateLayout({
         <div className="absolute left-0 h-full">
           <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
             <div className="px-8">
-              <h2 className="text-2xl sm:text-3xl font-semibold">
+              <h2 className="pl-1 text-2xl sm:text-3xl font-semibold">
                 Saving & Sharing
               </h2>
               <Generated />

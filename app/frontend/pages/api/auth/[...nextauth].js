@@ -10,7 +10,7 @@ export default NextAuth({
       async profile(profile) {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/auth/google`,
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -54,7 +54,7 @@ export default NextAuth({
       async authorize(credentials) {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/auth/login`,
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -125,7 +125,7 @@ export default NextAuth({
 async function refreshAccessToken(token) {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/auth/refresh`,
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
