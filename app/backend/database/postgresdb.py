@@ -15,7 +15,6 @@ from backend.database import (
 )
 from backend.exam import Exam
 
-# Set up logger
 logger = logging.getLogger("postgres_pool")
 
 class PostgresDB(DataAccessObject):
@@ -23,17 +22,10 @@ class PostgresDB(DataAccessObject):
     
     def __init__(self, 
                  connection_string=None,
-                 schema: str = "backend/database/postgres_schema.sql",
-                 log_level=logging.WARNING):
+                 schema: str = "backend/database/postgres_schema.sql"
+                ):
         """Initialize the PostgreSQL database connection.
         """
-        # Configure logger
-        logger.setLevel(log_level)
-        if not logger.handlers:
-            handler = logging.StreamHandler()
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            handler.setFormatter(formatter)
-            logger.addHandler(handler)
         
         logger.info("Initializing PostgreSQL connection pool")
         
@@ -62,6 +54,7 @@ class PostgresDB(DataAccessObject):
         # Initialize schema if needed
         self._init_schema(schema)
     
+    
     def _log_pool_stats(self):
         """Log current connection pool statistics, but only if there's a mismatch which could indicate a problem"""
         try:
@@ -81,6 +74,7 @@ class PostgresDB(DataAccessObject):
                          f"_keys={type(getattr(self.pool, '_keys', None))}, "
                          f"_pool={type(getattr(self.pool, '_pool', None))}")
     
+
     def _init_schema(self, schema_path: str):
         """Initialize the database schema if not already set up."""
         logger.info(f"Initializing database schema from {schema_path}")
@@ -100,6 +94,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def _get_conn(self, retries=3):
         """Retry connection in case of failure."""
         last_exception = None
@@ -204,6 +199,7 @@ class PostgresDB(DataAccessObject):
         
         raise DatabaseError(error_msg)
     
+
     def _recreate_pool(self):
         """Recreate the connection pool when all connections are invalid."""
         logger.warning("Recreating the database connection pool")
@@ -234,6 +230,7 @@ class PostgresDB(DataAccessObject):
             logger.critical(f"Failed to recreate connection pool: {str(e)}")
             raise DatabaseError(f"Failed to recreate connection pool: {str(e)}")
     
+
     def _release_conn(self, conn):
         """Release a connection back to the pool safely."""
         if conn and not conn.closed:
@@ -270,43 +267,7 @@ class PostgresDB(DataAccessObject):
         
         # Check for connection leaks after release
         self._log_pool_stats()
-    
-    def get_pool_stats(self):
-        """Return current connection pool statistics as a dictionary.
-        
-        This can be exposed via an admin API endpoint for monitoring.
-        """
-        try:
-            # These are private properties in psycopg2.pool.ThreadedConnectionPool
-            # but they're useful for monitoring
-            used = len(self.pool._used) if hasattr(self.pool, '_used') and hasattr(self.pool._used, '__len__') else 0
-            keys = len(self.pool._keys) if hasattr(self.pool, '_keys') and hasattr(self.pool._keys, '__len__') else 0
-            pool_size = len(self.pool._pool) if hasattr(self.pool, '_pool') and hasattr(self.pool._pool, '__len__') else 0
-            active_tracked = len(self._active_connections)
-            
-            stats = {
-                'used_connections': used,
-                'available_connections': pool_size,
-                'keyed_connections': keys,
-                'tracked_active_connections': active_tracked,
-                'connection_details': []
-            }
-            
-            # Add details about each tracked connection
-            for conn_id, details in self._active_connections.items():
-                acquired_at = details.get('acquired_at')
-                if acquired_at:
-                    duration = datetime.datetime.now() - acquired_at
-                    stats['connection_details'].append({
-                        'id': conn_id,
-                        'acquired_at': acquired_at.isoformat(),
-                        'held_for_seconds': duration.total_seconds()
-                    })
-            
-            return stats
-        except Exception as e:
-            logger.error(f"Error getting pool stats: {str(e)}")
-            return {'error': str(e)}
+
 
     def user_exists(self,
                   username: Optional[str] = None,
@@ -330,6 +291,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def add_user(self,
                 username: str,
                 email: str,
@@ -354,6 +316,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def get_user(self,
                 user_id: Optional[int] = None,
                 username: Optional[str] = None,
@@ -381,6 +344,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def create_refresh_token(self,
                            user_id: str,
                            token: str,
@@ -401,6 +365,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def get_refresh_token(self, token: str, revoked: Optional[bool] = None) -> Optional[tuple]:
         """Get refresh token information."""
         conn = None
@@ -430,6 +395,7 @@ class PostgresDB(DataAccessObject):
             if conn:
                 self._release_conn(conn)
 
+
     def set_revoked_status(self, token: str, revoked: bool) -> None:
         """Set the revoked status of a refresh token."""
         conn = self._get_conn()
@@ -446,6 +412,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def set_oauth_id(self, user_id: str, oauth_id: str) -> None:
         """Set the OAuth ID for a user."""
         conn = self._get_conn()
@@ -462,6 +429,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def set_last_login(self, username: str, time: datetime.datetime) -> None:
         """Set the last login time for a user."""
         conn = self._get_conn()
@@ -478,6 +446,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def get_exam(self, exam_id: int) -> Optional[tuple[int, str, str, str, str, str, bool, int, Exam]]:
         """Get exam information by ID."""
         conn = self._get_conn()
@@ -531,6 +500,7 @@ class PostgresDB(DataAccessObject):
             raise DatabaseError(f"Error getting exam: {str(e)}")
         finally:
             self._release_conn(conn)
+
 
     def get_exams(
         self,
@@ -613,8 +583,8 @@ class PostgresDB(DataAccessObject):
             raise DatabaseError(f"Error getting exams: {str(e)}")
         finally:
             self._release_conn(conn)
-
     
+
     def add_exam(self,
                username: str,
                name: str,
@@ -651,6 +621,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def insert_question(self,
                       question_number: int,
                       exam_id: int,
@@ -684,6 +655,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def insert_answer(self,
                     question_id: int,
                     answer: str,
@@ -706,6 +678,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def add_favourite(self, user_id: int, exam_id: int) -> None:
         """Add an exam to a user's favorites."""
         conn = self._get_conn()
@@ -735,6 +708,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def remove_favourite(self, user_id: int, exam_id: int) -> None:
         """Remove an exam from a user's favorites."""
         conn = self._get_conn()
@@ -764,6 +738,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def is_favourite(self, user_id: int, exam_id: int) -> bool:
         """Check if an exam is in a user's favorites."""
         conn = self._get_conn()

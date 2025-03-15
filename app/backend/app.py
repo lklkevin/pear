@@ -27,6 +27,7 @@ CORS(app, resources={
         "max_age": 3600  # Cache preflight requests for 1 hour
     },
 })
+
 load_dotenv()
 
 redis_host = os.environ.get("REDIS_HOST")
@@ -39,6 +40,7 @@ app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=7)
 db = db_factory.get_db_instance()
 
+
 # Token generation functions
 def generate_access_token(user_id):
     return jwt.encode({
@@ -47,6 +49,7 @@ def generate_access_token(user_id):
         'iat': datetime.datetime.now(datetime.timezone.utc),
         'type': 'access'
     }, os.environ.get("SECRET_KEY"), algorithm="HS256")
+
 
 def generate_refresh_token(user_id: int) -> str:
     token_value = secrets.token_hex(64)
@@ -62,6 +65,7 @@ def generate_refresh_token(user_id: int) -> str:
         #      a refresh token but was not stored
         print(e)
     return token_value
+
 
 # Token verification decorator
 def token_required(f):
@@ -108,6 +112,7 @@ def token_required(f):
     
     return decorated
 
+
 # Routes
 @app.route('/api/auth/signup', methods=['POST'])
 def signup():
@@ -146,6 +151,7 @@ def signup():
         'refresh_token': refresh_token
     }), 201
 
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json()
@@ -181,6 +187,7 @@ def login():
         'access_token': access_token,
         'refresh_token': refresh_token
     }), 200
+
 
 @app.route('/api/auth/google', methods=['POST'])
 def google_auth():
@@ -230,6 +237,7 @@ def google_auth():
         'refresh_token': refresh_token
     }), 200
 
+
 @app.route('/api/auth/refresh', methods=['POST'])
 def refresh():
     data = request.get_json()
@@ -270,6 +278,7 @@ def refresh():
         'refresh_token': new_refresh_token
     }), 200
 
+
 @app.route('/api/auth/logout', methods=['POST'])
 def logout():
     data = request.get_json()
@@ -289,6 +298,7 @@ def logout():
     
     return jsonify({'message': 'Successfully logged out!'}), 200
 
+
 # Protected route example
 @app.route('/api/user/profile', methods=['GET'])
 @token_required
@@ -299,6 +309,7 @@ def get_profile(current_user):
         'username': current_user[1],
         'auth_provider': current_user[4]
     }), 200
+
 
 @app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
 def generate_exam():
@@ -637,38 +648,10 @@ def fav(current_user):
         else:
             return jsonify({"error": "Invalid action specified. Use 'fav' or 'unfav'."}), 400
     except Exception as e:
-        return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)}), 400    
     
 
-if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
-    
-    # Ensure CORS is properly enabled on the deployed app
-    @app.after_request
-    def after_request(response):
-        origin = request.headers.get('Origin')
-        allowed_origins = ["http://localhost:3000", "https://avgr.vercel.app"]
-        
-        if origin in allowed_origins:
-            # Don't add the header if it's already there
-            if 'Access-Control-Allow-Origin' not in response.headers:
-                response.headers.add('Access-Control-Allow-Origin', origin)
-            if 'Access-Control-Allow-Headers' not in response.headers:
-                response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Requested-With')
-            if 'Access-Control-Allow-Methods' not in response.headers:
-                response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-            if 'Access-Control-Allow-Credentials' not in response.headers:
-                response.headers.add('Access-Control-Allow-Credentials', 'true')
-            # Handle multipart form data properly
-            if request.method == 'OPTIONS':
-                if 'Access-Control-Max-Age' not in response.headers:
-                    response.headers.add('Access-Control-Max-Age', '3600')
-                    
-        # Handle 401 responses specially to ensure CORS headers are included
-        if response.status_code == 401 and origin in allowed_origins:
-            if 'Access-Control-Allow-Origin' not in response.headers:
-                response.headers.add('Access-Control-Allow-Origin', origin)
-        
-        return response
-    
-    app.run(host='0.0.0.0', port=5000, debug=True) 
+@app.after_request
+def after_request(response):
+    app.logger.debug(f"{request.method} {request.path} - {response.status}")
+    return response
