@@ -3,6 +3,7 @@ from psycopg2 import pool
 import datetime
 from typing import Optional
 import time
+import logging
 
 from backend.database import (
     DataAccessObject,
@@ -14,35 +15,69 @@ from backend.database import (
 )
 from backend.exam import Exam
 
+logger = logging.getLogger("postgres_pool")
+
 class PostgresDB(DataAccessObject):
     """A PostgreSQL implementation of the data access object."""
     
     def __init__(self, 
                  connection_string=None,
-                 schema: str = "backend/database/postgres_schema.sql"):
+                 schema: str = "backend/database/postgres_schema.sql"
+                ):
         """Initialize the PostgreSQL database connection.
         """
+        
+        logger.info("Initializing PostgreSQL connection pool")
+        
         try:
-            self.pool = psycopg2.pool.ThreadedConnectionPool(  # Using ThreadedConnectionPool for thread safety
-                1, 20,  # Increased max connections
+            self.connection_string = connection_string  # Store for reconnection if needed
+            self._active_connections = {}  # Track active connections by id
+            
+            self.pool = psycopg2.pool.ThreadedConnectionPool(
+                1, 20,
                 dsn=connection_string,
                 sslmode='require',
-                connect_timeout=10,  # Longer connect timeout
+                connect_timeout=10,
                 keepalives=1,
-                keepalives_idle=30,  # Send keepalive after 30 seconds of inactivity
+                keepalives_idle=30,
                 keepalives_interval=10,
-                keepalives_count=5,  # Increased keepalive count
-                application_name='Backend301App'  # Better identification in database logs
+                keepalives_count=5,
             )
-            print("Successfully initialized PostgreSQL connection pool")
+            
+            # Log initial pool state
+            self._log_pool_stats()
+            logger.info("Successfully initialized PostgreSQL connection pool")
         except Exception as e:
+            logger.error(f"Failed to initialize database connection pool: {str(e)}")
             raise DatabaseError(f"Failed to initialize database connection pool: {str(e)}")
 
         # Initialize schema if needed
         self._init_schema(schema)
     
+    
+    def _log_pool_stats(self):
+        """Log current connection pool statistics, but only if there's a mismatch which could indicate a problem"""
+        try:
+            used = len(self.pool._used) if hasattr(self.pool, '_used') and hasattr(self.pool._used, '__len__') else 0
+            active_tracked = len(self._active_connections)
+            
+            # Only log if there's a mismatch, which could indicate a connection leak
+            if used != active_tracked:
+                logger.warning(f"Connection count mismatch: pool shows {used} used, but we're tracking {active_tracked}")
+                
+                # Log the specific connection IDs we're tracking
+                if active_tracked > 0:
+                    logger.debug(f"Tracked connections: {list(self._active_connections.keys())}")
+        except Exception as e:
+            logger.error(f"Error logging pool stats: {str(e)}")
+            logger.debug(f"Pool attributes: _used={type(getattr(self.pool, '_used', None))}, "
+                         f"_keys={type(getattr(self.pool, '_keys', None))}, "
+                         f"_pool={type(getattr(self.pool, '_pool', None))}")
+    
+
     def _init_schema(self, schema_path: str):
         """Initialize the database schema if not already set up."""
+        logger.info(f"Initializing database schema from {schema_path}")
         conn = self._get_conn()
         try:
             with open(schema_path, "r") as file:
@@ -51,53 +86,105 @@ class PostgresDB(DataAccessObject):
             cur = conn.cursor()
             cur.execute(schema_script)
             conn.commit()
+            logger.info("Schema initialization completed successfully")
         except Exception as e:
             conn.rollback()
+            logger.error(f"Failed to initialize schema: {str(e)}")
             raise DatabaseError(f"Failed to initialize schema: {str(e)}")
         finally:
             self._release_conn(conn)
     
+
     def _get_conn(self, retries=3):
         """Retry connection in case of failure."""
         last_exception = None
         for attempt in range(retries):
             try:
                 conn = self.pool.getconn()
+                conn_id = id(conn)
+                
+                # Track this connection
+                self._active_connections[conn_id] = {
+                    'acquired_at': datetime.datetime.now(),
+                    'stack': []  # Could store stack trace here if needed
+                }
+                
+                # Test if connection is closed or invalid
                 if conn.closed:
-                    print(f"Attempt {attempt+1}: Connection was closed. Reconnecting...")
-                    # When reconnecting, set longer timeout and explicitly set SSL parameters
-                    conn = psycopg2.connect(
-                        dsn=self.pool.dsn, 
-                        sslmode='require',
-                        connect_timeout=10,  # Increased timeout
-                        keepalives=1,
-                        keepalives_idle=30,
-                        keepalives_interval=10,
-                        keepalives_count=3
-                    )
+                    logger.warning(f"Connection {conn_id} was closed when retrieved from pool")
+                    # Properly handle closed connections by returning to pool and marking it for closure
+                    self.pool.putconn(conn, close=True)
+                    # Remove from tracking
+                    self._active_connections.pop(conn_id, None)
+                    
+                    # Check if pool needs to be recreated (this happens if all connections are bad)
+                    try:
+                        conn = self.pool.getconn()
+                        conn_id = id(conn)
+                        self._active_connections[conn_id] = {
+                            'acquired_at': datetime.datetime.now(),
+                            'stack': []
+                        }
+                    except psycopg2.pool.PoolError as pe:
+                        logger.error(f"Pool error when getting new connection: {pe}")
+                        logger.warning("Connection pool exhausted or invalid, recreating pool...")
+                        # Recreate the pool if all connections are invalid
+                        self._recreate_pool()
+                        conn = self.pool.getconn()
+                        conn_id = id(conn)
+                        self._active_connections[conn_id] = {
+                            'acquired_at': datetime.datetime.now(),
+                            'stack': []
+                        }
+                
                 # Test the connection with a simple query
                 with conn.cursor() as cursor:
                     cursor.execute("SELECT 1")
                     cursor.fetchone()
+                
+                # Only check for connection leaks, don't log normal pool activity
+                self._log_pool_stats()
                 return conn
             except psycopg2.OperationalError as e:
                 last_exception = e
-                print(f"Attempt {attempt+1}: Database connection failed: {e}")
-                # Close the connection if it exists but is causing SSL errors
-                if 'SSL' in str(e) and 'conn' in locals() and conn and not conn.closed:
+                logger.error(f"Attempt {attempt+1}: Database connection failed: {e}")
+                
+                # If we got a connection but it's bad, return it to the pool
+                if 'conn' in locals() and conn and not conn.closed:
                     try:
-                        conn.close()
+                        self.pool.putconn(conn, close=True)
+                        # Remove from tracking
+                        self._active_connections.pop(conn_id, None)
                     except Exception as close_error:
-                        print(f"Error closing problematic connection: {close_error}")
+                        logger.error(f"Error returning problematic connection to pool: {close_error}")
                 
                 # Exponential backoff for retries
                 if attempt < retries - 1:
-                    sleep_time = 2 ** attempt  # Exponential backoff: 1, 2, 4, etc. seconds
-                    print(f"Retrying in {sleep_time} seconds...")
+                    sleep_time = 2 ** attempt
+                    logger.warning(f"Retrying in {sleep_time} seconds...")
                     time.sleep(sleep_time)
+                
+                # If we're at the last attempt, try to recreate the pool
+                if attempt == retries - 2:
+                    try:
+                        logger.warning("Attempting to recreate the connection pool...")
+                        self._recreate_pool()
+                    except Exception as pool_error:
+                        logger.error(f"Failed to recreate connection pool: {pool_error}")
             except Exception as e:
                 last_exception = e
-                print(f"Unexpected error during connection: {e}")
+                logger.error(f"Unexpected error during connection: {e}")
+                
+                # Return the connection to the pool if it exists with close=True since it's problematic
+                if 'conn' in locals() and conn:
+                    conn_id = id(conn)
+                    try:
+                        self.pool.putconn(conn, close=True)
+                        # Remove from tracking
+                        self._active_connections.pop(conn_id, None)
+                    except Exception:
+                        logger.error(f"Failed to return connection {conn_id} to pool")
+                
                 if attempt < retries - 1:
                     time.sleep(1)  # Wait 1 second before retrying
         
@@ -105,15 +192,81 @@ class PostgresDB(DataAccessObject):
         error_msg = f"Failed to get a valid database connection after {retries} attempts."
         if last_exception:
             error_msg += f" Last error: {str(last_exception)}"
+        logger.critical(error_msg)
+        
+        # Log pool stats when we have connection problems
+        self._log_pool_stats()
+        
         raise DatabaseError(error_msg)
-
     
+
+    def _recreate_pool(self):
+        """Recreate the connection pool when all connections are invalid."""
+        logger.warning("Recreating the database connection pool")
+        try:
+            # Close the old pool if it exists
+            if hasattr(self, 'pool'):
+                try:
+                    self.pool.closeall()
+                except Exception as e:
+                    logger.error(f"Error closing existing pool: {e}")
+            
+            # Create a new pool
+            self.pool = psycopg2.pool.ThreadedConnectionPool(
+                1, 20,
+                dsn=self.connection_string,
+                sslmode='require',
+                connect_timeout=10,
+                keepalives=1,
+                keepalives_idle=30,
+                keepalives_interval=10,
+                keepalives_count=5,
+            )
+            
+            # Clear the active connections tracking
+            self._active_connections = {}
+            
+        except Exception as e:
+            logger.critical(f"Failed to recreate connection pool: {str(e)}")
+            raise DatabaseError(f"Failed to recreate connection pool: {str(e)}")
+    
+
     def _release_conn(self, conn):
         """Release a connection back to the pool safely."""
         if conn and not conn.closed:
-            self.pool.putconn(conn)
+            conn_id = id(conn)
+            try:
+                self.pool.putconn(conn)
+                # Remove from tracking
+                acquired_time = self._active_connections.pop(conn_id, {}).get('acquired_at')
+                
+                # Only log long-held connections - these might indicate problems
+                if acquired_time:
+                    duration = datetime.datetime.now() - acquired_time
+                    # Log connections held for more than 5 seconds as potential issues
+                    if duration.total_seconds() > 5.0:
+                        logger.warning(f"Connection {conn_id} was held for {duration.total_seconds():.2f} seconds")
+                else:
+                    logger.warning(f"Released connection {conn_id} was not in tracking dict")
+            except Exception as e:
+                logger.error(f"Error returning connection {conn_id} to pool: {e}")
+                try:
+                    self.pool.putconn(conn, close=True)
+                    # Remove from tracking
+                    self._active_connections.pop(conn_id, None)
+                except Exception as inner_e:
+                    logger.error(f"Failed to close connection {conn_id} through pool: {inner_e}")
         else:
-            print("Skipping release of closed connection.")
+            if conn:
+                conn_id = id(conn)
+                logger.warning(f"Skipping release of closed connection {conn_id}")
+                # Remove from tracking if it exists
+                self._active_connections.pop(conn_id, None)
+            else:
+                logger.warning("Attempted to release None connection")
+        
+        # Check for connection leaks after release
+        self._log_pool_stats()
 
 
     def user_exists(self,
@@ -138,6 +291,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def add_user(self,
                 username: str,
                 email: str,
@@ -162,6 +316,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def get_user(self,
                 user_id: Optional[int] = None,
                 username: Optional[str] = None,
@@ -189,6 +344,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def create_refresh_token(self,
                            user_id: str,
                            token: str,
@@ -209,56 +365,36 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
-    def get_refresh_token(self,
-                        token: str,
-                        revoked: Optional[bool] = None) -> Optional[tuple[int, datetime.datetime, datetime.datetime]]:
+
+    def get_refresh_token(self, token: str, revoked: Optional[bool] = None) -> Optional[tuple]:
         """Get refresh token information."""
-        max_retries = 3
-        retry_delay = 1  # seconds
+        conn = None
+        try:
+            conn = self._get_conn() 
+            cur = conn.cursor()
         
-        for attempt in range(max_retries):
-            conn = None
-            try:
-                conn = self._get_conn()
-                cur = conn.cursor()
-                
-                if revoked is None:
-                    cur.execute(
-                        'SELECT user_id, expires_at, created_at FROM "RefreshToken" '
-                        'WHERE token = %s;',
-                        (token,)
-                    )
-                else:
-                    cur.execute(
-                        'SELECT user_id, expires_at, created_at FROM "RefreshToken" '
-                        'WHERE token = %s AND revoked = %s;',
-                        (token, revoked)
-                    )
-                
-                result = cur.fetchone()
+            if revoked is None:
+                cur.execute(
+                    'SELECT user_id, expires_at, created_at FROM "RefreshToken" '
+                    'WHERE token = %s;',
+                    (token,)
+                )
+            else:
+                cur.execute(
+                    'SELECT user_id, expires_at, created_at FROM "RefreshToken" '
+                    'WHERE token = %s AND revoked = %s;',
+                    (token, revoked)
+                )
+        
+            result = cur.fetchone()
+            return result
+            
+        except Exception as e:
+            raise DatabaseError(f"Error getting refresh token: {str(e)}")
+        finally:
+            if conn:
                 self._release_conn(conn)
-                return result
-                
-            except psycopg2.OperationalError as e:
-                print(f"Attempt {attempt+1}: Database operation failed in get_refresh_token: {e}")
-                if conn:
-                    # Don't try to release a connection that caused an OperationalError
-                    # It's likely already closed or in a bad state
-                    if not conn.closed:
-                        try:
-                            conn.close()
-                        except Exception:
-                            pass
-                
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay)  # Wait before retrying
-                else:
-                    raise DatabaseError(f"Error getting refresh token after {max_retries} attempts: {str(e)}")
-                    
-            except Exception as e:
-                if conn:
-                    self._release_conn(conn)
-                raise DatabaseError(f"Error getting refresh token: {str(e)}")
+
 
     def set_revoked_status(self, token: str, revoked: bool) -> None:
         """Set the revoked status of a refresh token."""
@@ -276,6 +412,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def set_oauth_id(self, user_id: str, oauth_id: str) -> None:
         """Set the OAuth ID for a user."""
         conn = self._get_conn()
@@ -292,6 +429,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def set_last_login(self, username: str, time: datetime.datetime) -> None:
         """Set the last login time for a user."""
         conn = self._get_conn()
@@ -308,6 +446,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def get_exam(self, exam_id: int) -> Optional[tuple[int, str, str, str, str, str, bool, int, Exam]]:
         """Get exam information by ID."""
         conn = self._get_conn()
@@ -361,6 +500,7 @@ class PostgresDB(DataAccessObject):
             raise DatabaseError(f"Error getting exam: {str(e)}")
         finally:
             self._release_conn(conn)
+
 
     def get_exams(
         self,
@@ -443,8 +583,8 @@ class PostgresDB(DataAccessObject):
             raise DatabaseError(f"Error getting exams: {str(e)}")
         finally:
             self._release_conn(conn)
-
     
+
     def add_exam(self,
                username: str,
                name: str,
@@ -481,6 +621,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def insert_question(self,
                       question_number: int,
                       exam_id: int,
@@ -514,6 +655,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def insert_answer(self,
                     question_id: int,
                     answer: str,
@@ -536,6 +678,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def add_favourite(self, user_id: int, exam_id: int) -> None:
         """Add an exam to a user's favorites."""
         conn = self._get_conn()
@@ -565,6 +708,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def remove_favourite(self, user_id: int, exam_id: int) -> None:
         """Remove an exam from a user's favorites."""
         conn = self._get_conn()
@@ -594,6 +738,7 @@ class PostgresDB(DataAccessObject):
         finally:
             self._release_conn(conn)
     
+
     def is_favourite(self, user_id: int, exam_id: int) -> bool:
         """Check if an exam is in a user's favorites."""
         conn = self._get_conn()

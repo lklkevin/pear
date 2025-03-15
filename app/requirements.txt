@@ -13,3 +13,4 @@ antlr4-python3-runtime==4.11
 pytest==8.3.4
 pytest-asyncio==0.25.3
 celery==5.2.7
+waitress==3.0.2
