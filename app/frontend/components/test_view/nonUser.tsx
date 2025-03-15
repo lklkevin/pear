@@ -58,7 +58,7 @@ export default function Page() {
 
   useEffect(() => {
     async function fetchData() {
-      if (!localStorage.getItem("browserSessionId")) {
+      if (!sessionStorage.getItem("browserSessionId")) {
         useErrorStore
           .getState()
           .setError("You have not generated an exam yet!");
@@ -66,7 +66,7 @@ export default function Page() {
         return;
       }
 
-      const taskId = localStorage.getItem("browserSessionId");
+      const taskId = sessionStorage.getItem("browserSessionId");
 
       try {
         useLoadingStore.getState().setLoading(true);

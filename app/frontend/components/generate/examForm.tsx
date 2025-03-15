@@ -1,8 +1,7 @@
 import InputField from "../form/inputField";
 import FileUpload from "../form/fileUpload";
 import GreenButton from "../ui/longButtonGreen";
-import { useState, useEffect } from "react";
-import { v4 as uuidv4 } from "uuid";
+import { useState } from "react";
 import { useSession, getSession } from "next-auth/react";
 import Counter from "./counter";
 import { useErrorStore, useLoadingStore } from "@/store/store";
@@ -27,19 +26,13 @@ export default function ExamForm() {
   const [visibility, setVisibility] = useState<Visibility>("private");
   const [selectedColor, setSelectedColor] = useState<Color>("teal");
 
-  useEffect(() => {
-    if (!localStorage.getItem("browserSessionId")) {
-      localStorage.setItem("browserSessionId", uuidv4());
-    }
-  }, []);
-
   // Polling function
   const pollTask = async (
     taskId: string,
     onSuccess: (taskResult: any, taskId: string) => void
   ) => {
     const pollInterval = 10000; // Poll every 10 seconds
-    const maxPollTime = 8 * 60 * 1000; // 8 minutes max
+    const maxPollTime = 6 * 60 * 1000; // 6 minutes max
     const startTime = Date.now();
 
     const poll = async () => {
@@ -179,7 +172,7 @@ export default function ExamForm() {
         if (isGenerateSave) {
           router.push(`/exam/${taskResult.result.exam_id}`);
         } else {
-          localStorage.setItem("browserSessionId", taskId);
+          sessionStorage.setItem("browserSessionId", taskId);
           router.push("/generated");
         }
       });

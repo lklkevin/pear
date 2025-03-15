@@ -39,13 +39,13 @@ export default function Sidebar() {
   const handleSave = async () => {
     useLoadingStore.getState().setLoading(true);
 
-    if (!localStorage.getItem("browserSessionId")) {
+    if (!sessionStorage.getItem("browserSessionId")) {
       useErrorStore.getState().setError("Cannot fetch exam");
       useLoadingStore.getState().setLoading(false);
       return;
     }
 
-    const taskId = localStorage.getItem("browserSessionId");
+    const taskId = sessionStorage.getItem("browserSessionId");
 
     try {
       const response = await fetch(
@@ -100,7 +100,7 @@ export default function Sidebar() {
         return;
       }
 
-      localStorage.removeItem("browserSessionId");
+      sessionStorage.removeItem("browserSessionId");
       useLoadingStore.getState().setLoading(false);
       router.push(`/exam/${saveResult.exam_id}`);
     } catch (error) {
