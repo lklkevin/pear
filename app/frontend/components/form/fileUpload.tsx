@@ -70,6 +70,7 @@ export default function FileUpload({
       const newFiles = Array.from(event.target.files);
       handleFiles(newFiles);
     }
+    event.target.value = '';
   };
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
