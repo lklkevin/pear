@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useErrorStore } from "@/store/store";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -18,8 +18,6 @@ export default function FileUpload({
   maxFiles = 3,
 }: FileUploadProps) {
   const [internalFiles, setInternalFiles] = useState<File[]>(files);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const acceptString = acceptedFormats.join(",");
 
@@ -71,10 +69,8 @@ export default function FileUpload({
       const newFiles = Array.from(event.target.files);
       handleFiles(newFiles);
       // Reset the file input value to allow reselecting the same file
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-      }
     }
+    event.target.value = "";
   };
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
@@ -120,7 +116,8 @@ export default function FileUpload({
 
   const hasFiles = internalFiles.length > 0;
   const isMaxFilesReached = internalFiles.length >= maxFiles;
-  const dropzoneClass = "h-full border border-zinc-800 rounded-lg text-center bg-zinc-900 transition-all duration-500 ease-in-out";
+  const dropzoneClass =
+    "h-full border border-zinc-800 rounded-lg text-center bg-zinc-900 transition-all duration-500 ease-in-out";
 
   // Animation variants for consistent animations
   const containerVariants = {
@@ -216,7 +213,7 @@ export default function FileUpload({
                   <span className="mr-2">{file.name}</span>
                   <motion.button
                     onClick={() => removeFile(index)}
-                    className="text-zinc-400 hover:text-zinc-200 material-icons text-sm sm:text-base"
+                    className="text-zinc-400 hover:text-white material-icons text-sm sm:text-base"
                     aria-label={`Remove ${file.name}`}
                   >
                     close
@@ -250,9 +247,7 @@ export default function FileUpload({
             }`}
           >
             <motion.span className="text-9xl -mt-6">+</motion.span>
-            <motion.span
-              className="text-lg sm:text-xl -mt-2 sm:-mt-4 text-zinc-400"
-            >
+            <motion.span className="text-lg sm:text-xl -mt-2 sm:-mt-4 text-zinc-400">
               {isMaxFilesReached
                 ? "File limit reached"
                 : hasFiles
@@ -271,7 +266,6 @@ export default function FileUpload({
             </span>
             {!isMaxFilesReached && (
               <input
-                ref={fileInputRef}
                 type="file"
                 className="hidden"
                 onChange={handleFileUpload}
