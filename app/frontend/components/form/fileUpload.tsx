@@ -218,8 +218,6 @@ export default function FileUpload({
                     onClick={() => removeFile(index)}
                     className="text-zinc-400 hover:text-zinc-200 material-icons text-sm sm:text-base"
                     aria-label={`Remove ${file.name}`}
-                    whileHover={{ scale: 1.1, rotate: 90 }}
-                    transition={{ duration: 0.2 }}
                   >
                     close
                   </motion.button>
