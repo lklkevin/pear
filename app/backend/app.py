@@ -36,7 +36,7 @@ redis_client = redis.Redis(host=redis_host, port=redis_port, password=redis_pass
 
 # JWT configuration
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
-app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=30)
+app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=7)
 db = db_factory.get_db_instance()
 
 # Token generation functions
@@ -263,11 +263,11 @@ def refresh():
     
     # Token rotation: revoke the old refresh token and generate a new one
     # db.set_revoked_status(data['refresh_token'], True)
-    # new_refresh_token = generate_refresh_token(user_id)
+    new_refresh_token = generate_refresh_token(user_id)
     
     return jsonify({
         'access_token': access_token,
-        'refresh_token': data['refresh_token']
+        'refresh_token': new_refresh_token
     }), 200
 
 @app.route('/api/auth/logout', methods=['POST'])
