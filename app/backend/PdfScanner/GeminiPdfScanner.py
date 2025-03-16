@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from backend.PdfScanner.pdfobject import PDFObject
 from backend.models import ModelProvider, Cohere, GeminiModel
@@ -22,11 +23,18 @@ class GeminiPDFScanner(PDFScannerInterface):
             image_scanner (ModelProvider): API object responsible for extracting content from PDFs.
             text_processor (ModelProvider): API object responsible for processing extracted text.
         """
+        self._dir = os.path.dirname(os.path.abspath(__file__))
         if image_scanner is None:
             image_scanner = GeminiModel()
         if text_processor is None:
             text_processor = Cohere()
         super().__init__(image_scanner, text_processor)
+
+    def _load_prompt(self, prompt_type: str):
+        filepath = f"prompts/{prompt_type}.txt"
+        file_path = os.path.join(self._dir, filepath)
+        with open(file_path, "r") as prompt_file:
+            return prompt_file.read()
 
     async def scan_pdfs(self, list_of_pdfs: list[str | bytes]) -> list[PDFObject]:
         """
@@ -43,25 +51,8 @@ class GeminiPDFScanner(PDFScannerInterface):
             list[PDFObject]: A collection of processed PDF objects, each containing QA pairs.
         """
 
-        prompt = """
-You are given a PDF of a math exam and your job is to extract the questions in a text applicable format.
+        prompt = self._load_prompt("scanner")
 
-For each question, first determine if it can be represented logically and solvably in a text-based format.
-Make sure it is a computational question and not some explanation or drawing based question.
-
-Then if so, write out a representation of the question in the form:
-[===]
-Question:
-
-Answer:
-
-Have separators between each question and answer pair. If there is no detectable answer, specify answer as N/A
-If there is an answer, keep only the numerical portion of the answer.
-Keep only the question part of the question, do not preserve any extra formatting like numerical ordering
-
-For tabular or graphical data relevant to the question, express it in a form that is understandable in text.
-For multi-part questions, add some context to questions to work as a standalone question.
-"""
         pdf_objects = []
         print(f"Processing {len(list_of_pdfs)} PDFs")
 
@@ -146,19 +137,8 @@ For multi-part questions, add some context to questions to work as a standalone 
             bool: True if the question is valid, False otherwise.
         """
 
-        prompt = f"""You are validator for a math exam creation and you are to oversee exam questions. The goal is to have
-text based questions that result in a singular answer. 
+        prompt = self._load_prompt("validator").format(question)
 
-You will be given an exam question and respond whether it is satisfactory to be included in the math exam.
-For your criteria, be generous to the question, and just try to exclude gibberish or non-math questions, as long
-as you can look at it and see what computation needs to be done or if it can be answered with a single number or word.
-You can assume that just a formula by itself means to solve that formula and is a valid question.
-
-In your response, only include the word 'yes' or 'no'.
-
-Here is the question:
-{question}
-"""
         if question == "":
             return False
 
@@ -204,4 +184,3 @@ if __name__ == "__main__":
     # Print extracted questions
     for question in result:
         print(question)
-
