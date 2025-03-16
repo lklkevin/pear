@@ -10,9 +10,9 @@
   },
   "dependencies": {
     "framer-motion": "^12.4.1",
-    "jspdf": "^3.0.0",
     "next": "^15.2.2",
     "next-auth": "^4.24.11",
+    "pdfmake": "^0.2.18",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.4.0",
@@ -29,6 +29,7 @@
     "@testing-library/react": "^16.2.0",
     "@types/jest": "^29.5.14",
     "@types/node": "^20",
+    "@types/pdfmake": "^0.2.11",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

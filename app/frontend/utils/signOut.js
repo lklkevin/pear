@@ -3,7 +3,7 @@ import { signOut } from "next-auth/react";
 export default async function signOutWithBackend(refreshToken) {
     if (refreshToken) {
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/auth/logout`, {
+        await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/logout`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh_token: refreshToken }),

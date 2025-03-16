@@ -39,13 +39,13 @@ export default function Sidebar() {
   const handleSave = async () => {
     useLoadingStore.getState().setLoading(true);
 
-    if (!localStorage.getItem("browserSessionId")) {
+    if (!sessionStorage.getItem("browserSessionId")) {
       useErrorStore.getState().setError("Cannot fetch exam");
       useLoadingStore.getState().setLoading(false);
       return;
     }
 
-    const taskId = localStorage.getItem("browserSessionId");
+    const taskId = sessionStorage.getItem("browserSessionId");
 
     try {
       const response = await fetch(
@@ -77,7 +77,7 @@ export default function Sidebar() {
 
       const currSession = await getSession();
       const saveResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/exam/generate/save-after`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate/save-after`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -100,7 +100,7 @@ export default function Sidebar() {
         return;
       }
 
-      localStorage.removeItem("browserSessionId");
+      sessionStorage.removeItem("browserSessionId");
       useLoadingStore.getState().setLoading(false);
       router.push(`/exam/${saveResult.exam_id}`);
     } catch (error) {
@@ -120,9 +120,9 @@ export default function Sidebar() {
       {/* Login/Signup Call to Action */}
       {session && status === "authenticated" ? (
         <>
-          <p className="text-zinc-300 my-4">Changed your mind and want to save your exam?</p>
+          <p className="text-zinc-300 my-4">Enjoy your new exam!</p>
           <p className="text-zinc-300">
-            Choose your visibility and styling options below and press save.
+            Want to save? Choose your options below and press save.
           </p>
         </>
       ) : (

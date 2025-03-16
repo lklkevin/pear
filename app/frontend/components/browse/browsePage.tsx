@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSession } from "next-auth/react";
 import BrowseLayout from "../layout/browseLayout";
 import Tabs from "../ui/tabs";
@@ -14,6 +14,10 @@ const dmMono = DM_Mono({
 
 export default function BrowsePage() {
   const { data: session, status } = useSession();
+  // Track the latest request to handle out-of-order responses
+  const latestRequestId = useRef(0);
+  // Keep track of abort controller for canceling previous requests
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Only allow "Popular" and "Explore" tabs for unauthenticated users.
   const availableTabs = session
@@ -30,12 +34,9 @@ export default function BrowsePage() {
   const [isLoading, setIsLoading] = useState(false);
   const limit = 16; // Number of items per page
 
-  const fetchExams = async () => {
-    if (status === "loading") return;
-
-    setIsLoading(true);
-
-    const baseUrl = process.env.NEXT_PUBLIC_OTHER_BACKEND_URL;
+  // Function to build fetch URL and options
+  const buildFetchParams = useCallback(() => {
+    const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     let endpoint = "";
     const params = new URLSearchParams();
     params.append("limit", limit.toString());
@@ -63,11 +64,21 @@ export default function BrowsePage() {
     }
 
     const url = `${endpoint}?${params.toString()}`;
+
+    // Cancel any in-flight requests
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create new abort controller for this request
+    abortControllerRef.current = new AbortController();
+
     const fetchOptions: RequestInit = {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
       },
+      signal: abortControllerRef.current.signal,
     };
 
     if (session) {
@@ -77,41 +88,89 @@ export default function BrowsePage() {
       };
     }
 
-    try {
-      const res = await fetch(url, fetchOptions);
-      if (res.status === 401) {
-        throw new Error("Unauthorized");
-      }
-      const data = await res.json();
-      setResults(data);
-      // If we received a full page of items, assume there could be more.
-      setHasMore(data.length === limit);
-    } catch (error) {
-      useErrorStore.getState().setError(error as string);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    return { url, fetchOptions };
+  }, [activeTab, page, searchTerm]);
 
-  // Reset search and pagination when the active tab changes.
+  // Fetch exams - separate from state effects
+  const fetchExams = useCallback(async () => {
+    // Increment the request ID for this specific request
+    const currentRequestId = ++latestRequestId.current;
+
+    setIsLoading(true);
+
+    try {
+      const { url, fetchOptions } = buildFetchParams();
+      const response = await fetch(url, fetchOptions);
+
+      // Check if this response is for the latest request
+      // If not, ignore the response to prevent state updates with stale data
+      if (currentRequestId !== latestRequestId.current) {
+        return;
+      }
+
+      const data = await response.json();
+
+      if (!response.ok || data?.message) {
+        useErrorStore
+          .getState()
+          .setError(data?.message || "Error fetching exams");
+        return;
+      }
+
+      // Double-check that this is still the latest request before updating state
+      if (currentRequestId === latestRequestId.current) {
+        setResults(data);
+        // If we received a full page of items, assume there could be more
+        setHasMore(data.length === limit);
+      }
+    } catch (error) {
+      // Only handle errors for the current request
+      // AbortError is expected when a request is canceled, so we don't treat it as an error
+      if (
+        currentRequestId === latestRequestId.current &&
+        !(error instanceof DOMException && error.name === "AbortError")
+      ) {
+        useErrorStore.getState().setError(error as string);
+      }
+    } finally {
+      // Only update loading state for the current request
+      if (currentRequestId === latestRequestId.current) {
+        setIsLoading(false);
+      }
+    }
+  }, [buildFetchParams]);
+
+  // Clean up any pending requests when the component unmounts
   useEffect(() => {
-    if (status === "loading") return;
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
+
+  // Handle tab changes - always reset search and page, then fetch
+  const handleTabChange = useCallback((tab: React.SetStateAction<string>) => {
+    setActiveTab(tab);
     setSearchQuery("");
     setSearchTerm("");
     setPage(1);
-  }, [activeTab, status]);
+  }, []);
 
-  // Fetch exams when the page, activeTab, searchTerm, or status changes.
-  useEffect(() => {
-    if (status === "loading") return;
-    fetchExams();
-  }, [page, activeTab, status, searchTerm]);
-
-  // When the user triggers a search, update the search term and reset to page 1.
-  const handleSearch = () => {
+  // Handle search - reset page and update search term
+  const handleSearch = useCallback(() => {
     setPage(1);
     setSearchTerm(searchQuery);
-  };
+  }, [searchQuery]);
+
+  // Unified effect for fetching data when dependencies change
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      fetchExams();
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [fetchExams]);
 
   const tabTitles: { [key: string]: string } = {
     "My Exams": "My Exams",
@@ -149,10 +208,7 @@ export default function BrowsePage() {
       <div className="mt-6">
         <Tabs
           activeTab={activeTab}
-          setActiveTab={(tab) => {
-            setPage(1); // Reset page immediately when tab changes
-            setActiveTab(tab);
-          }}
+          setActiveTab={handleTabChange}
           className="text-md gap-6"
           tabs={availableTabs}
         />

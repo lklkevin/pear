@@ -18,7 +18,6 @@ export default function FileUpload({
   maxFiles = 3,
 }: FileUploadProps) {
   const [internalFiles, setInternalFiles] = useState<File[]>(files);
-  const error = useErrorStore();
 
   const acceptString = acceptedFormats.join(",");
 
@@ -69,8 +68,9 @@ export default function FileUpload({
     if (event.target.files) {
       const newFiles = Array.from(event.target.files);
       handleFiles(newFiles);
+      // Reset the file input value to allow reselecting the same file
     }
-    event.target.value = '';
+    event.target.value = "";
   };
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
@@ -116,7 +116,8 @@ export default function FileUpload({
 
   const hasFiles = internalFiles.length > 0;
   const isMaxFilesReached = internalFiles.length >= maxFiles;
-  const dropzoneClass = `h-full border border-zinc-800 rounded-lg text-center bg-zinc-900 transition-all duration-500 ease-in-out`;
+  const dropzoneClass =
+    "h-full border border-zinc-800 rounded-lg text-center bg-zinc-900 transition-all duration-500 ease-in-out";
 
   // Animation variants for consistent animations
   const containerVariants = {
@@ -181,7 +182,7 @@ export default function FileUpload({
           {hasFiles && (
             <motion.div
               layout
-              style={{ overflow: "hidden" }}
+              style={{ overflow: "hidden", zIndex: 1 }}
               className="flex flex-wrap gap-3 sm:gap-4 p-4 sm:p-6 bg-zinc-950/25 rounded-t-lg border-b border-zinc-800"
               initial="hidden"
               animate="visible"
@@ -212,10 +213,8 @@ export default function FileUpload({
                   <span className="mr-2">{file.name}</span>
                   <motion.button
                     onClick={() => removeFile(index)}
-                    className="text-zinc-400 hover:text-zinc-200 material-icons text-sm sm:text-base"
+                    className="text-zinc-400 hover:text-white material-icons text-sm sm:text-base"
                     aria-label={`Remove ${file.name}`}
-                    whileHover={{ scale: 1.05, rotate: 90 }}
-                    transition={{ duration: 0.2 }}
                   >
                     close
                   </motion.button>
@@ -226,7 +225,7 @@ export default function FileUpload({
         </AnimatePresence>
         <motion.div
           layout
-          style={{ overflow: "hidden" }}
+          style={{ overflow: "hidden", position: "relative", zIndex: 2 }}
           transition={{
             layout: {
               duration: 0.4,
@@ -248,9 +247,7 @@ export default function FileUpload({
             }`}
           >
             <motion.span className="text-9xl -mt-6">+</motion.span>
-            <motion.span
-              className={`text-lg sm:text-xl -mt-2 sm:-mt-4 text-zinc-400`}
-            >
+            <motion.span className="text-lg sm:text-xl -mt-2 sm:-mt-4 text-zinc-400">
               {isMaxFilesReached
                 ? "File limit reached"
                 : hasFiles

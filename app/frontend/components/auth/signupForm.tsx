@@ -36,7 +36,7 @@ const Signup: React.FC = () => {
     try {
       // Send signup request to Flask backend
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_OTHER_BACKEND_URL}/api/auth/signup`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/signup`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
