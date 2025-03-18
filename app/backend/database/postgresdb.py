@@ -22,8 +22,7 @@ class PostgresDB(DataAccessObject):
     
     def __init__(self, 
                  connection_string=None,
-                 schema: str = "backend/database/postgres_schema.sql"
-                ):
+                 schema: str = "backend/database/postgres_schema.sql"):
         """Initialize the PostgreSQL database connection.
         """
         
@@ -37,7 +36,7 @@ class PostgresDB(DataAccessObject):
                 1, 20,
                 dsn=connection_string,
                 sslmode='require',
-                connect_timeout=10,
+                connect_timeout=10,  # Longer connect timeout
                 keepalives=1,
                 keepalives_idle=30,
                 keepalives_interval=10,

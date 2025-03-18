@@ -28,7 +28,6 @@ waitress = "^3.0.2"
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.4"
 pytest-asyncio = "^0.25.3"
-pytest-postgresql = "^7.0.0"
 
 
 
