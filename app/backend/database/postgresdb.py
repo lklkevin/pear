@@ -43,8 +43,6 @@ class PostgresDB(DataAccessObject):
                 keepalives_count=5,
             )
             
-            # Log initial pool state
-            self._log_pool_stats()
             logger.info("Successfully initialized PostgreSQL connection pool")
         except Exception as e:
             logger.error(f"Failed to initialize database connection pool: {str(e)}")
@@ -54,26 +52,6 @@ class PostgresDB(DataAccessObject):
         self._init_schema(schema)
     
     
-    def _log_pool_stats(self):
-        """Log current connection pool statistics, but only if there's a mismatch which could indicate a problem"""
-        try:
-            used = len(self.pool._used) if hasattr(self.pool, '_used') and hasattr(self.pool._used, '__len__') else 0
-            active_tracked = len(self._active_connections)
-            
-            # Only log if there's a mismatch, which could indicate a connection leak
-            if used != active_tracked:
-                logger.warning(f"Connection count mismatch: pool shows {used} used, but we're tracking {active_tracked}")
-                
-                # Log the specific connection IDs we're tracking
-                if active_tracked > 0:
-                    logger.debug(f"Tracked connections: {list(self._active_connections.keys())}")
-        except Exception as e:
-            logger.error(f"Error logging pool stats: {str(e)}")
-            logger.debug(f"Pool attributes: _used={type(getattr(self.pool, '_used', None))}, "
-                         f"_keys={type(getattr(self.pool, '_keys', None))}, "
-                         f"_pool={type(getattr(self.pool, '_pool', None))}")
-            
-
     def _log_full_pool_state(self):
         """Log detailed pool state: total connections in the pool, used connections, and tracked active connections."""
         # _used and _pool are internal attributes of the psycopg2 ThreadedConnectionPool.
@@ -118,44 +96,14 @@ class PostgresDB(DataAccessObject):
                 # Track this connection
                 self._active_connections[conn_id] = {
                     'acquired_at': datetime.datetime.now(),
-                    'stack': []  # Could store stack trace here if needed
+                    'stack': []
                 }
-                
-                # Test if connection is closed or invalid
-                if conn.closed:
-                    logger.warning(f"Connection {conn_id} was closed when retrieved from pool")
-                    # Properly handle closed connections by returning to pool and marking it for closure
-                    self.pool.putconn(conn, close=True)
-                    # Remove from tracking
-                    self._active_connections.pop(conn_id, None)
-                    
-                    # Check if pool needs to be recreated (this happens if all connections are bad)
-                    try:
-                        conn = self.pool.getconn()
-                        conn_id = id(conn)
-                        self._active_connections[conn_id] = {
-                            'acquired_at': datetime.datetime.now(),
-                            'stack': []
-                        }
-                    except psycopg2.pool.PoolError as pe:
-                        logger.error(f"Pool error when getting new connection: {pe}")
-                        logger.warning("Connection pool exhausted or invalid, recreating pool...")
-                        # Recreate the pool if all connections are invalid
-                        self._recreate_pool()
-                        conn = self.pool.getconn()
-                        conn_id = id(conn)
-                        self._active_connections[conn_id] = {
-                            'acquired_at': datetime.datetime.now(),
-                            'stack': []
-                        }
                 
                 # Test the connection with a simple query
                 with conn.cursor() as cursor:
                     cursor.execute("SELECT 1")
                     cursor.fetchone()
                 
-                # Only check for connection leaks, don't log normal pool activity
-                self._log_pool_stats()
                 self._log_full_pool_state()
                 return conn
             except Exception as e:
@@ -184,7 +132,6 @@ class PostgresDB(DataAccessObject):
                         self._recreate_pool()
                     except Exception as pool_error:
                         logger.error(f"Failed to recreate connection pool: {pool_error}")
-        
 
         # If we've exhausted all retries
         error_msg = f"Failed to get a valid database connection after {retries} attempts."
@@ -192,8 +139,6 @@ class PostgresDB(DataAccessObject):
             error_msg += f" Last error: {str(last_exception)}"
         logger.critical(error_msg)
         
-        # Log pool stats when we have connection problems
-        self._log_pool_stats()
         self._log_full_pool_state()
         raise DatabaseError(error_msg)
     
@@ -236,16 +181,7 @@ class PostgresDB(DataAccessObject):
             try:
                 self.pool.putconn(conn)
                 # Remove from tracking
-                acquired_time = self._active_connections.pop(conn_id, {}).get('acquired_at')
-                
-                # Only log long-held connections - these might indicate problems
-                if acquired_time:
-                    duration = datetime.datetime.now() - acquired_time
-                    # Log connections held for more than 5 seconds as potential issues
-                    if duration.total_seconds() > 5.0:
-                        logger.warning(f"Connection {conn_id} was held for {duration.total_seconds():.2f} seconds")
-                else:
-                    logger.warning(f"Released connection {conn_id} was not in tracking dict")
+                self._active_connections.pop(conn_id, None)
             except Exception as e:
                 logger.error(f"Error returning connection {conn_id} to pool: {e}")
                 try:
@@ -263,9 +199,7 @@ class PostgresDB(DataAccessObject):
             else:
                 logger.warning("Attempted to release None connection")
         
-        # Check for connection leaks after release
         self._log_full_pool_state()
-        self._log_pool_stats()
 
 
     def user_exists(self,
