@@ -72,6 +72,18 @@ class PostgresDB(DataAccessObject):
             logger.debug(f"Pool attributes: _used={type(getattr(self.pool, '_used', None))}, "
                          f"_keys={type(getattr(self.pool, '_keys', None))}, "
                          f"_pool={type(getattr(self.pool, '_pool', None))}")
+            
+
+    def _log_full_pool_state(self):
+        """Log detailed pool state: total connections in the pool, used connections, and tracked active connections."""
+        # _used and _pool are internal attributes of the psycopg2 ThreadedConnectionPool.
+        used = len(getattr(self.pool, '_used', []))
+        pool_list = getattr(self.pool, '_pool', [])
+        total_in_pool = len(pool_list)
+        tracked = len(self._active_connections)
+        logger.debug(
+            f"Full pool state -> Total in pool: {total_in_pool}, Used: {used}, Tracked active: {tracked}"
+        )
     
 
     def _init_schema(self, schema_path: str):
@@ -94,7 +106,7 @@ class PostgresDB(DataAccessObject):
             self._release_conn(conn)
     
 
-    def _get_conn(self, retries=3):
+    def _get_conn(self, retries=5):
         """Retry connection in case of failure."""
         last_exception = None
         for attempt in range(retries):
@@ -143,6 +155,7 @@ class PostgresDB(DataAccessObject):
                 
                 # Only check for connection leaks, don't log normal pool activity
                 self._log_pool_stats()
+                self._log_full_pool_state()
                 return conn
             except psycopg2.OperationalError as e:
                 last_exception = e
@@ -195,7 +208,7 @@ class PostgresDB(DataAccessObject):
         
         # Log pool stats when we have connection problems
         self._log_pool_stats()
-        
+        self._log_full_pool_state()
         raise DatabaseError(error_msg)
     
 
@@ -265,6 +278,7 @@ class PostgresDB(DataAccessObject):
                 logger.warning("Attempted to release None connection")
         
         # Check for connection leaks after release
+        self._log_full_pool_state()
         self._log_pool_stats()
 
 
@@ -371,9 +385,8 @@ class PostgresDB(DataAccessObject):
 
     def get_refresh_token(self, token: str, revoked: Optional[bool] = None) -> Optional[tuple]:
         """Get refresh token information."""
-        conn = None
+        conn = self._get_conn() 
         try:
-            conn = self._get_conn() 
             cur = conn.cursor()
         
             if revoked is None:
@@ -395,8 +408,7 @@ class PostgresDB(DataAccessObject):
         except Exception as e:
             raise DatabaseError(f"Error getting refresh token: {str(e)}")
         finally:
-            if conn:
-                self._release_conn(conn)
+            self._release_conn(conn)
 
 
     def set_revoked_status(self, token: str, revoked: bool) -> None:

@@ -257,7 +257,7 @@ def refresh():
     
     # Check if token is expired
     if expires_at < datetime.datetime.now(datetime.timezone.utc):
-        db.set_revoked_status(data['token'], True)
+        db.set_revoked_status(data['refresh_token'], True)
         return jsonify({'message': 'Refresh token has expired!'}), 401
     
     # Get user
@@ -269,8 +269,7 @@ def refresh():
     # Generate new access token
     access_token = generate_access_token(user_id)
     
-    # Token rotation: revoke the old refresh token and generate a new one
-    # db.set_revoked_status(data['refresh_token'], True)
+    # Token rotation: generate new refresh token
     new_refresh_token = generate_refresh_token(user_id)
     
     return jsonify({
