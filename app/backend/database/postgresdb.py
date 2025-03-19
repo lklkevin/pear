@@ -109,7 +109,7 @@ class PostgresDB(DataAccessObject):
     def _get_conn(self, retries=5):
         """Retry connection in case of failure."""
         last_exception = None
-        conn, conn_id = None
+        conn, conn_id = None, None
         for attempt in range(retries):
             try:
                 conn = self.pool.getconn()
