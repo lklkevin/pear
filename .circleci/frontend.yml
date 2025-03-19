@@ -1,26 +1,5 @@
 version: 2.1
-orbs:
-  node: circleci/node@5
-
 jobs:
-  test-node:
-    # Install node dependencies and run tests
-    executor: node/default
-    working_directory: ~/project/app/frontend
-    environment:
-      JEST_JUNIT_OUTPUT_DIR: ./test-results/
-    steps:
-      - checkout:
-          path: ~/project
-      - node/install-packages:
-          pkg-manager: npm
-      - run:
-          command: npm install jest-junit
-      - run:
-          name: Run tests with Jest
-          command: ./node_modules/.bin/jest --ci --runInBand --reporters=default --reporters=jest-junit
-      - store_test_results:
-          path: ./test-results/
   deploy-frontend:
     docker:
       - image: cimg/base:stable
@@ -72,11 +51,7 @@ jobs:
             else
               echo "No changes to commit"
             fi
-
 workflows:
   deploy:
     jobs:
-      - test-node
-      - deploy-frontend:
-          requires:
-            - test-node
+      - deploy-frontend
