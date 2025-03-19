@@ -12,7 +12,7 @@ export default function GenerateLayout({
 }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const expandedWidth = 360; // pixels
-  const { loading } = useLoadingStore();
+  const { loading, loadingMessage } = useLoadingStore();
 
   return (
     <div className="min-h-screen  text-white overflow-hidden">
@@ -86,7 +86,7 @@ export default function GenerateLayout({
           <div className="flex flex-col items-center gap-2">
             <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
             <p className="text-lg font-medium text-white">
-              Generating your new exam...
+              { loadingMessage || "Generating your new exam..." }
             </p>
             <p className="w-[240px] sm:w-full font-medium text-zinc-400 text-center drop-shadow-md">
               Check back in a few minutes, do not refresh this page
