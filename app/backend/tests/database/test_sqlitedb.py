@@ -8,7 +8,7 @@ class TestSQLiteDB(BaseTestDAO):
     @pytest.fixture
     def db(self):
         # Use an in-memory database for testing
-        test_db = sqlitedb.SQLiteDB(":memory:", "database/schema.ddl")
+        test_db = sqlitedb.SQLiteDB(":memory:", "backend/database/schema.ddl")
         yield test_db
         test_db.conn.close()
 

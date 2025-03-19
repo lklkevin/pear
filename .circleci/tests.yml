@@ -33,7 +33,7 @@ jobs:
           pkg-manager: poetry
       - run:
           name: Run tests from backend directory
-          command: cd backend && poetry run pytest --junitxml=../junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
+          command: poetry run pytest --junitxml=../junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
       - store_test_results:
           path: junit.xml
 workflows:

@@ -22,8 +22,7 @@ class PostgresDB(DataAccessObject):
     
     def __init__(self, 
                  connection_string=None,
-                 schema: str = "backend/database/postgres_schema.sql"
-                ):
+                 schema: str = "backend/database/postgres_schema.sql"):
         """Initialize the PostgreSQL database connection.
         """
         
@@ -37,7 +36,7 @@ class PostgresDB(DataAccessObject):
                 1, 20,
                 dsn=connection_string,
                 sslmode='require',
-                connect_timeout=10,
+                connect_timeout=10,  # Longer connect timeout
                 keepalives=1,
                 keepalives_idle=30,
                 keepalives_interval=10,
@@ -73,6 +72,18 @@ class PostgresDB(DataAccessObject):
             logger.debug(f"Pool attributes: _used={type(getattr(self.pool, '_used', None))}, "
                          f"_keys={type(getattr(self.pool, '_keys', None))}, "
                          f"_pool={type(getattr(self.pool, '_pool', None))}")
+            
+
+    def _log_full_pool_state(self):
+        """Log detailed pool state: total connections in the pool, used connections, and tracked active connections."""
+        # _used and _pool are internal attributes of the psycopg2 ThreadedConnectionPool.
+        used = len(getattr(self.pool, '_used', []))
+        pool_list = getattr(self.pool, '_pool', [])
+        total_in_pool = len(pool_list)
+        tracked = len(self._active_connections)
+        logger.debug(
+            f"Full pool state -> Total in pool: {total_in_pool}, Used: {used}, Tracked active: {tracked}"
+        )
     
 
     def _init_schema(self, schema_path: str):
@@ -95,7 +106,7 @@ class PostgresDB(DataAccessObject):
             self._release_conn(conn)
     
 
-    def _get_conn(self, retries=3):
+    def _get_conn(self, retries=5):
         """Retry connection in case of failure."""
         last_exception = None
         for attempt in range(retries):
@@ -144,8 +155,9 @@ class PostgresDB(DataAccessObject):
                 
                 # Only check for connection leaks, don't log normal pool activity
                 self._log_pool_stats()
+                self._log_full_pool_state()
                 return conn
-            except psycopg2.OperationalError as e:
+            except Exception as e:
                 last_exception = e
                 logger.error(f"Attempt {attempt+1}: Database connection failed: {e}")
                 
@@ -164,30 +176,15 @@ class PostgresDB(DataAccessObject):
                     logger.warning(f"Retrying in {sleep_time} seconds...")
                     time.sleep(sleep_time)
                 
-                # If we're at the last attempt, try to recreate the pool
+                # If we're at the second to last attempt, try to recreate the pool
                 if attempt == retries - 2:
                     try:
                         logger.warning("Attempting to recreate the connection pool...")
                         self._recreate_pool()
                     except Exception as pool_error:
                         logger.error(f"Failed to recreate connection pool: {pool_error}")
-            except Exception as e:
-                last_exception = e
-                logger.error(f"Unexpected error during connection: {e}")
-                
-                # Return the connection to the pool if it exists with close=True since it's problematic
-                if 'conn' in locals() and conn:
-                    conn_id = id(conn)
-                    try:
-                        self.pool.putconn(conn, close=True)
-                        # Remove from tracking
-                        self._active_connections.pop(conn_id, None)
-                    except Exception:
-                        logger.error(f"Failed to return connection {conn_id} to pool")
-                
-                if attempt < retries - 1:
-                    time.sleep(1)  # Wait 1 second before retrying
         
+
         # If we've exhausted all retries
         error_msg = f"Failed to get a valid database connection after {retries} attempts."
         if last_exception:
@@ -196,7 +193,7 @@ class PostgresDB(DataAccessObject):
         
         # Log pool stats when we have connection problems
         self._log_pool_stats()
-        
+        self._log_full_pool_state()
         raise DatabaseError(error_msg)
     
 
@@ -266,6 +263,7 @@ class PostgresDB(DataAccessObject):
                 logger.warning("Attempted to release None connection")
         
         # Check for connection leaks after release
+        self._log_full_pool_state()
         self._log_pool_stats()
 
 
@@ -299,6 +297,10 @@ class PostgresDB(DataAccessObject):
                 auth_provider: AuthProvider,
                 oauth_id: Optional[str] = None) -> int:
         """Add a new user to the database."""
+        if password is None and auth_provider == 'local':
+            raise DataError("A password must be provided "
+                            "if auth_provider is 'google'.")
+
         conn = self._get_conn()
         try:
             cur = conn.cursor()
@@ -368,9 +370,8 @@ class PostgresDB(DataAccessObject):
 
     def get_refresh_token(self, token: str, revoked: Optional[bool] = None) -> Optional[tuple]:
         """Get refresh token information."""
-        conn = None
+        conn = self._get_conn() 
         try:
-            conn = self._get_conn() 
             cur = conn.cursor()
         
             if revoked is None:
@@ -392,8 +393,7 @@ class PostgresDB(DataAccessObject):
         except Exception as e:
             raise DatabaseError(f"Error getting refresh token: {str(e)}")
         finally:
-            if conn:
-                self._release_conn(conn)
+            self._release_conn(conn)
 
 
     def set_revoked_status(self, token: str, revoked: bool) -> None:
@@ -559,7 +559,7 @@ class PostgresDB(DataAccessObject):
 
             # Add title filter if provided.
             if title:
-                base_query += ' AND e.name LIKE %s'
+                base_query += ' AND e.name ILIKE %s'
                 query_params.append(f"%{title}%")
 
             # Add sorting.
