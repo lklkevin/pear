@@ -109,6 +109,7 @@ class PostgresDB(DataAccessObject):
     def _get_conn(self, retries=5):
         """Retry connection in case of failure."""
         last_exception = None
+        conn, conn_id = None
         for attempt in range(retries):
             try:
                 conn = self.pool.getconn()
@@ -162,7 +163,7 @@ class PostgresDB(DataAccessObject):
                 logger.error(f"Attempt {attempt+1}: Database connection failed: {e}")
                 
                 # If we got a connection but it's bad, return it to the pool
-                if 'conn' in locals() and conn and not conn.closed:
+                if conn is not None:
                     try:
                         self.pool.putconn(conn, close=True)
                         # Remove from tracking
