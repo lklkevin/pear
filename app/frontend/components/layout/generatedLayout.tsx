@@ -3,6 +3,7 @@ import Navbar from "./navNormal";
 import Sidebar from "./sideBar";
 import { motion } from "framer-motion";
 import Generated from "../sidebar/newUser";
+import { useSession } from "next-auth/react";
 
 export default function GenerateLayout({
   children,
@@ -11,6 +12,7 @@ export default function GenerateLayout({
 }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const expandedWidth = 360; // pixels
+  const { data: session, status } = useSession();
 
   return (
     <div className="min-h-screen bg-zinc-950 text-white overflow-hidden">
@@ -37,16 +39,18 @@ export default function GenerateLayout({
         </div>
 
         {/* Absolutely Positioned Sidebar */}
-        <div className="absolute left-0 h-full">
-          <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
-            <div className="px-8">
-              <h2 className="pl-1 text-2xl sm:text-3xl font-semibold">
-                Saving & Sharing
-              </h2>
-              <Generated />
-            </div>
-          </Sidebar>
-        </div>
+        {status !== "loading" && (
+          <div className="absolute left-0 h-full">
+            <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
+              <div className="px-8">
+                <h2 className="pl-1 text-2xl sm:text-3xl font-semibold">
+                  Saving & Sharing
+                </h2>
+                <Generated />
+              </div>
+            </Sidebar>
+          </div>
+        )}
       </div>
     </div>
   );

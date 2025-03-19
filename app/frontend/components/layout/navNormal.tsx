@@ -6,9 +6,10 @@ import { useSession } from "next-auth/react";
 import UserDropdown from "../account/userDropdown";
 import { useState, useEffect } from "react";
 import MobileMenu from "./mobileMenu";
+import { Skeleton } from "../ui/skeleton";
 
 export default function Navbar({ landing = false }: { landing?: boolean }) {
-  const { data: session } = useSession(); // Get authentication state
+  const { data: session, status } = useSession(); // Get authentication state
 
   const router = useRouter();
   const callbackUrl = encodeURIComponent(router.asPath); // Preserve current URL
@@ -57,7 +58,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
 
   return (
     <nav
-      className={`relative text-zinc-400 text-sm md:text-base flex flex-row w-screen h-[72px] px-5 sm:px-8 md:px-10 justify-between py-3 ${
+      className={`relative text-zinc-400 text-sm md:text-base flex flex-row w-screen h-[72px] px-5 sm:px-8 justify-between py-3 ${
         landing
           ? "bg-transparent"
           : `bg-zinc-950 ${mobileMenuOpen ? "" : "border-b border-zinc-800"}`
@@ -88,8 +89,11 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
       </div>
 
       <div className="text-zinc-200 flex items-center h-full space-x-4 md:space-x-6">
-        {/* Preserve the callback URL for login */}
-        {session ? (
+        {status === "loading" ? (
+          <div className="relative flex flex-row items-center gap-4 md:gap-6">
+            <Skeleton className="h-8 w-24 sm:w-36 rounded-md"></Skeleton>
+          </div>
+        ) : session ? (
           // Show this when user is logged in
           <div className="relative">
             {/* Avatar Button */}
@@ -131,17 +135,19 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
 
         {/* Mobile Menu Button (Always Visible on Small Screens) */}
         <div className="sm:hidden">
-          <button
-            className="block sm:hidden focus:outline-none"
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleMobileMenu();
-            }}
-          >
-            <span className="material-icons text-white text-2xl">
-              {mobileMenuOpen ? "close" : "menu"}
-            </span>
-          </button>
+          {status !== "loading" && (
+            <button
+              className="block sm:hidden focus:outline-none"
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleMobileMenu();
+              }}
+            >
+              <span className="material-icons text-white text-2xl">
+                {mobileMenuOpen ? "close" : "menu"}
+              </span>
+            </button>
+          )}
           {mobileMenuOpen && (
             <MobileMenu
               mobileMenuOpen={mobileMenuOpen}

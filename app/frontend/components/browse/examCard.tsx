@@ -54,7 +54,7 @@ export default function ExamCard({
       >
         <Favorite examId={exam.exam_id} initialFavorite={exam.liked} />
         <div className="absolute bottom-0 py-3 px-4 text-white bg-zinc-900 w-full rounded-b-lg border-t border-zinc-800">
-          <h3 className="text-md font-medium mb-1">{exam.name}</h3>
+          <h3 className="text-md font-medium mb-1 truncate">{exam.name}</h3>
           <p className={`text-xs text-zinc-400 ${dmMono.className}`}>{exam.date}</p>
         </div>
       </div>
