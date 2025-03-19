@@ -73,7 +73,7 @@ export default function ExamForm() {
           useLoadingStore.getState().setProgress(0);
           return;
         } else if (taskResult.state === "PROGRESS") {
-          const progressInfo = taskResult.result?.status || "Processing...";
+          const progressInfo = taskResult.result?.status || "Generating your new exam...";
           useLoadingStore.getState().setLoadingMessage(progressInfo);
 
           if (

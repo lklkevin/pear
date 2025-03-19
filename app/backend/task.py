@@ -29,31 +29,9 @@ async def _generate_exam_core(self, pdf_data_list, num_questions, title, descrip
     Returns the generated exam object and formatted exam data
     """
     exam = Exam()
-
-    # 1. Validate files
-    self.update_state(
-        state='PROGRESS',
-        meta={
-            'status': 'Validating PDF files',
-            'current': 1,
-            'total': 6,
-            'stage': 'validation'
-        }
-    )
     
     if not pdf_data_list or len(pdf_data_list) > 5:
         raise ValueError("Must provide between 1 and 5 PDF files.")
-
-    # 2. Initialize models and scanner
-    self.update_state(
-        state='PROGRESS',
-        meta={
-            'status': 'Initializing AI models',
-            'current': 2,
-            'total': 6,
-            'stage': 'initialization'
-        }
-    )
     
     pdf_model = GeminiModel()
     text_model = Cohere('command-a-03-2025')
@@ -64,8 +42,8 @@ async def _generate_exam_core(self, pdf_data_list, num_questions, title, descrip
         state='PROGRESS',
         meta={
             'status': 'Scanning PDFs and extracting content',
-            'current': 3,
-            'total': 6,
+            'current': 1,
+            'total': 4,
             'stage': 'pdf_scanning'
         }
     )
@@ -77,8 +55,8 @@ async def _generate_exam_core(self, pdf_data_list, num_questions, title, descrip
         state='PROGRESS',
         meta={
             'status': 'Generating potential exam questions',
-            'current': 4,
-            'total': 6,
+            'current': 2,
+            'total': 4,
             'stage': 'question_generation'
         }
     )
@@ -96,17 +74,6 @@ async def _generate_exam_core(self, pdf_data_list, num_questions, title, descrip
 
     if len(possible_exam_questions) == 0:
         raise Exception("No questions could be generated from the provided PDFs")
-
-    # 5. Select questions for the exam
-    self.update_state(
-        state='PROGRESS',
-        meta={
-            'status': 'Selecting final exam questions',
-            'current': 5,
-            'total': 6,
-            'stage': 'question_selection'
-        }
-    )
     
     # Randomly select `num_questions`
     selected_questions = random.sample(possible_exam_questions, min(num_questions, len(possible_exam_questions)))
@@ -120,8 +87,8 @@ async def _generate_exam_core(self, pdf_data_list, num_questions, title, descrip
         state='PROGRESS',
         meta={
             'status': 'Generating answers for each question',
-            'current': 5.5,  # Show some progress before completion
-            'total': 6,
+            'current': 3,  # Show some progress before completion
+            'total': 4,
             'stage': 'answer_generation'
         }
     )
@@ -170,7 +137,7 @@ def generate_exam_task(self, pdf_data_list, num_questions, title, description, m
             meta={
                 'status': 'Starting exam generation process',
                 'current': 0,
-                'total': 6,  # Total number of main steps
+                'total': 4,  # Total number of main steps
                 'stage': 'initialization'
             }
         )
@@ -183,8 +150,8 @@ def generate_exam_task(self, pdf_data_list, num_questions, title, description, m
             state='PROGRESS',
             meta={
                 'status': 'Exam generation complete',
-                'current': 6,
-                'total': 6,
+                'current': 4,
+                'total': 4,
                 'stage': 'complete'
             }
         )
@@ -211,7 +178,7 @@ def generate_and_save_exam_task(self, pdf_data_list, num_questions, title, descr
             meta={
                 'status': 'Starting exam generation process',
                 'current': 0,
-                'total': 6,  # Total steps including database save
+                'total': 4,  # Total steps including database save
                 'stage': 'initialization'
             }
         )
@@ -224,8 +191,8 @@ def generate_and_save_exam_task(self, pdf_data_list, num_questions, title, descr
             state='PROGRESS',
             meta={
                 'status': 'Saving exam to database',
-                'current': 6,
-                'total': 6,
+                'current': 4,
+                'total': 4,
                 'stage': 'database_save'
             }
         )
