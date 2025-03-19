@@ -157,7 +157,7 @@ class PostgresDB(DataAccessObject):
                 self._log_pool_stats()
                 self._log_full_pool_state()
                 return conn
-            except psycopg2.OperationalError as e:
+            except Exception as e:
                 last_exception = e
                 logger.error(f"Attempt {attempt+1}: Database connection failed: {e}")
                 
@@ -176,30 +176,15 @@ class PostgresDB(DataAccessObject):
                     logger.warning(f"Retrying in {sleep_time} seconds...")
                     time.sleep(sleep_time)
                 
-                # If we're at the last attempt, try to recreate the pool
+                # If we're at the second to last attempt, try to recreate the pool
                 if attempt == retries - 2:
                     try:
                         logger.warning("Attempting to recreate the connection pool...")
                         self._recreate_pool()
                     except Exception as pool_error:
                         logger.error(f"Failed to recreate connection pool: {pool_error}")
-            except Exception as e:
-                last_exception = e
-                logger.error(f"Unexpected error during connection: {e}")
-                
-                # Return the connection to the pool if it exists with close=True since it's problematic
-                if 'conn' in locals() and conn:
-                    conn_id = id(conn)
-                    try:
-                        self.pool.putconn(conn, close=True)
-                        # Remove from tracking
-                        self._active_connections.pop(conn_id, None)
-                    except Exception:
-                        logger.error(f"Failed to return connection {conn_id} to pool")
-                
-                if attempt < retries - 1:
-                    time.sleep(1)  # Wait 1 second before retrying
         
+
         # If we've exhausted all retries
         error_msg = f"Failed to get a valid database connection after {retries} attempts."
         if last_exception:
