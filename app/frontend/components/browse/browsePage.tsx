@@ -32,7 +32,7 @@ export default function BrowsePage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const limit = 16; // Number of items per page
+  const limit = 12; // Number of items per page
 
   // Function to build fetch URL and options
   const buildFetchParams = useCallback(() => {
