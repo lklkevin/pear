@@ -32,8 +32,9 @@ export default function ExamForm() {
     taskId: string,
     onSuccess: (taskResult: any, taskId: string) => void
   ) => {
-    const pollInterval = 10000; // Poll every 10 seconds
-    const maxPollTime = 6 * 60 * 1000; // 6 minutes max
+    useLoadingStore.getState().setProgress(0);
+    const pollInterval = 5000; // Poll every 5 seconds
+    const maxPollTime = 6 * 60 * 1000; // 5 minutes max
     const startTime = Date.now();
 
     const poll = async () => {
@@ -47,6 +48,7 @@ export default function ExamForm() {
             .setError("Error generating exam, please try again later");
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
+          useLoadingStore.getState().setProgress(0);
           return;
         }
 
@@ -57,6 +59,7 @@ export default function ExamForm() {
           onSuccess(taskResult, taskId);
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
+          useLoadingStore.getState().setProgress(0);
           return;
         } else if (taskResult.state === "FAILURE") {
           const errorMsg = taskResult.result
@@ -67,10 +70,20 @@ export default function ExamForm() {
           useErrorStore.getState().setError(errorMsg);
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
+          useLoadingStore.getState().setProgress(0);
           return;
         } else if (taskResult.state === "PROGRESS") {
           const progressInfo = taskResult.result?.status || "Processing...";
           useLoadingStore.getState().setLoadingMessage(progressInfo);
+
+          if (
+            taskResult.result?.current != null &&
+            taskResult.result?.total != null
+          ) {
+            const { current, total } = taskResult.result;
+            const percentage = Math.floor((current / total) * 100);
+            useLoadingStore.getState().setProgress(percentage);
+          }
         }
 
         // Check if we've reached maximum polling time
@@ -80,6 +93,7 @@ export default function ExamForm() {
             .setError("Error generating exam, please try again later");
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
+          useLoadingStore.getState().setProgress(0);
           return;
         }
 
@@ -91,6 +105,7 @@ export default function ExamForm() {
           .setError("Error generating exam, please try again later");
         useLoadingStore.getState().setLoading(false);
         useLoadingStore.getState().setLoadingMessage(null);
+        useLoadingStore.getState().setProgress(0);
       }
     };
 
@@ -201,7 +216,7 @@ export default function ExamForm() {
         {status === "loading" ? (
           <>
             <Skeleton className="h-[1.75rem] mb-2 sm:mb-4 w-1/3"></Skeleton>
-            <Skeleton className="min-h-[264px] sm:min-h-[284px] flex-1 rounded-lg"></Skeleton>
+            <Skeleton className="min-h-[260px] sm:min-h-[284px] flex-1 rounded-lg"></Skeleton>
           </>
         ) : (
           <>

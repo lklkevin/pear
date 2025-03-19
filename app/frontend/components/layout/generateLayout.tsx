@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import InfoCard from "../sidebar/infoCard";
 import { useLoadingStore } from "@/store/store";
 import { useSession } from "next-auth/react";
+import ProgressBar from "../ui/loading";
 
 export default function GenerateLayout({
   children,
@@ -13,7 +14,7 @@ export default function GenerateLayout({
 }) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const expandedWidth = 360; // pixels
-  const { loading, loadingMessage } = useLoadingStore();
+  const { loading, loadingMessage, progressPercentage } = useLoadingStore();
   const { status } = useSession();
 
   return (
@@ -86,17 +87,12 @@ export default function GenerateLayout({
       </div>
 
       {loading && (
-        <div className="fixed inset-0 bg-zinc-950/25 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-2">
-            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
-            <p className="text-lg font-medium text-white">
-              {loadingMessage || "Generating your new exam..."}
-            </p>
-            <p className="w-[240px] sm:w-full font-medium text-zinc-400 text-center drop-shadow-md">
-              Check back in a few minutes, do not refresh this page
-            </p>
-          </div>
-        </div>
+        <ProgressBar
+          progressPercentage={progressPercentage}
+          loadingMessage={
+            loadingMessage ? loadingMessage : "Generating your new exam..."
+          }
+        ></ProgressBar>
       )}
     </div>
   );

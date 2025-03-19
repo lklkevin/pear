@@ -1,30 +1,28 @@
-"use client"
-
-import type React from "react"
-import { cn } from "@/utils/utils"
-import { motion } from "framer-motion"
+import type React from "react";
+import { cn } from "@/utils/utils";
+import { motion } from "framer-motion";
 
 interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * The shape of the skeleton
    * @default "rectangle"
    */
-  variant?: "rectangle" | "circle" | "text"
+  variant?: "rectangle" | "circle" | "text";
   /**
    * Whether to animate the entrance/exit
    * @default true
    */
-  animate?: boolean
+  animate?: boolean;
   /**
    * The duration of the animation in seconds
    * @default 0.3
    */
-  duration?: number
+  duration?: number;
   /**
    * The delay before the animation starts in seconds
    * @default 0
    */
-  delay?: number
+  delay?: number;
 }
 
 export function Skeleton({
@@ -32,14 +30,20 @@ export function Skeleton({
   variant = "rectangle",
   animate = true,
   duration = 0.3,
-  delay = 0
+  delay = 0,
 }: SkeletonProps) {
-
   // Animation variants
   const variants = {
+    hidden: { opacity: 0 },
     visible: { opacity: 1 },
-    exit: { opacity: 0, },
-  }
+    exit: {
+      opacity: 0,
+      transition: {
+        duration: duration * 1.2,
+        ease: [0.4, 0, 0.2, 1],
+      },
+    },
+  };
 
   return (
     <motion.div
@@ -54,7 +58,7 @@ export function Skeleton({
         !className?.includes("w-") && "w-full",
         // Default to h-4 (1rem) if no height class is provided and not text variant
         !className?.includes("h-") && variant !== "text" && "h-4",
-        className,
+        className
       )}
       {...(animate && {
         initial: "hidden",
@@ -68,6 +72,5 @@ export function Skeleton({
         },
       })}
     />
-  )
+  );
 }
-
