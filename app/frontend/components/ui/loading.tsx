@@ -49,14 +49,11 @@ export default function AnimatedProgressBar({
       setDisplayProgress(currentBreakpoint);
     }
 
-    // Only auto-increment if displayProgress is less than both the external progress and the next breakpoint.
-    if (
-      displayProgress < progressPercentage &&
-      displayProgress < nextBreakpoint
-    ) {
+    // Auto-increment
+    if (displayProgress < nextBreakpoint) {
       const interval = setInterval(() => {
         setDisplayProgress((prev) => {
-          const target = Math.min(progressPercentage, nextBreakpoint);
+          const target = nextBreakpoint;
           const newValue = prev + 1;
 
           if (newValue >= target) {
