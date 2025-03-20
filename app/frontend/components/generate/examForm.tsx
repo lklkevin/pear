@@ -185,6 +185,7 @@ export default function ExamForm() {
 
       // Pass a different success callback based on the endpoint used
       pollTask(taskId, (taskResult, taskId) => {
+        useLoadingStore.getState().setProgress(100);
         if (isGenerateSave) {
           router.push(`/exam/${taskResult.result.exam_id}`);
         } else {

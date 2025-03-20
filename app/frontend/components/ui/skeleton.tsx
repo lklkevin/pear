@@ -48,7 +48,7 @@ export function Skeleton({
   return (
     <motion.div
       className={cn(
-        "animate-pulse bg-muted bg-zinc-900",
+        "animate-pulse bg-zinc-900",
         {
           "rounded-full": variant === "circle",
           "rounded-md": variant === "rectangle",
