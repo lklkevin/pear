@@ -1,3 +1,56 @@
+"""
+Test PDFs Documentation
+
+This module contains descriptions of various test PDFs used for evaluating
+the robustness of a math question extraction system.
+
+1. empty.pdf:
+   - A blank PDF with no content.
+   - Tests how the extractor handles an empty document.
+
+2. images.pdf:
+   - Contains screenshots of normal1.pdf.
+   - Used to evaluate OCR-based extraction from image-based content.
+
+3. multi_column.pdf:
+   - Contains a structured math test with a multi-column layout.
+   - Questions are arranged in three columns.
+   - Ensures the extractor can properly handle text split across multiple columns.
+
+4. inconsistent.pdf:
+   - A math test with inconsistent formatting.
+   - Uses varying fonts, styles, and orientations.
+   - Tests the extractor's ability to handle formatting inconsistencies.
+
+5. noisy.pdf:
+   - A math test containing distracting text and elements.
+   - Random uppercase letters are inserted between questions.
+   - Evaluates the extractor's ability to filter out irrelevant content.
+
+6. unrelated.pdf:
+   - A document with no math content.
+   - Contains general knowledge text on topics like history, physics, and literature.
+   - Used to test the extractor's ability to avoid false positives.
+
+7. normal1.pdf:
+   - A linear algebra exam from a university course.
+   - Includes both word problems and matrix-based questions.
+   - Structured as a traditional exam with numbered questions and solutions.
+
+8. normal2.pdf:
+   - A mathematics test featuring multiple-choice questions.
+   - Each question has five answer choices labeled (a) to (e).
+   - No calculators are allowed.
+
+9. normal3.pdf:
+   - A multivariable calculus exam.
+   - Includes a mix of problem-solving, graphing, and theoretical questions.
+   - Features a formula sheet at the end.
+
+Each PDF serves a specific role in testing different extraction challenges,
+ensuring robustness across various formats and styles.
+"""
+
 import os
 import pytest
 import asyncio
