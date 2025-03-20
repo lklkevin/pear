@@ -9,8 +9,8 @@ export default function ExamSkeleton() {
         <Skeleton className="h-[1.25rem] sm:h-[1.5rem] w-full"></Skeleton>
       </div>
       <div className="flex items-center justify-between mb-8 sm:mb-12">
-        <Skeleton className="rounded w-[196px] h-[44px]"></Skeleton>
-        <Skeleton className="rounded w-[44px] sm:w-[134px] h-[44px]"></Skeleton>
+        <Skeleton className=" w-[196px] h-[44px]"></Skeleton>
+        <Skeleton className=" w-[44px] sm:w-[134px] h-[44px]"></Skeleton>
       </div>
       <div className="space-y-6 sm:space-y-8">
         <div>

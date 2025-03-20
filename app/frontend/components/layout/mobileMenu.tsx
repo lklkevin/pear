@@ -25,15 +25,15 @@ export default function MobileMenu({
     >
       <nav className="w-full text-center">
         <Link href="/browse" className="block text-lg w-screen px-5 py-1">
-          <div className="py-2 rounded-lg hover:bg-zinc-800">Browse</div>
+          <div className="py-2 rounded-md hover:bg-zinc-800">Browse</div>
         </Link>
         <Link href="/generate" className="block text-lg w-screen px-5 py-1">
-          <div className="py-2 rounded-lg hover:bg-zinc-800">Generate</div>
+          <div className="py-2 rounded-md hover:bg-zinc-800">Generate</div>
         </Link>
         {session ? (
           <>
             <Link href="/account" className="block text-lg w-screen px-5 py-1">
-              <div className="py-2 rounded-lg hover:bg-zinc-800">Account</div>
+              <div className="py-2 rounded-md hover:bg-zinc-800">Account</div>
             </Link>
             <button
               className="block text-lg w-screen px-5 py-1"
@@ -42,7 +42,7 @@ export default function MobileMenu({
                 setMobileMenuOpen(false);
               }}
             >
-              <div className="py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800 flex justify-center items-center gap-2">
+              <div className="py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 flex justify-center items-center gap-2">
                 <span className="material-icons">logout</span>
                 Logout
               </div>
@@ -53,7 +53,7 @@ export default function MobileMenu({
             href={`/login?callbackUrl=${callbackUrl}`}
             className="block text-lg w-screen px-5 py-1"
           >
-            <div className="py-2 rounded-lg bg-zinc-900 hover:bg-zinc-800">
+            <div className="py-2 rounded-md bg-zinc-900 hover:bg-zinc-800">
               Login
             </div>
           </Link>

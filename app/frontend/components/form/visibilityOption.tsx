@@ -16,10 +16,12 @@ export function VisibilityOption({
   subText,
   onChange,
 }: VisibilityOptionProps) {
-  const borderClass = selected ? "border border-emerald-500" : "border border-zinc-800";
+  const borderClass = selected
+    ? "border border-emerald-500"
+    : "border border-zinc-800";
   return (
     <label
-      className={`min-w-28 flex-1 ${borderClass} flex items-center gap-3 p-3 rounded-lg pl-4 cursor-pointer hover:bg-zinc-800 transition-colors`}
+      className={`min-w-28 flex-1 ${borderClass} flex items-center gap-3 p-3 rounded-md pl-4 cursor-pointer hover:bg-zinc-800 transition-colors`}
     >
       <div className="relative flex items-center">
         <input

@@ -73,7 +73,8 @@ export default function ExamForm() {
           useLoadingStore.getState().setProgress(0);
           return;
         } else if (taskResult.state === "PROGRESS") {
-          const progressInfo = taskResult.result?.status || "Generating your new exam...";
+          const progressInfo =
+            taskResult.result?.status || "Generating your new exam...";
           useLoadingStore.getState().setLoadingMessage(progressInfo);
 
           if (
@@ -217,7 +218,7 @@ export default function ExamForm() {
         {status === "loading" ? (
           <>
             <Skeleton className="h-[1.75rem] mb-2 sm:mb-4 w-1/3"></Skeleton>
-            <Skeleton className="min-h-[260px] sm:min-h-[284px] flex-1 rounded-lg"></Skeleton>
+            <Skeleton className="min-h-[260px] sm:min-h-[284px] flex-1"></Skeleton>
           </>
         ) : (
           <>
@@ -278,8 +279,10 @@ export default function ExamForm() {
               onChange={(e) => setExamDescription(e.target.value)}
             />
 
-            <div className="mt-4 sm:mt-8 mb-2 sm:mb-4 flex flex-row justify-between">
-              <h3 className="text-lg sm:text-xl font-semibold">Questions</h3>
+            <div className="mt-4 sm:mt-8 mb-2 sm:mb-4 flex flex-row items-center justify-between">
+              <h3 className="h-full text-lg sm:text-xl font-semibold ">
+                Questions
+              </h3>
               <Counter
                 value={count}
                 onChange={setCount}

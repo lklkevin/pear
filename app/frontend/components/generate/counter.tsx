@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import { DM_Mono } from "next/font/google";
 
 // Load the DM Mono font from Google Fonts
@@ -8,55 +8,61 @@ const dmMono = DM_Mono({
 });
 
 interface CounterProps {
-  value: number
-  onChange: (value: number) => void
-  min?: number
-  max?: number
-  step?: number
+  value: number;
+  onChange: (value: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
 }
 
-export default function Counter({ value, onChange, min = 0, max = 100, step = 1 }: CounterProps) {
+export default function Counter({
+  value,
+  onChange,
+  min = 0,
+  max = 100,
+  step = 1,
+}: CounterProps) {
   // Track the raw input value separately
-  const [inputValue, setInputValue] = useState(value.toString())
+  const [inputValue, setInputValue] = useState(value.toString());
 
   // Update the input value when the prop value changes
   useEffect(() => {
-    setInputValue(value.toString())
-  }, [value])
+    setInputValue(value.toString());
+  }, [value]);
 
   const increment = () => {
-    onChange(Math.min(value + step, max))
-  }
+    onChange(Math.min(value + step, max));
+  };
 
   const decrement = () => {
-    onChange(Math.max(value - step, min))
-  }
+    onChange(Math.max(value - step, min));
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const rawValue = e.target.value
+    const rawValue = e.target.value;
 
     // Allow empty input or partial input while typing
-    setInputValue(rawValue)
+    setInputValue(rawValue);
 
     // Only update parent state if it's a valid number
     if (rawValue !== "" && !isNaN(Number(rawValue))) {
-      const newValue = Number.parseInt(rawValue, 10)
-      onChange(Math.max(min, Math.min(newValue, max)))
+      const newValue = Number.parseInt(rawValue, 10);
+      onChange(Math.max(min, Math.min(newValue, max)));
     }
-  }
+  };
 
   const handleBlur = () => {
     // When the input loses focus, ensure we have a valid value
     if (inputValue === "" || isNaN(Number(inputValue))) {
-      setInputValue(min.toString())
-      onChange(min)
+      setInputValue(min.toString());
+      onChange(min);
     } else {
-      const newValue = Number.parseInt(inputValue, 10)
-      const boundedValue = Math.max(min, Math.min(newValue, max))
-      setInputValue(boundedValue.toString())
-      onChange(boundedValue)
+      const newValue = Number.parseInt(inputValue, 10);
+      const boundedValue = Math.max(min, Math.min(newValue, max));
+      setInputValue(boundedValue.toString());
+      onChange(boundedValue);
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-end gap-3 w-full max-w-[240px]">
@@ -92,6 +98,5 @@ export default function Counter({ value, onChange, min = 0, max = 100, step = 1 
         <span className="material-icons text-zinc-400">add</span>
       </button>
     </div>
-  )
+  );
 }
-

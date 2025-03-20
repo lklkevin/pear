@@ -117,7 +117,7 @@ export default function FileUpload({
   const hasFiles = internalFiles.length > 0;
   const isMaxFilesReached = internalFiles.length >= maxFiles;
   const dropzoneClass =
-    "h-full border border-zinc-800 rounded-lg text-center bg-zinc-900 transition-all duration-500 ease-in-out";
+    "h-full border border-zinc-800 rounded-md text-center bg-zinc-900 transition-all duration-500 ease-in-out";
 
   // Animation variants for consistent animations
   const containerVariants = {
@@ -183,7 +183,7 @@ export default function FileUpload({
             <motion.div
               layout
               style={{ overflow: "hidden", zIndex: 1 }}
-              className="flex flex-wrap gap-3 sm:gap-4 p-4 sm:p-6 bg-zinc-950/25 rounded-t-lg border-b border-zinc-800"
+              className="flex flex-wrap gap-3 sm:gap-4 p-4 sm:p-6 bg-zinc-950/25 rounded-t-md border-b border-zinc-800"
               initial="hidden"
               animate="visible"
               exit="exit"
@@ -193,7 +193,7 @@ export default function FileUpload({
               {internalFiles.map((file, index) => (
                 <motion.div
                   key={`file-${file.name}-${index}`}
-                  className="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-md flex items-center text-sm"
+                  className="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded flex items-center text-sm"
                   variants={fileItemVariants}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -242,7 +242,7 @@ export default function FileUpload({
               isMaxFilesReached
                 ? "cursor-not-allowed "
                 : "cursor-pointer hover:bg-zinc-800/30"
-            } items-center justify-center px-4 py-8 border border-dashed rounded-md self-start transition-all duration-300 ${
+            } items-center justify-center px-4 py-8 border border-dashed rounded self-start transition-all duration-300 ${
               isMaxFilesReached ? "border-zinc-700" : "border-zinc-700"
             }`}
           >

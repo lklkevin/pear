@@ -61,8 +61,9 @@ export default function ExamContent({ exam }: { exam: Exam }) {
           <span className="material-icons mr-2 text-xl">
             {allRevealed ? "visibility_off" : "visibility"}
           </span>
-          <p className="pt-[0.5px] sm:pt-0 flex-1 text-sm sm:text-base font-medium">{allRevealed ? "Hide" : "Reveal"} All Answers</p>
-          
+          <p className="pt-[0.5px] sm:pt-0 flex-1 text-sm sm:text-base font-medium">
+            {allRevealed ? "Hide" : "Reveal"} All Answers
+          </p>
         </button>
         <button
           className="px-3 sm:px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
@@ -83,7 +84,7 @@ export default function ExamContent({ exam }: { exam: Exam }) {
             </h2>
 
             {/* Question text in a styled preformatted box */}
-            <div className="bg-zinc-900 p-4 rounded-t-lg font-mono border border-zinc-800">
+            <div className="bg-zinc-900 p-4 rounded-t-md font-mono border border-zinc-800">
               <pre
                 className={`text-sm whitespace-pre-wrap ${dmMono.className}`}
               >
