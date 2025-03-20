@@ -6,6 +6,7 @@ import { useSession, getSession } from "next-auth/react";
 import Counter from "./counter";
 import { useErrorStore, useLoadingStore } from "@/store/store";
 import { useRouter } from "next/router";
+import { Skeleton } from "../ui/skeleton";
 import {
   VisibilityOption,
   Visibility,
@@ -22,7 +23,7 @@ export default function ExamForm() {
   const [count, setCount] = useState(5);
   const [examTitle, setExamTitle] = useState("");
   const [examDescription, setExamDescription] = useState("");
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [visibility, setVisibility] = useState<Visibility>("private");
   const [selectedColor, setSelectedColor] = useState<Color>("teal");
 
@@ -31,8 +32,9 @@ export default function ExamForm() {
     taskId: string,
     onSuccess: (taskResult: any, taskId: string) => void
   ) => {
-    const pollInterval = 10000; // Poll every 10 seconds
-    const maxPollTime = 6 * 60 * 1000; // 6 minutes max
+    useLoadingStore.getState().setProgress(0);
+    const pollInterval = 5000; // Poll every 5 seconds
+    const maxPollTime = 6 * 60 * 1000; // 5 minutes max
     const startTime = Date.now();
 
     const poll = async () => {
@@ -46,6 +48,7 @@ export default function ExamForm() {
             .setError("Error generating exam, please try again later");
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
+          useLoadingStore.getState().setProgress(0);
           return;
         }
 
@@ -56,6 +59,7 @@ export default function ExamForm() {
           onSuccess(taskResult, taskId);
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
+          useLoadingStore.getState().setProgress(0);
           return;
         } else if (taskResult.state === "FAILURE") {
           const errorMsg = taskResult.result
@@ -66,10 +70,20 @@ export default function ExamForm() {
           useErrorStore.getState().setError(errorMsg);
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
+          useLoadingStore.getState().setProgress(0);
           return;
         } else if (taskResult.state === "PROGRESS") {
-          const progressInfo = taskResult.result?.status || "Processing...";
+          const progressInfo = taskResult.result?.status || "Generating your new exam...";
           useLoadingStore.getState().setLoadingMessage(progressInfo);
+
+          if (
+            taskResult.result?.current != null &&
+            taskResult.result?.total != null
+          ) {
+            const { current, total } = taskResult.result;
+            const percentage = Math.floor((current / total) * 100);
+            useLoadingStore.getState().setProgress(percentage);
+          }
         }
 
         // Check if we've reached maximum polling time
@@ -79,6 +93,7 @@ export default function ExamForm() {
             .setError("Error generating exam, please try again later");
           useLoadingStore.getState().setLoading(false);
           useLoadingStore.getState().setLoadingMessage(null);
+          useLoadingStore.getState().setProgress(0);
           return;
         }
 
@@ -90,6 +105,7 @@ export default function ExamForm() {
           .setError("Error generating exam, please try again later");
         useLoadingStore.getState().setLoading(false);
         useLoadingStore.getState().setLoadingMessage(null);
+        useLoadingStore.getState().setProgress(0);
       }
     };
 
@@ -197,89 +213,124 @@ export default function ExamForm() {
     <div className="mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-2 sm:gap-8 h-full">
       {/* Left: File Upload */}
       <div className="flex flex-col h-full">
-        <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">
-          File Upload
-        </h3>
-        <div className="flex-1">
-          <FileUpload files={files} setFiles={setFiles} />
-        </div>
+        {status === "loading" ? (
+          <>
+            <Skeleton className="h-[1.75rem] mb-2 sm:mb-4 w-1/3"></Skeleton>
+            <Skeleton className="min-h-[260px] sm:min-h-[284px] flex-1 rounded-lg"></Skeleton>
+          </>
+        ) : (
+          <>
+            <h3 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">
+              File Upload
+            </h3>
+            <div className="flex-1">
+              <FileUpload files={files} setFiles={setFiles} />
+            </div>
+          </>
+        )}
       </div>
 
       {/* Right: Form Fields */}
-      <div className="flex flex-col h-full gap-8 justify-between">
-        <div>
-          <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-0 mb-2 sm:mb-4">
-            Exam Title
-          </h3>
-          <InputField
-            placeholder="Untitled Exam"
-            value={examTitle}
-            onChange={(e) => setExamTitle(e.target.value)}
-          />
-
-          <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-8 mb-2 sm:mb-4">
-            Description
-          </h3>
-          <InputField
-            placeholder="What do you want the exam to focus on?"
-            textarea={true}
-            value={examDescription}
-            onChange={(e) => setExamDescription(e.target.value)}
-          />
-
-          <div className="mt-4 sm:mt-8 mb-2 sm:mb-4 flex flex-row justify-between">
-            <h3 className="text-lg sm:text-xl font-semibold">Questions</h3>
-            <Counter
-              value={count}
-              onChange={setCount}
-              min={1}
-              max={10}
-              step={1}
-            />
+      {status === "loading" ? (
+        <div className="flex flex-col h-full gap-8 justify-between">
+          <div>
+            <Skeleton className="h-7 mt-4 sm:mt-0 mb-2 sm:mb-4 w-1/3"></Skeleton>
+            <Skeleton className="rounded-md h-[42px]"></Skeleton>
+            <Skeleton className="h-7 mt-4 sm:mt-8 mb-2 sm:mb-4 w-1/3"></Skeleton>
+            <Skeleton className="rounded-md h-[114px]"></Skeleton>
+            <div className="mt-4 sm:mt-8 mb-2 sm:mb-4 h-9 flex flex-row justify-between">
+              <Skeleton className="w-1/4 h-full"></Skeleton>
+              <Skeleton className="w-1/3 h-full"></Skeleton>
+            </div>
+            <Skeleton className="h-7 mt-4 sm:mt-8 mb-2 sm:mb-4 w-1/3"></Skeleton>
+            <div className="flex-col xl:flex-row flex gap-4 w-full">
+              <Skeleton className="h-[66px] w-full"></Skeleton>
+              <Skeleton className="h-[66px] w-full"></Skeleton>
+              <Skeleton className="h-[66px] w-full"></Skeleton>
+            </div>
+            <div className="mt-4 sm:mt-8 mb-2 sm:mb-4 h-7 flex flex-row justify-between">
+              <Skeleton className="w-1/4 h-full"></Skeleton>
+              <Skeleton className="w-2/5 h-full"></Skeleton>
+            </div>
           </div>
-
-          {session && (
-            <>
-              <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-8 mb-2 sm:mb-4">
-                Visibility
-              </h3>
-              <div className="flex-col xl:flex-row flex gap-4 w-full overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-960">
-                <VisibilityOption
-                  option="private"
-                  selected={visibility === "private"}
-                  label="Private"
-                  subText="Only visible to you"
-                  onChange={() => setVisibility("private")}
-                />
-                <VisibilityOption
-                  option="public"
-                  selected={visibility === "public"}
-                  label="Public"
-                  subText="Visible to everyone"
-                  onChange={() => setVisibility("public")}
-                />
-                <VisibilityOption
-                  option="unsaved"
-                  selected={visibility === "unsaved"}
-                  label="Unsaved"
-                  subText="Will not be saved"
-                  onChange={() => setVisibility("unsaved")}
-                />
-              </div>
-            </>
-          )}
-
-          {session && visibility !== "unsaved" && (
-            <StylingOptions
-              selectedColor={selectedColor}
-              setSelectedColor={setSelectedColor}
+          <Skeleton className="w-full h-[46px]"></Skeleton>
+        </div>
+      ) : (
+        <div className="flex flex-col h-full gap-8 justify-between">
+          <div>
+            <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-0 mb-2 sm:mb-4">
+              Exam Title
+            </h3>
+            <InputField
+              placeholder="Untitled Exam"
+              value={examTitle}
+              onChange={(e) => setExamTitle(e.target.value)}
             />
-          )}
+
+            <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-8 mb-2 sm:mb-4">
+              Description
+            </h3>
+            <InputField
+              placeholder="What do you want the exam to focus on?"
+              textarea={true}
+              value={examDescription}
+              onChange={(e) => setExamDescription(e.target.value)}
+            />
+
+            <div className="mt-4 sm:mt-8 mb-2 sm:mb-4 flex flex-row justify-between">
+              <h3 className="text-lg sm:text-xl font-semibold">Questions</h3>
+              <Counter
+                value={count}
+                onChange={setCount}
+                min={1}
+                max={10}
+                step={1}
+              />
+            </div>
+
+            {session && (
+              <>
+                <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-8 mb-2 sm:mb-4">
+                  Visibility
+                </h3>
+                <div className="flex-col xl:flex-row flex gap-4 w-full overflow-x-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-950">
+                  <VisibilityOption
+                    option="private"
+                    selected={visibility === "private"}
+                    label="Private"
+                    subText="Only visible to you"
+                    onChange={() => setVisibility("private")}
+                  />
+                  <VisibilityOption
+                    option="public"
+                    selected={visibility === "public"}
+                    label="Public"
+                    subText="Visible to everyone"
+                    onChange={() => setVisibility("public")}
+                  />
+                  <VisibilityOption
+                    option="unsaved"
+                    selected={visibility === "unsaved"}
+                    label="Unsaved"
+                    subText="Will not be saved"
+                    onChange={() => setVisibility("unsaved")}
+                  />
+                </div>
+              </>
+            )}
+
+            {session && visibility !== "unsaved" && (
+              <StylingOptions
+                selectedColor={selectedColor}
+                setSelectedColor={setSelectedColor}
+              />
+            )}
+          </div>
+          <div className="text-lg">
+            <GreenButton text="Generate" onClick={handleGenerate} />
+          </div>
         </div>
-        <div className="text-lg">
-          <GreenButton text="Generate" onClick={handleGenerate} />
-        </div>
-      </div>
+      )}
     </div>
   );
 }

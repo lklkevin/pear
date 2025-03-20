@@ -6,6 +6,7 @@ import SearchBar from "../ui/searchBar";
 import ExamGrid from "./examGrid";
 import { useErrorStore } from "@/store/store";
 import { DM_Mono } from "next/font/google";
+import { Skeleton } from "../ui/skeleton";
 
 const dmMono = DM_Mono({
   subsets: ["latin"],
@@ -32,7 +33,7 @@ export default function BrowsePage() {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const limit = 16; // Number of items per page
+  const limit = 12; // Number of items per page
 
   // Function to build fetch URL and options
   const buildFetchParams = useCallback(() => {
@@ -182,9 +183,13 @@ export default function BrowsePage() {
   if (status === "loading") {
     return (
       <BrowseLayout>
-        <div className="flex flex-col items-center justify-center h-full py-20">
-          <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin"></div>
-          <p className="text-lg font-medium text-white mt-4">Loading...</p>
+        <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 sm:gap-8">
+          <Skeleton className="h-[2.25rem] sm:h-[3rem] w-2/3 sm:min-w-[200px] md:w-[330px]"></Skeleton>
+          <Skeleton className="mt-1 h-[42px] w-full md:w-auto md:flex-1 md:max-w-[550px] min-w-[250px]"></Skeleton>
+        </div>
+        <Skeleton className="mt-6 h-[31px] w-full"></Skeleton>
+        <div className="flex-1 flex flex-col justify-between h-full">
+          <ExamGrid exams={[]} />
         </div>
       </BrowseLayout>
     );
@@ -215,10 +220,7 @@ export default function BrowsePage() {
       </div>
       <div className="flex-1 flex flex-col justify-between h-full">
         {isLoading ? (
-          <div className="flex flex-col items-center justify-center h-full py-20">
-            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin"></div>
-            <p className="text-lg font-medium text-white mt-4">Loading...</p>
-          </div>
+          <ExamGrid exams={[]} />
         ) : results.length === 0 ? (
           <div className="text-center text-zinc-400 text-lg mt-10">
             No exams found. Try a different search.

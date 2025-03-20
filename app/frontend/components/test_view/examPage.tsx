@@ -6,6 +6,7 @@ import { useErrorStore, useLoadingStore } from "../../store/store";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { getSession } from "next-auth/react";
+import ExamSkeleton from "./examSkeleton";
 
 export default function Page({ id }: { id: string }) {
   const { loading } = useLoadingStore();
@@ -66,12 +67,7 @@ export default function Page({ id }: { id: string }) {
       {exam && !loading ? (
         <ExamContent exam={exam} />
       ) : (
-        <div className="fixed inset-0 bg-zinc-950/25 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-2">
-            <div className="drop-shadow-xl h-12 w-12 rounded-full border-4 border-emerald-600 border-t-white animate-spin mb-4"></div>
-            <p className="text-lg font-medium text-white">Loading...</p>
-          </div>
-        </div>
+        <ExamSkeleton/>
       )}
     </ExamLayout>
   );

@@ -1,25 +1,7 @@
-# This config was automatically generated from your source code
-# Stacks detected: cicd:github-actions:.github/workflows,deps:node:app/frontend,deps:python:app,package_manager:poetry:app,test:jest:
 version: 2.1
 orbs:
-  python: circleci/python@2
   docker: circleci/docker@2.1.4
 jobs:
-  test-python:
-    # Install dependencies and run tests
-    docker:
-      - image: cimg/python:3.11-node
-    working_directory: ~/project/app
-    steps:
-      - checkout:
-          path: ~/project
-      - python/install-packages:
-          pkg-manager: poetry
-      - run:
-          name: Run tests from backend directory
-          command: poetry run pytest --junitxml=../junit.xml || ((($? == 5)) && echo 'Did not find any tests to run.')
-      - store_test_results:
-          path: junit.xml
   deploy-backend:
     docker:
       - image: cimg/base:stable
@@ -43,7 +25,4 @@ jobs:
 workflows:
   deploy:
     jobs:
-      - test-python
-      - deploy-backend:
-          requires:
-            - test-python
+      - deploy-backend

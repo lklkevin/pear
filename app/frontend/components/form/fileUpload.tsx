@@ -247,7 +247,7 @@ export default function FileUpload({
             }`}
           >
             <motion.span className="text-9xl -mt-6">+</motion.span>
-            <motion.span className="text-lg sm:text-xl -mt-2 sm:-mt-4 text-zinc-400">
+            <motion.span className="text-base sm:text-xl -mt-2 sm:-mt-4 text-zinc-400">
               {isMaxFilesReached
                 ? "File limit reached"
                 : hasFiles
