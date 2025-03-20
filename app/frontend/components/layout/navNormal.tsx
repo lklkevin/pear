@@ -88,9 +88,9 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
         </Link>
       </div>
 
-      <div className="text-zinc-200 flex items-center h-full space-x-4 md:space-x-6">
+      <div className={`text-zinc-200 flex items-center h-full ${status === "loading" ? "" : "space-x-4 md:space-x-6"}`}>
         {status === "loading" ? (
-          <div className="relative flex flex-row items-center gap-4 md:gap-6">
+          <div className="relative flex flex-row items-center justify-center">
             <Skeleton className="h-8 w-24 sm:w-36 rounded-md"></Skeleton>
           </div>
         ) : session ? (
