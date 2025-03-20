@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import BrowseLayout from "../layout/browseLayout";
 import Tabs from "../ui/tabs";
 import SearchBar from "../ui/searchBar";
@@ -14,35 +15,99 @@ const dmMono = DM_Mono({
 });
 
 export default function BrowsePage() {
+  const router = useRouter();
   const { data: session, status } = useSession();
-  // Track the latest request to handle out-of-order responses
-  const latestRequestId = useRef(0);
-  // Keep track of abort controller for canceling previous requests
-  const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Only allow "Popular" and "Explore" tabs for unauthenticated users.
+  // Only allow these tabs for the user (depending on auth status)
   const availableTabs = session
     ? ["Popular", "Explore", "My Exams", "Favorites"]
     : ["Popular", "Explore"];
 
-  // States for active tab, search query, current search term (for fetching), fetched results, pagination, and loading.
-  const [activeTab, setActiveTab] = useState(availableTabs[0]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
+  // Default constants
+  const DEFAULT_TAB = availableTabs[0];
+  const DEFAULT_PAGE = 1;
+  const DEFAULT_SEARCH = "";
+  const LIMIT = 12; // Items per page
+
+  // Local state for fetched results and loading
   const [results, setResults] = useState<any[]>([]);
-  const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const limit = 12; // Number of items per page
 
-  // Function to build fetch URL and options
+  // Get values from URL query or fall back to defaults.
+  const activeTab =
+    typeof router.query.tab === "string" ? router.query.tab : DEFAULT_TAB;
+  const page = router.query.page
+    ? parseInt(router.query.page as string)
+    : DEFAULT_PAGE;
+  const searchQuery =
+    typeof router.query.search === "string"
+      ? router.query.search
+      : DEFAULT_SEARCH;
+
+  // Helper to update URL parameters.
+  const updateUrlParams = useCallback(
+    (params: { tab?: string; page?: number; search?: string }) => {
+      const newQuery = { ...router.query };
+      if (params.tab !== undefined) {
+        newQuery.tab = params.tab;
+      }
+      if (params.page !== undefined) {
+        newQuery.page = params.page.toString();
+      }
+      if (params.search !== undefined) {
+        if (params.search === DEFAULT_SEARCH) {
+          delete newQuery.search;
+        } else {
+          newQuery.search = params.search;
+        }
+      }
+      router.push(
+        {
+          pathname: router.pathname,
+          query: newQuery,
+        },
+        undefined,
+        { shallow: true }
+      );
+    },
+    [router]
+  );
+
+  // Handle tab changes. Note the parameter type to match Dispatch<SetStateAction<string>>.
+  const handleTabChange = useCallback(
+    (value: React.SetStateAction<string>) => {
+      // If the value is a function, call it with the current activeTab; otherwise, use it directly.
+      const newTab = typeof value === "function" ? value(activeTab) : value;
+      if (!availableTabs.includes(newTab)) return;
+      updateUrlParams({
+        tab: newTab,
+        page: DEFAULT_PAGE,
+        search: DEFAULT_SEARCH,
+      });
+    },
+    [availableTabs, activeTab, updateUrlParams]
+  );
+
+  // Handle page changes.
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      updateUrlParams({ tab: activeTab, page: newPage });
+    },
+    [activeTab, updateUrlParams]
+  );
+
+  // Build the fetch URL and options.
   const buildFetchParams = useCallback(() => {
     const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     let endpoint = "";
     const params = new URLSearchParams();
-    params.append("limit", limit.toString());
+    params.append("limit", LIMIT.toString());
     params.append("page", page.toString());
-    params.append("title", searchTerm);
+
+    if (searchQuery) {
+      params.append("title", searchQuery);
+    }
 
     if (session) {
       endpoint = `${baseUrl}/api/browse/personal`;
@@ -65,21 +130,9 @@ export default function BrowsePage() {
     }
 
     const url = `${endpoint}?${params.toString()}`;
-
-    // Cancel any in-flight requests
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-
-    // Create new abort controller for this request
-    abortControllerRef.current = new AbortController();
-
     const fetchOptions: RequestInit = {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      signal: abortControllerRef.current.signal,
+      headers: { "Content-Type": "application/json" },
     };
 
     if (session) {
@@ -88,27 +141,15 @@ export default function BrowsePage() {
         Authorization: `Bearer ${session.accessToken}`,
       };
     }
-
     return { url, fetchOptions };
-  }, [activeTab, page, searchTerm]);
+  }, [activeTab, page, searchQuery]);
 
-  // Fetch exams - separate from state effects
+  // Fetch exams from the backend.
   const fetchExams = useCallback(async () => {
-    // Increment the request ID for this specific request
-    const currentRequestId = ++latestRequestId.current;
-
     setIsLoading(true);
-
     try {
       const { url, fetchOptions } = buildFetchParams();
       const response = await fetch(url, fetchOptions);
-
-      // Check if this response is for the latest request
-      // If not, ignore the response to prevent state updates with stale data
-      if (currentRequestId !== latestRequestId.current) {
-        return;
-      }
-
       const data = await response.json();
 
       if (!response.ok || data?.message) {
@@ -117,60 +158,26 @@ export default function BrowsePage() {
           .setError(data?.message || "Error fetching exams");
         return;
       }
-
-      // Double-check that this is still the latest request before updating state
-      if (currentRequestId === latestRequestId.current) {
-        setResults(data);
-        // If we received a full page of items, assume there could be more
-        setHasMore(data.length === limit);
-      }
+      setResults(data);
+      // If we got a full page, assume there may be more.
+      setHasMore(data.length === LIMIT);
     } catch (error) {
-      // Only handle errors for the current request
-      // AbortError is expected when a request is canceled, so we don't treat it as an error
-      if (
-        currentRequestId === latestRequestId.current &&
-        !(error instanceof DOMException && error.name === "AbortError")
-      ) {
-        useErrorStore.getState().setError(error as string);
-      }
+      useErrorStore.getState().setError(error as string);
     } finally {
-      // Only update loading state for the current request
-      if (currentRequestId === latestRequestId.current) {
-        setIsLoading(false);
-      }
+      setIsLoading(false);
     }
   }, [buildFetchParams]);
 
-  // Clean up any pending requests when the component unmounts
+  // Fetch data when router query parameters or session status change.
   useEffect(() => {
-    return () => {
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-    };
-  }, []);
+    if (!router.isReady) return;
 
-  // Handle tab changes - always reset search and page, then fetch
-  const handleTabChange = useCallback((tab: React.SetStateAction<string>) => {
-    setActiveTab(tab);
-    setSearchQuery("");
-    setSearchTerm("");
-    setPage(1);
-  }, []);
-
-  // Handle search - reset page and update search term
-  const handleSearch = useCallback(() => {
-    setPage(1);
-    setSearchTerm(searchQuery);
-  }, [searchQuery]);
-
-  // Unified effect for fetching data when dependencies change
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      fetchExams();
-    }, 0);
-
-    return () => clearTimeout(timeoutId);
+    // Validate the active tab.
+    if (!availableTabs.includes(activeTab)) {
+      handleTabChange(DEFAULT_TAB);
+      return;
+    }
+    fetchExams();
   }, [fetchExams]);
 
   const tabTitles: { [key: string]: string } = {
@@ -180,14 +187,22 @@ export default function BrowsePage() {
     Explore: "Explore Exams",
   };
 
+  // Local state for the search input (to control the input field).
+  const [inputSearchQuery, setInputSearchQuery] = useState(searchQuery);
+
+  // Keep the search input in sync with the URL query.
+  useEffect(() => {
+    setInputSearchQuery(searchQuery);
+  }, [searchQuery]);
+
   if (status === "loading") {
     return (
       <BrowseLayout>
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 sm:gap-8">
-          <Skeleton className="h-[2.25rem] sm:h-[3rem] w-2/3 sm:min-w-[200px] md:w-[330px]"></Skeleton>
-          <Skeleton className="mt-1 h-[42px] w-full md:w-auto md:flex-1 md:max-w-[550px] min-w-[250px]"></Skeleton>
+          <Skeleton className="h-[2.25rem] sm:h-[3rem] w-2/3 sm:min-w-[200px] md:w-[330px]" />
+          <Skeleton className="mt-1 h-[42px] w-full md:w-auto md:flex-1 md:max-w-[550px] min-w-[250px]" />
         </div>
-        <Skeleton className="mt-6 h-[31px] w-full"></Skeleton>
+        <Skeleton className="mt-6 h-[31px] w-full" />
         <div className="flex-1 flex flex-col justify-between h-full">
           <ExamGrid exams={[]} />
         </div>
@@ -204,9 +219,15 @@ export default function BrowsePage() {
         <div className="mt-1 w-full md:w-auto md:flex-1 md:max-w-[550px] min-w-[250px]">
           <SearchBar
             placeholder="Search"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            onSearch={handleSearch}
+            value={inputSearchQuery}
+            onChange={(e) => setInputSearchQuery(e.target.value)}
+            onSearch={() =>
+              updateUrlParams({
+                tab: activeTab,
+                search: inputSearchQuery,
+                page: DEFAULT_PAGE,
+              })
+            }
           />
         </div>
       </div>
@@ -226,14 +247,12 @@ export default function BrowsePage() {
             No exams found. Try a different search.
           </div>
         ) : (
-          <>
-            <ExamGrid exams={results} />
-          </>
+          <ExamGrid exams={results} />
         )}
         <div className="justify-center flex items-center gap-3 w-full mt-4 sm:mt-8">
           <button
-            onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-            disabled={page === 1}
+            onClick={() => handlePageChange(Math.max(page - 1, 1))}
+            disabled={page === 1 || isLoading}
             aria-label="Previous page"
             className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
           >
@@ -247,8 +266,8 @@ export default function BrowsePage() {
           </div>
 
           <button
-            onClick={() => setPage((prev) => (hasMore ? prev + 1 : prev))}
-            disabled={!hasMore}
+            onClick={() => handlePageChange(hasMore ? page + 1 : page)}
+            disabled={!hasMore || isLoading}
             aria-label="Next page"
             className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
           >
