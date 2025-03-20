@@ -72,21 +72,21 @@ export default function AnimatedProgressBar({
 
   return (
     <div className="fixed inset-0 bg-zinc-950/75 sm:bg-zinc-950/50 backdrop-blur-lg z-50 flex items-center justify-center">
-      <div className="relative flex flex-col items-center gap-2 sm:gap-6 p-6 sm:p-8 bg-zinc-900  rounded-lg border border-zinc-800 max-w-lg sm:w-full overflow-hidden">
+      <div className="relative flex flex-col items-center gap-2 sm:gap-6 px-5 py-4 sm:px-8 sm:py-6 bg-zinc-950 rounded-lg sm:rounded-xl border border-zinc-800 w-[358px] max-w-lg sm:w-full overflow-hidden">
         {/* Static Text Content */}
-        <div className="flex items-center justify-between w-full">
+        <div className="flex items-center justify-between w-full gap-4">
           <div className="flex flex-col gap-1">
-            <p className="flex-1 sm:text-lg font-medium text-white">
+            <p className="flex-1 text-sm sm:text-lg font-medium text-white">
               {loadingMessage}
             </p>
-            <p className="mt-0.5 sm:mt-0 w-full text-sm sm:text-base text-zinc-400">
+            <p className="mt-0.5 sm:mt-0 w-full text-xs sm:text-base text-zinc-400">
               Check back in a bit, do not refresh this page
             </p>
           </div>
-          <div className="relative w-16 h-16 hidden sm:block">
-            <div className="absolute inset-0 rounded-full border-4 border-zinc-800 border-t-emerald-600 animate-spin"></div>
+          <div className="relative sm:w-16 sm:h-16 w-12 h-12">
+            <div className="absolute inset-0 rounded-full border-2 sm:border-4 border-zinc-800 border-t-emerald-600 animate-spin"></div>
             <div className="absolute inset-0 flex items-center justify-center">
-              <p className={`text-xl text-emerald-400 ${dmMono.className}`}>
+              <p className={`text-sm sm:text-xl text-emerald-400 ${dmMono.className}`}>
                 {Math.floor(displayProgress)}%
               </p>
             </div>
