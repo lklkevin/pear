@@ -36,7 +36,7 @@ class GeminiPDFScanner(PDFScannerInterface):
         with open(file_path, "r") as prompt_file:
             return prompt_file.read()
 
-    async def scan_pdfs(self, list_of_pdfs: list[str | bytes]) -> list[PDFObject]:
+    async def scan_pdfs(self, list_of_pdfs: list[str | bytes], validate: bool = True) -> list[PDFObject]:
         """
         Scans multiple PDFs and extracts question–answer pairs.
 
@@ -46,6 +46,7 @@ class GeminiPDFScanner(PDFScannerInterface):
 
         Args:
             list_of_pdfs (list[str]): List of file paths to PDF documents.
+            validate (bool) : whether to validate questions or not
 
         Returns:
             list[PDFObject]: A collection of processed PDF objects, each containing QA pairs.
@@ -66,7 +67,7 @@ class GeminiPDFScanner(PDFScannerInterface):
                     pdf_data=pdf_data,  # Pass raw binary PDF data
                 )
                 # Use the image scanner to extract the full PDF content using bytes.
-                pdf_obj = await self._process_pdf_text(extracted_content)
+                pdf_obj = await self._process_pdf_text(extracted_content, validate)
                 pdf_objects.append(pdf_obj)
         else:
             for pdf_path in list_of_pdfs:
@@ -77,12 +78,12 @@ class GeminiPDFScanner(PDFScannerInterface):
                     pdf_path=pdf_path,
                 )
                 # Process the extracted text to obtain question–answer pairs.
-                pdf_obj = await self._process_pdf_text(extracted_content)
+                pdf_obj = await self._process_pdf_text(extracted_content, validate)
                 pdf_objects.append(pdf_obj)
 
         return pdf_objects
 
-    async def _process_pdf_text(self, text: str) -> PDFObject:
+    async def _process_pdf_text(self, text: str, validate: bool = True) -> PDFObject:
         """
         Processes the extracted text to generate question–answer pairs using the text processor.
 
@@ -118,7 +119,7 @@ class GeminiPDFScanner(PDFScannerInterface):
             answer = section[a_index + len("answer:"):].strip()
 
             # Validate the extracted question.
-            if not await self.validate_question(question):
+            if validate and not await self.validate_question(question):
                 print(f"Invalid question skipped: {question}")
                 continue
 
@@ -165,7 +166,7 @@ if __name__ == "__main__":
     from werkzeug.datastructures import FileStorage
 
     # Simulate a Flask file upload
-    with open("./backend/tests/example_pdfs/mat235.pdf", "rb") as pdf_file:
+    with open("./backend/tests/example_pdfs/20240706Tyrrell_Lab Protocol.pdf", "rb") as pdf_file:
         pdf_bytes = pdf_file.read()  # Read the binary content
 
     # Create an in-memory file-like object
