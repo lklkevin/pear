@@ -55,20 +55,22 @@ export default function ExamContent({ exam }: { exam: Exam }) {
       {/* Buttons: Reveal/Hide All Answers & Download */}
       <div className="flex items-center justify-between mb-8 sm:mb-12">
         <button
-          className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
+          className="w-48 sm:w-[200px] font-medium px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
           onClick={() => toggleAllAnswers(!allRevealed)}
         >
           <span className="material-icons mr-2 text-xl">
             {allRevealed ? "visibility_off" : "visibility"}
           </span>
-          {allRevealed ? "Hide" : "Reveal"} All Answers
+          <p className="pt-[0.5px] sm:pt-0 flex-1 text-sm sm:text-base font-medium">
+            {allRevealed ? "Hide" : "Reveal"} All Answers
+          </p>
         </button>
         <button
           className="px-3 sm:px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
           onClick={() => handleDownload(exam)}
         >
           <span className="material-icons sm:mr-2 text-xl">download</span>
-          <p className="hidden sm:block">Download</p>
+          <p className="hidden sm:block font-medium">Download</p>
         </button>
       </div>
 
@@ -77,10 +79,12 @@ export default function ExamContent({ exam }: { exam: Exam }) {
         {exam.questions.map((question, index) => (
           <div key={index}>
             {/* Question title */}
-            <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">Question {index + 1}</h2>
+            <h2 className="text-lg sm:text-xl font-semibold mb-2 sm:mb-4">
+              Question {index + 1}
+            </h2>
 
             {/* Question text in a styled preformatted box */}
-            <div className="bg-zinc-900 p-4 rounded-t-lg font-mono border border-zinc-800">
+            <div className="bg-zinc-900 p-4 rounded-t-md font-mono border border-zinc-800">
               <pre
                 className={`text-sm whitespace-pre-wrap ${dmMono.className}`}
               >

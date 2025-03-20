@@ -15,7 +15,7 @@ export default function UserDropdown({
 
   return (
     <div
-      className="absolute top-full right-0 z-50 w-60 bg-zinc-500 border border-zinc-800 rounded-2xl shadow-lg mt-3 bg-opacity-10 backdrop-blur-md"
+      className="absolute top-full right-0 z-50 w-60 bg-zinc-500 border border-zinc-800 rounded-lg shadow-lg mt-3 bg-opacity-10 backdrop-blur-md"
       onClick={(e) => e.stopPropagation()} // Prevents closing dropdown when clicking inside it
     >
       <div className="p-4 border-b border-zinc-800 text-white">
@@ -24,7 +24,7 @@ export default function UserDropdown({
       </div>
       <Link
         href="/account"
-        className="w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-lg hover:bg-opacity-50"
+        className="w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-md hover:bg-opacity-50"
         onClick={closeMenu}
       >
         <span className="material-icons">person_outline</span>
@@ -37,7 +37,7 @@ export default function UserDropdown({
             signOutWithBackend(session?.refreshToken);
             closeMenu();
           }}
-          className="w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-lg hover:bg-opacity-50"
+          className="w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-md hover:bg-opacity-50"
         >
           <span className="material-icons scale-90">logout</span>
           Log Out

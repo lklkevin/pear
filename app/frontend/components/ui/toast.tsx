@@ -1,30 +1,30 @@
-import { useEffect, useState } from "react"
-import { useErrorStore } from "../../store/store"
-import { motion, AnimatePresence } from "framer-motion"
+import { useEffect, useState } from "react";
+import { useErrorStore } from "../../store/store";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Toast() {
-  const { errorMessage, setError } = useErrorStore()
-  const [visible, setVisible] = useState(false)
+  const { errorMessage, setError } = useErrorStore();
+  const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     if (errorMessage) {
-      setVisible(true)
+      setVisible(true);
       const timer = setTimeout(() => {
-        setVisible(false)
-      }, 3000) // Hide toast after 3s
+        setVisible(false);
+      }, 3000); // Hide toast after 3s
 
-      return () => clearTimeout(timer)
+      return () => clearTimeout(timer);
     }
-  }, [errorMessage])
+  }, [errorMessage]);
 
   // Handle complete exit animation
   const handleAnimationComplete = () => {
     if (!visible) {
-      setError(null)
+      setError(null);
     }
-  }
+  };
 
-  if (!errorMessage) return null
+  if (!errorMessage) return null;
 
   return (
     <AnimatePresence mode="wait" onExitComplete={handleAnimationComplete}>
@@ -36,7 +36,7 @@ export default function Toast() {
           exit={{ opacity: 0, y: -20, x: "-50%" }}
           transition={{ duration: 0.3, ease: "easeOut" }}
         >
-          <motion.div className="relative flex items-center w-[400px] max-w-[90vw] rounded-lg overflow-hidden border border-zinc-700 shadow-lg">
+          <motion.div className="relative flex items-center w-[400px] max-w-[90vw] rounded-md sm:rounded-lg overflow-hidden border border-zinc-700 shadow-lg">
             {/* Background with blur */}
             <div className="absolute inset-0 bg-zinc-950"></div>
 
@@ -47,7 +47,10 @@ export default function Toast() {
                 className="text-white/70 hover:text-white transition-colors"
                 aria-label="Close"
               >
-                <span className="material-icons mt-1.5" style={{ fontSize: "18px" }}>
+                <span
+                  className="material-icons mt-1.5"
+                  style={{ fontSize: "18px" }}
+                >
                   close
                 </span>
               </button>
@@ -66,6 +69,5 @@ export default function Toast() {
         </motion.div>
       )}
     </AnimatePresence>
-  )
+  );
 }
-

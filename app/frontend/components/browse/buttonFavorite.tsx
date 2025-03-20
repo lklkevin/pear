@@ -26,6 +26,7 @@ export default function Favorite({ examId, initialFavorite }: FavoriteProps) {
 
     // Determine the new state and set the corresponding action.
     const newFavoriteState = !isFavorite;
+    setIsFavorite(newFavoriteState);
     const result = {
       exam_id: examId,
       action: newFavoriteState ? "fav" : "unfav",
@@ -48,13 +49,14 @@ export default function Favorite({ examId, initialFavorite }: FavoriteProps) {
       const res = await saveResponse.json();
 
       if (!saveResponse.ok) {
+        setIsFavorite(!newFavoriteState);
         useErrorStore.getState().setError("Failed to update favorite status");
       } else if (res.error) {
+        setIsFavorite(!newFavoriteState);
         useErrorStore.getState().setError(res.error);
-      } else {
-        setIsFavorite(newFavoriteState);
       }
     } catch (error) {
+      setIsFavorite(!newFavoriteState);
       useErrorStore.getState().setError("Failed to update favorite status");
     } finally {
       setIsLoading(false);
@@ -69,7 +71,7 @@ export default function Favorite({ examId, initialFavorite }: FavoriteProps) {
       <span
         className={`drop-shadow-sm material-icons ${
           isFavorite ? "text-white" : "text-zinc-300 hover:text-white"
-        } ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+        }`}
       >
         {isFavorite ? "favorite" : "favorite_border"}
       </span>
