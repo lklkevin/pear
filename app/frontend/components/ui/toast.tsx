@@ -11,7 +11,7 @@ export default function Toast() {
       setVisible(true);
       const timer = setTimeout(() => {
         setVisible(false);
-      }, 3000); // Hide toast after 3s
+      }, 8000); // Hide toast after 8s
 
       return () => clearTimeout(timer);
     }
