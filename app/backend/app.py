@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app, resources={
     r"/api/*": {
         "origins": ["http://localhost:3000", "https://avgr.vercel.app"],
-        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
         "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
         "expose_headers": ["Access-Control-Allow-Origin"],
         "supports_credentials": True,
@@ -309,6 +309,57 @@ def get_profile(current_user):
         'auth_provider': current_user[4]
     }), 200
 
+@app.route('/api/user/username', methods=['PATCH'])
+@token_required
+def update_username(current_user):
+    user_id = current_user[0]
+    data = request.get_json()
+    new_username = data.get('username')
+
+    if not new_username:
+        return jsonify({'message': 'New username is required.'}), 400
+
+    try:
+        # Placeholder: Replace with actual DB update function
+        print(f"Updating username for user_id {user_id} to {new_username}")
+        db.update_username(user_id, new_username)
+        return jsonify({'message': 'Username updated successfully.'}), 200
+    except Exception as e:
+        return jsonify({'message': f'Failed to update username: {str(e)}'}), 500
+
+
+@app.route('/api/user/password', methods=['PATCH'])
+@token_required
+def update_password(current_user):
+    user_id = current_user[0]
+    data = request.get_json()
+    new_password = data.get('password')
+
+    if not new_password:
+        return jsonify({'message': 'New password is required.'}), 400
+
+    try:
+        hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256')
+        # Placeholder: Replace with actual DB update function
+        print(f"Updating password for user_id {user_id}")
+        db.update_password(user_id, hashed_password)
+        return jsonify({'message': 'Password updated successfully.'}), 200
+    except Exception as e:
+        return jsonify({'message': f'Failed to update password: {str(e)}'}), 500
+
+
+@app.route('/api/user/account', methods=['DELETE'])
+@token_required
+def delete_account(current_user):
+    user_id = current_user[0]
+
+    try:
+        # Placeholder: Replace with actual DB delete function
+        print(f"Deleting account for user_id {user_id}")
+        db.delete_user_account(user_id)
+        return jsonify({'message': 'Account deleted successfully.'}), 200
+    except Exception as e:
+        return jsonify({'message': f'Failed to delete account: {str(e)}'}), 500
 
 @app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
 def generate_exam():

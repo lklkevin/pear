@@ -198,6 +198,47 @@ class SQLiteDB(DataAccessObject):
             self.conn.rollback()
             raise DataError from e
 
+    def update_username(self, user_id: int, new_username: str) -> None:
+        try:
+            cur = self.conn.cursor()
+            cur.execute(
+                "UPDATE User SET username = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
+                (new_username, user_id)
+            )
+            if cur.rowcount == 0:
+                raise DataError("No user found with the given ID.")
+            self.conn.commit()
+        except sqlite3.IntegrityError as e:
+            self.conn.rollback()
+            raise DataError("Username already in use.") from e
+        except sqlite3.DatabaseError as e:
+            self.conn.rollback()
+            raise DatabaseError from e
+
+    def update_password(self, user_id: int, new_hashed_password: str) -> None:
+        try:
+            cur = self.conn.cursor()
+            cur.execute(
+                "UPDATE User SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?;",
+                (new_hashed_password, user_id)
+            )
+            if cur.rowcount == 0:
+                raise DataError("No user found with the given ID.")
+            self.conn.commit()
+        except sqlite3.DatabaseError as e:
+            self.conn.rollback()
+            raise DatabaseError from e
+
+    def delete_user_account(self, user_id: int) -> None:
+        try:
+            cur = self.conn.cursor()
+            cur.execute("DELETE FROM User WHERE id = ?;", (user_id,))
+            if cur.rowcount == 0:
+                raise DataError("No user found with the given ID.")
+            self.conn.commit()
+        except sqlite3.DatabaseError as e:
+            self.conn.rollback()
+            raise DatabaseError from e
 
     def get_exam(self, 
         exam_id: int
@@ -297,6 +338,36 @@ class SQLiteDB(DataAccessObject):
             exam_id = cur.lastrowid
             self.conn.commit()
             return exam_id
+        except sqlite3.DatabaseError as e:
+            self.conn.rollback()
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
+            self.conn.rollback()
+            raise DataError from e
+
+    def delete_exam(self, exam_id: int) -> None:
+        try:
+            cur = self.conn.cursor()
+            
+            cur.execute(
+                'DELETE FROM Favourite WHERE examId = ?;', (exam_id,)
+            )
+            cur.execute(
+                'SELECT questionId FROM Question WHERE exam = ?;', (exam_id,)
+            )
+            question_ids = cur.fetchall()
+            for question in question_ids:
+                cur.execute(
+                    'DELETE FROM Answer WHERE question = ?;', question
+                )
+                cur.execute(
+                    'DELETE FROM Question WHERE questionId = ?;', question
+                )
+            cur.execute(
+                'DELETE FROM Exam WHERE examId = ?;', (exam_id,)
+            )
+
+            self.conn.commit()
         except sqlite3.DatabaseError as e:
             self.conn.rollback()
             raise DatabaseError from e
