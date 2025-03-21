@@ -319,6 +319,21 @@ class DataAccessObject(ABC):
             DataError: An error related to the processed data occurred.
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def delete_exam(self, exam_id: int) -> None:
+        """
+        Delete a given exam from the database and all associated information.
+
+        Args:
+            exam_id (int): The ID of the exam.
+
+        Raises:
+            DatabaseError: If an error occurs while interacting with the 
+                           database.
+            DataError: If there is an issue with the provided data.
+        """
+        raise NotImplementedError
     
     @abstractmethod
     def insert_question(self,

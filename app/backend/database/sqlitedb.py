@@ -345,6 +345,36 @@ class SQLiteDB(DataAccessObject):
             self.conn.rollback()
             raise DataError from e
 
+    def delete_exam(self, exam_id: int) -> None:
+        try:
+            cur = self.conn.cursor()
+            
+            cur.execute(
+                'DELETE FROM Favourite WHERE examId = ?;', (exam_id,)
+            )
+            cur.execute(
+                'SELECT questionId FROM Question WHERE exam = ?;', (exam_id,)
+            )
+            question_ids = cur.fetchall()
+            for question in question_ids:
+                cur.execute(
+                    'DELETE FROM Answer WHERE question = ?;', question
+                )
+                cur.execute(
+                    'DELETE FROM Question WHERE questionId = ?;', question
+                )
+            cur.execute(
+                'DELETE FROM Exam WHERE examId = ?;', (exam_id,)
+            )
+
+            self.conn.commit()
+        except sqlite3.DatabaseError as e:
+            self.conn.rollback()
+            raise DatabaseError from e
+        except sqlite3.DataError as e:
+            self.conn.rollback()
+            raise DataError from e
+
     def insert_question(self,
         question_number: int,
         exam_id: int,

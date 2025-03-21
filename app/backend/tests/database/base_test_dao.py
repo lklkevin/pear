@@ -483,3 +483,16 @@ class BaseTestDAO(ABC):
 
         db.update_password(user_id, "newpassword")
         assert self.user_password(db, user_id) == "newpassword"
+
+    def test_delete_exam(self, db: DataAccessObject):
+        db.add_user("testuser",
+                    "test@example.com",
+                    "password",
+                    "local")
+        exam_id = db.add_exam("testuser", "abc", "#FFFFFF", "test", True)
+        exam_id2 = db.add_exam("testuser", "def", "#000000", "test", True)
+
+        db.delete_exam(exam_id)
+        assert db.user_exists("testuser")
+        assert not self.exam_exists(db, "testuser", "abc")
+        assert self.exam_exists(db, "testuser", "def")

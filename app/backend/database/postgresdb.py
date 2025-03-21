@@ -422,18 +422,36 @@ class PostgresDB(DataAccessObject):
         conn = self._get_conn()
         try:
             cur = conn.cursor()
+            
+            # delete refresh tokens associated with this user
             cur.execute(
-                'DELETE FROM "User" WHERE id = %s;',
-                (user_id,)
+                'DELETE FROM "RefreshToken" WHERE user_id = %s;', (user_id,)
             )
-            if cur.rowcount == 0:
-                raise DataError("No user found with the given ID.")
+            # delete all favourites associated with this user
+            cur.execute(
+                'DELETE FROM "Favourite" WHERE userId = %s;', (user_id,)
+            )
+            # delete all exams associated with this user
+            cur.execute(
+                'SELECT examId FROM "Exam" WHERE owner = %s;', (user_id,)
+            )
+            exam_ids = cur.fetchall()
+            for exam in exam_ids:
+                self.delete_exam(exam)
+            # delete user
+            cur.execute(
+                'DELETE FROM "User" WHERE id = %s;', (user_id,)
+            )
+
             conn.commit()
-        except Exception as e:
+        except psycopg2.DatabaseError as e:
             conn.rollback()
-            raise DatabaseError(f"Error deleting user account: {str(e)}")
+            raise DatabaseError from e
+        except psycopg2.DataError as e:
+            conn.rollback()
+            raise DataError from e
         finally:
-            self._release_conn(conn)
+            self._release_conn(conn) 
 
     def get_exam(self, exam_id: int) -> Optional[tuple[int, str, str, str, str, str, bool, int, Exam]]:
         """Get exam information by ID."""
@@ -608,8 +626,40 @@ class PostgresDB(DataAccessObject):
             raise DatabaseError(f"Error adding exam: {str(e)}")
         finally:
             self._release_conn(conn)
-    
 
+    def delete_exam(self, exam_id: int) -> None:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor()
+            
+            cur.execute(
+                'DELETE FROM "Favourite" WHERE examId = %s;', (exam_id,)
+            )
+            cur.execute(
+                'SELECT questionId FROM "Question" WHERE exam = %s;', (exam_id,)
+            )
+            question_ids = cur.fetchall()
+            for question in question_ids:
+                cur.execute(
+                    'DELETE FROM "Answer" WHERE question = %s;', question
+                )
+                cur.execute(
+                    'DELETE FROM "Question" WHERE questionId = %s;', question
+                )
+            cur.execute(
+                'DELETE FROM "Exam" WHERE examId = %s;', (exam_id,)
+            )
+
+            conn.commit()
+        except psycopg2.DatabaseError as e:
+            conn.rollback()
+            raise DatabaseError from e
+        except psycopg2.DataError as e:
+            conn.rollback()
+            raise DataError from e
+        finally:
+            self._release_conn(conn) 
+    
     def insert_question(self,
                       question_number: int,
                       exam_id: int,
