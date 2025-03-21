@@ -162,6 +162,17 @@ class BaseTestDAO(ABC):
             exam_id: The id of the exam.
         """
         raise NotImplementedError
+
+    def user_password(self, db: DataAccessObject, user_id: int) -> str:
+        """
+        Return the (hashed) password of the user associated with the given user_id.
+
+        Args:
+            user_id: The id of the user.
+        Returns:
+            The (hashed) password of the user.
+        """
+        raise NotImplementedError
     
     def test_user_exists(self, db: DataAccessObject):
         self.add_user(db, "testuser", "test@example.com", "local")
@@ -439,3 +450,36 @@ class BaseTestDAO(ABC):
         matches = db.get_exams(user_id, "N/A", "N/A", "a", 100, 1)
         assert len(matches) == 1
         assert matches[0][0] == exam_id
+
+    def test_delete_user(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        db.add_exam("testuser", "abc", "#FFFFFF", "test", True)
+
+        db.delete_user_account(user_id)
+        assert not db.user_exists("testuser")
+        assert not self.exam_exists(db, "testuser", "abc")
+
+    def test_update_user(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+        exam_id = db.add_exam("testuser", "abc", "#FFFFFF", "test", True)
+
+        db.update_username(user_id, "new_user")
+        assert db.user_exists("new_user")
+        assert not db.user_exists("testuser")
+        assert self.exam_exists(db, "new_user", "abc")
+        assert not self.exam_exists(db, "testuser", "abc")
+
+    def test_update_password(self, db: DataAccessObject):
+        user_id = db.add_user("testuser",
+                              "test@example.com",
+                              "password",
+                              "local")
+
+        db.update_password(user_id, "newpassword")
+        assert self.user_password(db, user_id) == "newpassword"

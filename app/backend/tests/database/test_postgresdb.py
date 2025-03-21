@@ -163,6 +163,17 @@ class TestPostgresDB(BaseTestDAO):
         db._release_conn(conn)
         return res is not None
 
+    def user_password(self, db: PostgresDB, user_id: int) -> str:
+        conn = db._get_conn()
+        cur = conn.cursor()
+
+        cur.execute('SELECT password FROM "User" '
+                    'WHERE id = %s;', (user_id,))
+        
+        res = cur.fetchone()
+        db._release_conn(conn)
+        return res[0]
+
     # the tests below are written because datetime objects are returned by 
     # postgreSQL whereas the base_test_dao methods expect strings, so these
     # methods override the base_test_dao methods to directly use datetime 
