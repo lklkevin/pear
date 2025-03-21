@@ -22,4 +22,4 @@ def get_db_instance() -> DataAccessObject:
         return PostgresDB(connection_string=database_url)
     else:
         # Default to SQLite
-        return SQLiteDB() 
+        return SQLiteDB()

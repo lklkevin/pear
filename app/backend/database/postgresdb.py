@@ -380,7 +380,60 @@ class PostgresDB(DataAccessObject):
             raise DatabaseError(f"Error setting last login: {str(e)}")
         finally:
             self._release_conn(conn)
-    
+
+    def update_username(self, user_id: int, new_username: str) -> None:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                'UPDATE "User" SET username = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s;',
+                (new_username, user_id)
+            )
+            if cur.rowcount == 0:
+                raise DataError("No user found with the given ID.")
+            conn.commit()
+        except psycopg2.errors.UniqueViolation as e:
+            conn.rollback()
+            raise DataError("Username already in use.") from e
+        except Exception as e:
+            conn.rollback()
+            raise DatabaseError(f"Error updating username: {str(e)}")
+        finally:
+            self._release_conn(conn)
+
+    def update_password(self, user_id: int, new_hashed_password: str) -> None:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                'UPDATE "User" SET password = %s, updated_at = CURRENT_TIMESTAMP WHERE id = %s;',
+                (new_hashed_password, user_id)
+            )
+            if cur.rowcount == 0:
+                raise DataError("No user found with the given ID.")
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise DatabaseError(f"Error updating password: {str(e)}")
+        finally:
+            self._release_conn(conn)
+
+    def delete_user_account(self, user_id: int) -> None:
+        conn = self._get_conn()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                'DELETE FROM "User" WHERE id = %s;',
+                (user_id,)
+            )
+            if cur.rowcount == 0:
+                raise DataError("No user found with the given ID.")
+            conn.commit()
+        except Exception as e:
+            conn.rollback()
+            raise DatabaseError(f"Error deleting user account: {str(e)}")
+        finally:
+            self._release_conn(conn)
 
     def get_exam(self, exam_id: int) -> Optional[tuple[int, str, str, str, str, str, bool, int, Exam]]:
         """Get exam information by ID."""
