@@ -76,6 +76,13 @@ export default function Sidebar() {
       data.result.color = selectedColorHex;
 
       const currSession = await getSession();
+
+      if (!currSession?.accessToken) {
+        useErrorStore.getState().setError("Please sign in to save your exam");
+        useLoadingStore.getState().setLoading(false);
+        return;
+      }
+
       const saveResponse = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate/save-after`,
         {

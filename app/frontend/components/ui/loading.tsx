@@ -71,8 +71,8 @@ export default function AnimatedProgressBar({
   }, [progressPercentage]);
 
   return (
-    <div className="fixed inset-0 bg-zinc-950/75 sm:bg-zinc-950/50 backdrop-blur-lg z-50 flex items-center justify-center">
-      <div className="relative flex flex-col items-center gap-2 sm:gap-6 px-5 py-4 sm:px-8 sm:py-6 bg-zinc-950 rounded-md sm:rounded-lg border border-zinc-800 w-[358px] max-w-lg sm:w-full overflow-hidden">
+    <div className="fixed inset-0 bg-zinc-950/75 sm:bg-zinc-950/50 backdrop-blur z-50 flex items-center justify-center">
+      <div className="relative flex flex-col items-center gap-2 sm:gap-6 px-5 py-4 sm:px-8 sm:py-6 bg-zinc-950 rounded-md sm:rounded-lg border border-zinc-700 w-[358px] max-w-lg sm:w-full overflow-hidden shadow-lg">
         {/* Static Text Content */}
         <div className="flex items-center justify-between w-full gap-4">
           <div className="flex flex-col gap-1">
@@ -84,7 +84,7 @@ export default function AnimatedProgressBar({
             </p>
           </div>
           <div className="relative sm:w-16 sm:h-16 w-12 h-12">
-            <div className="absolute inset-0 rounded-full border-2 sm:border-4 border-zinc-800 border-t-emerald-600 animate-spin"></div>
+            <div className="absolute inset-0 rounded-full border-2 sm:border-4 border-zinc-700 border-t-emerald-600 animate-spin"></div>
             <div className="absolute inset-0 flex items-center justify-center">
               <p
                 className={`text-sm sm:text-xl text-emerald-400 ${dmMono.className}`}

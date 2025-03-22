@@ -30,7 +30,7 @@ export default function Toast() {
     <AnimatePresence mode="wait" onExitComplete={handleAnimationComplete}>
       {visible && (
         <motion.div
-          className="fixed top-8 left-1/2 z-50"
+          className="fixed top-8 left-1/2 z-[999]"
           initial={{ opacity: 0, y: -20, x: "-50%" }}
           animate={{ opacity: 1, y: 0, x: "-50%" }}
           exit={{ opacity: 0, y: -20, x: "-50%" }}

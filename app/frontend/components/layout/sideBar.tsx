@@ -41,12 +41,12 @@ export default function Sidebar({
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -300, opacity: 0 }}
             transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="min-h-[calc(100vh-72px)] flex flex-col bg-zinc-900 left-0 w-[360px] border-r border-zinc-800 "
+            className="flex flex-col bg-zinc-900 left-0 w-[360px] border-r border-zinc-800 h-full"
           >
-            <div className="flex">
+            <div className="flex sticky top-0 bg-zinc-950/15 z-10 border-b border-zinc-800">
               <button
                 onClick={() => setIsCollapsed(true)}
-                className="text-white focus:outline-none bg-zinc-900 rounded-full ml-8 my-6 flex items-center justify-center w-12 h-12 flex-shrink-0 bg-opacity-75 xl:bg-opacity-100 border border-zinc-800 hover:bg-zinc-800/60 transition-colors"
+                className="text-white focus:outline-none bg-zinc-900 rounded-full ml-4 sm:ml-8 my-4 sm:my-6 flex items-center justify-center w-12 h-12 flex-shrink-0 bg-opacity-75 xl:bg-opacity-100 border border-zinc-800 hover:bg-zinc-800/60 transition-colors"
               >
                 <span className="material-icons mt-0.5 -ml-0.5 text-2xl">
                   keyboard_double_arrow_left
@@ -59,8 +59,8 @@ export default function Sidebar({
                 Collapse
               </p>
             </div>
-            {/* Improved Tailwind Scrollbar */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-900">
+            {/* Content area with improved scrolling */}
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-900 py-4 sm:py-6">
               {children}
             </div>
           </motion.div>

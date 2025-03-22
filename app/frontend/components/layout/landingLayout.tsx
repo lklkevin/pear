@@ -1,34 +1,42 @@
-import React from "react"
-import Nav from "../layout/navNormal"
-import Glow from "../landing/glow"
-import CTA from "../landing/cta"
+import React from "react";
+import Nav from "../layout/navNormal";
+import ImageCompare from "../ui/imageCompare";
+import CTA from "@/components/landing/cta";
+import Graphic from "@/components/landing/graphic";
 
 const LandingLayout = ({ children }: { children: React.ReactNode }) => {
   return (
-    <div className="flex flex-col min-h-screen overflow-hidden">
+    <div className="flex flex-col min-h-screen">
       <Nav landing={true} />
-      <main className="flex flex-1 flex-col h-full relative container w-screen mx-auto py-8 pb-[var(--cta-height,80px)] tracking-normal justify-center items-center">
-        {/* White Glow on the right */}
-        <Glow
-          className="top-[30%] sm:top-[35%] md:top-[30%] lg:top-[20%] right-[25%] sm:right-[30%] md:right-[20%] xl:right-[25%] 2xl:right-[30%]
-             w-[450px] h-[450px] md:w-[600px] md:h-[600px] lg:w-[900px] lg:h-[900px]"
-          background="radial-gradient(ellipse, rgba(255,255,255,0.75) 0%, transparent 60%)"
-        />
-        {/* Green Glow on the left */}
-        <Glow
-          className="top-[30%] sm:top-[35%] md:top-[30%] lg:top-[20%] left-[25%] sm:left-[30%] md:left-[20%] xl:left-[25%] 2xl:left-[30%]
-             w-[450px] h-[450px] md:w-[600px] md:h-[600px] lg:w-[900px] lg:h-[900px]"
-          background="radial-gradient(ellipse, rgba(6,95,70,0.75) 0%, transparent 70%)"
-        />
-        {children}
-      </main>
-      {/* Fixed CTA at the bottom of the viewport */}
-      <div className="fixed bottom-12 left-0 right-0 z-50">
-        <CTA />
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <section className="h-[calc(100vh-72px)] w-full">
+          <div className="h-full max-w-7xl mx-auto w-full p-4 sm:p-8">
+            <div className="flex flex-col h-full rounded-xl sm:rounded-2xl bg-gradient-to-b from-zinc-900 to-zinc-950 w-full p-4 sm:p-8">
+              <div className="flex flex-col items-center text-center mb-auto pt-8 sm:pt-12">
+                <h1 className="mt-4 text-5xl sm:text-4xl md:text-5xl font-bold text-white mb-6">
+                  Custom Practice Tests,<br></br>
+                  Built Instantly from Your Exams
+                </h1>
+                <p className="text-zinc-400 text-lg max-w-2xl mb-8">
+                  AI-powered, tailored math practice—built just for you.
+                </p>
+
+                {/* CTA Button */}
+                <CTA />
+              </div>
+
+              {/* Graphic positioned at the bottom */}
+              <div className="w-full mt-auto">
+                <Graphic />
+              </div>
+            </div>
+          </div>
+        </section>
+        <section className="min-h-96 bg-zinc-900"></section>
       </div>
+      {children}
     </div>
   );
 };
 
-export default LandingLayout
-
+export default LandingLayout;

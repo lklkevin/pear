@@ -1,99 +1,69 @@
-import { useState } from "react";
-import Navbar from "./navNormal";
-import Sidebar from "./sideBar";
-import { motion } from "framer-motion";
 import InfoCard from "../sidebar/infoCard";
 import { useLoadingStore } from "@/store/store";
-import { useSession } from "next-auth/react";
 import ProgressBar from "../ui/loading";
+import BaseLayout from "./sidebarLayout";
 
 export default function GenerateLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(true);
-  const expandedWidth = 360; // pixels
   const { loading, loadingMessage, progressPercentage } = useLoadingStore();
-  const { status } = useSession();
+  
+  const sidebarContent = (
+    <div className="pr-4 sm:pr-8">
+      <h2 className="ml-5 sm:ml-9 text-2xl sm:text-3xl font-semibold">
+        Getting Started
+      </h2>
+      <ul className="sm:mt-6 mt-4 space-y-4 sm:space-y-8">
+        {[
+          {
+            number: 1,
+            mainText: "Upload Past Exams",
+            text: "Drop up to 5 past exams in the file upload box. We will analyze their contents and generate new exams.",
+          },
+          {
+            number: 2,
+            mainText: "Include Optional Info",
+            text: "You can write a title and description to help us align the content of the new exam to your exact needs.",
+          },
+          {
+            number: 3,
+            mainText: "Generate!",
+            text: "Click generate and we will work our magic. Check back in a minute or two to see your new exam!",
+          },
+          {
+            number: 4,
+            mainText: "Sign Up and Save",
+            text: "Sign up for an account to save your exam and share it with others. You can also specify the visibility.",
+          },
+        ].map((step, index) => (
+          <InfoCard
+            key={index}
+            number={step.number}
+            mainText={step.mainText}
+            text={step.text}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+
+  const footerContent = loading ? (
+    <ProgressBar
+      progressPercentage={progressPercentage}
+      loadingMessage={
+        loadingMessage ? loadingMessage : "Generating your new exam..."
+      }
+    />
+  ) : null;
 
   return (
-    <div className="min-h-screen  text-white overflow-hidden">
-      <Navbar />
-
-      {/* Page Content with Sidebar */}
-      <div className="flex relative">
-        {/* Animated placeholder that reserves sidebar space */}
-        <motion.div
-          className="flex-shrink-0"
-          animate={{ width: isCollapsed ? 0 : expandedWidth }}
-          transition={{ duration: 0.3, ease: "easeInOut" }}
-        />
-
-        {/* Main Content */}
-        <div
-          className={`max-w-screen flex-1 flex flex-col max-w-7xl px-4 sm:px-8 py-8 sm:py-12 mx-auto min-h-[calc(100vh-72px)] ${
-            isCollapsed
-              ? ""
-              : "max-h-[calc(100vh-72px)] sm:max-h-none w-0 sm:w-full opacity-0 sm:opacity-100"
-          }`}
-        >
-          {children}
-        </div>
-
-        {/* Sidebar that matches the content height */}
-        {status !== "loading" && (
-          <div className="absolute left-0 top-0 bottom-0 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-900">
-            <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
-              <div className="pr-8">
-                <h2 className="ml-9 text-2xl sm:text-3xl font-semibold">
-                  Getting Started
-                </h2>
-                <ul className="mt-6 mb-8 space-y-8">
-                  {[
-                    {
-                      number: 1,
-                      mainText: "Upload Past Exams",
-                      text: "Drop up to 5 past exams in the file upload box. We will analyze their contents and generate new exams.",
-                    },
-                    {
-                      number: 2,
-                      mainText: "Include Optional Info",
-                      text: "You can write a title and description to help us align the content of the new exam to your exact needs.",
-                    },
-                    {
-                      number: 3,
-                      mainText: "Generate!",
-                      text: "Click generate and we will work our magic. Check back in a minute or two to see your new exam!",
-                    },
-                    {
-                      number: 4,
-                      mainText: "Sign Up and Save",
-                      text: "Sign up for an account to save your exam and share it with others. You can also specify the visibility.",
-                    },
-                  ].map((step, index) => (
-                    <InfoCard
-                      key={index}
-                      number={step.number}
-                      mainText={step.mainText}
-                      text={step.text}
-                    />
-                  ))}
-                </ul>
-              </div>
-            </Sidebar>
-          </div>
-        )}
-      </div>
-
-      {loading && (
-        <ProgressBar
-          progressPercentage={progressPercentage}
-          loadingMessage={
-            loadingMessage ? loadingMessage : "Generating your new exam..."
-          }
-        ></ProgressBar>
-      )}
-    </div>
+    <BaseLayout 
+      sidebarContent={sidebarContent} 
+      otherContent={footerContent}
+    >
+      {children}
+    </BaseLayout>
   );
 }

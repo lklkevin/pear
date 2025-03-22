@@ -18,25 +18,25 @@ export default function MobileMenu({
 
   return (
     <div
-      className="absolute top-[72px] left-0 w-full bg-zinc-950 text-white flex flex-col items-center z-50 
+      className="overflow-hidden absolute top-[72px] left-0 w-full bg-zinc-950 text-white flex flex-col items-center z-50 
       shadow-xl shadow-zinc-950/50 border-b border-zinc-800 sm:hidden pb-4"
       onClick={(e) => e.stopPropagation()} // Prevents closing when clicking inside
       aria-hidden={!mobileMenuOpen}
     >
       <nav className="w-full text-center">
-        <Link href="/browse" className="block text-lg w-screen px-5 py-1">
+        <Link href="/browse" className="block text-lg w-screen px-4 py-1">
           <div className="py-2 rounded-md hover:bg-zinc-800">Browse</div>
         </Link>
-        <Link href="/generate" className="block text-lg w-screen px-5 py-1">
+        <Link href="/generate" className="block text-lg w-screen px-4 py-1">
           <div className="py-2 rounded-md hover:bg-zinc-800">Generate</div>
         </Link>
         {session ? (
           <>
-            <Link href="/account" className="block text-lg w-screen px-5 py-1">
+            <Link href="/account" className="block text-lg w-screen px-4 py-1">
               <div className="py-2 rounded-md hover:bg-zinc-800">Account</div>
             </Link>
             <button
-              className="block text-lg w-screen px-5 py-1"
+              className="block text-lg w-screen px-4 py-1"
               onClick={() => {
                 signOutWithBackend(session?.refreshToken);
                 setMobileMenuOpen(false);
@@ -51,7 +51,7 @@ export default function MobileMenu({
         ) : (
           <Link
             href={`/login?callbackUrl=${callbackUrl}`}
-            className="block text-lg w-screen px-5 py-1"
+            className="block text-lg w-screen px-4 py-1"
           >
             <div className="py-2 rounded-md bg-zinc-900 hover:bg-zinc-800">
               Login
