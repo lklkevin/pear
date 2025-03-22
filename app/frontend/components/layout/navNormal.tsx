@@ -95,7 +95,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
       >
         {status === "loading" ? (
           <div className="relative flex flex-row items-center justify-center">
-            <Skeleton className="h-8 w-24 sm:w-36 rounded-md"></Skeleton>
+            <Skeleton className="h-9 w-9 rounded-full bg-zinc-800"></Skeleton>
           </div>
         ) : session ? (
           // Show this when user is logged in

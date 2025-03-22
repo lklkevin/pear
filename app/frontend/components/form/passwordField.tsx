@@ -40,6 +40,7 @@ export default function PasswordField({
           value={value}
           onChange={onChange}
           required
+          maxLength={100}
         />
         <button
           type="button"

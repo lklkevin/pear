@@ -37,6 +37,7 @@ export default function InputField({
           value={value}
           onChange={onChange}
           rows={4}
+          maxLength={1000}
         />
       ) : (
         <input
@@ -48,6 +49,7 @@ export default function InputField({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          maxLength={100}
         />
       )}
     </div>

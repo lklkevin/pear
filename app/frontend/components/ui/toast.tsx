@@ -61,7 +61,7 @@ export default function Toast() {
               initial={{ width: "100%" }}
               animate={{ width: "0%" }}
               transition={{
-                duration: 3,
+                duration: 8,
                 ease: "linear",
               }}
             />
