@@ -11,9 +11,9 @@ export interface Question {
 }
 
 export interface Exam {
-  id: string;
+  id?: string;
   title: string;
   description: string;
-  isPublic: boolean; // true for public, false for private
+  privacy: string;
   questions: Question[];
 }

@@ -1,0 +1,28 @@
+version: 2.1
+orbs:
+  docker: circleci/docker@2.1.4
+jobs:
+  deploy-backend:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/project
+    steps:
+      - checkout
+      - setup_remote_docker:
+          docker_layer_caching: true
+      - run:
+          name: Build Docker image
+          command: |
+            TAG=${CIRCLE_SHA1}
+            docker build -t registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:$TAG -t registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:latest ~/project/app
+      - run:
+          name: Push Docker image to DigitalOcean
+          command: |
+            TAG=${CIRCLE_SHA1}
+            echo $DIGITALOCEAN_API_TOKEN | docker login registry.digitalocean.com -u $DIGITALOCEAN_EMAIL --password-stdin
+            docker push registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:$TAG
+            docker push registry.digitalocean.com/${DIGITALOCEAN_REGISTRY_NAME}/avengers-app:latest
+workflows:
+  deploy:
+    jobs:
+      - deploy-backend

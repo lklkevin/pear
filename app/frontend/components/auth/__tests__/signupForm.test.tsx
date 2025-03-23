@@ -1,48 +1,59 @@
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Signup from "../signupForm";
 import { useRouter } from "next/router";
 
-// Mock Next.js router
+// Mock Next.js router so useRouter works.
 jest.mock("next/router", () => ({
   useRouter: jest.fn(),
 }));
 
-describe("Signup component", () => {
-  let mockPush: jest.Mock;
+// Mock next-auth so that useSession and getSession work without a SessionProvider.
+jest.mock("next-auth/react", () => ({
+  useSession: () => ({ data: null, status: "unauthenticated" }),
+  getSession: () => Promise.resolve(null),
+}));
 
+describe("Signup component", () => {
   beforeEach(() => {
-    mockPush = jest.fn();
-    (useRouter as jest.Mock).mockReturnValue({ push: mockPush });
+    (useRouter as jest.Mock).mockReturnValue({
+      query: {},
+      push: jest.fn(),
+    });
   });
 
-  test("renders email, username input fields", () => {
+  test("renders email, username, and password input fields", () => {
     render(<Signup />);
-
-    // Ensure input fields are present
+    // Check that the email input is rendered.
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+    // Check that the username input is rendered.
     expect(screen.getByLabelText(/username/i)).toBeInTheDocument();
+    // For the password field, query the DOM for an input of type "password"
+    const passwordInput = document.querySelector('input[type="password"]');
+    expect(passwordInput).toBeInTheDocument();
   });
 
   test("renders sign-up button", () => {
     render(<Signup />);
-    
-    // Ensure the sign-up button is rendered
-    expect(screen.getByRole("button", { name: /sign up/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /sign up/i })
+    ).toBeInTheDocument();
   });
 
   test("renders Google sign-up button", () => {
     render(<Signup />);
-    
-    // Ensure the Google sign-up button is present
-    expect(screen.getByRole("button", { name: /continue with google/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /continue with google/i })
+    ).toBeInTheDocument();
   });
 
   test("renders login link", () => {
     render(<Signup />);
-
-    // Ensure login link is rendered
-    expect(screen.getByRole("link", { name: /log in/i })).toHaveAttribute("href", "/login");
+    const loginLink = screen.getByRole("link", { name: /log in/i });
+    expect(loginLink).toBeInTheDocument();
+    expect(loginLink.getAttribute("href")).toEqual(
+      expect.stringContaining("/login")
+    );
   });
 });

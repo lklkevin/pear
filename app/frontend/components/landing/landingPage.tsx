@@ -20,7 +20,7 @@ export default function Home() {
         </h3>
       </section>
       {/* Graphic Section */}
-      <section>
+      <section className="z-5">
         <Graphic />
       </section>
     </LandingLayout>

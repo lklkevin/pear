@@ -1,14 +1,28 @@
-export default function ConfidenceBar({ confidence }: {confidence: number}) {
-    return (
-      <div className=" items-center gap-2 flex">
-        <span className="text-sm text-zinc-400">Confidence:</span>
-        <div className="w-20 h-2 bg-zinc-800 rounded-full overflow-hidden hidden sm:flex">
-          <div
-            className="h-full bg-emerald-500 transition-all duration-300"
-            style={{ width: `${confidence}%` }}
-          />
-        </div>
-        <span className="text-sm text-zinc-400">{confidence}%</span>
+import { DM_Mono } from "next/font/google";
+
+const dmMono = DM_Mono({
+  subsets: ["latin"],
+  weight: "500",
+});
+
+export default function ConfidenceBar({ confidence }: { confidence: number }) {
+  return (
+    <div className="h-9 gap-1 flex flex-col pt-1.5 sm:pt-1">
+      <div className="font-medium flex justify-between sm:gap-2 text-zinc-400 text-xs sm:text-sm">
+        <span>Confidence: </span>
+        <span
+          className={`text-xs sm:text-sm text-zinc-400 ${dmMono.className}`}
+        >
+          {confidence}%
+        </span>
       </div>
-    );
-  }
+
+      <div className="items-center w-[104px] sm:w-32 h-1 bg-zinc-800 rounded-[1px] overflow-hidden flex">
+        <div
+          className="h-full bg-emerald-500 transition-all duration-300"
+          style={{ width: `${confidence}%` }}
+        />
+      </div>
+    </div>
+  );
+}

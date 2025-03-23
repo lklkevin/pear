@@ -1,0 +1,57 @@
+version: 2.1
+jobs:
+  deploy-frontend:
+    docker:
+      - image: cimg/base:stable
+    working_directory: ~/project
+    steps:
+      - checkout
+      - run:
+          name: Setup Git User
+          command: |
+            git config --global user.email "${GITHUB_EMAIL}"
+            git config --global user.name "${GITHUB_USERNAME}"
+      - run:
+          name: Add GitHub to known_hosts
+          command: |
+            mkdir -p ~/.ssh
+            ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - run:
+          name: Clone Frontend Fork Repository
+          command: |
+            git clone ${FRONTEND_FORK_REPO} ~/frontend-fork
+      - run:
+          name: Sync Frontend to Fork (excluding __tests__ directories)
+          command: |
+            # Remove all existing files in fork (except .git)
+            cd ~/frontend-fork
+            find . -mindepth 1 -not -path "./.git/*" -not -name ".git" -delete
+
+            # Copy all frontend files except __tests__ directories
+            cd ~/project/app/frontend
+            find . -type d -not -path "*/node_modules/*" -not -path "*/__tests__*" -not -path "*/\.*" | while read dir; do
+              mkdir -p ~/frontend-fork/"$dir"
+            done
+            find . -type f -not -path "*/node_modules/*" -not -path "*/__tests__*" -not -path "*/\.*" | while read file; do
+              cp "$file" ~/frontend-fork/"$file"
+            done
+      - run:
+          name: Commit and Push Changes to Fork
+          command: |
+            cd ~/frontend-fork
+
+            # Add all files to git
+            git add -A
+
+            # Only commit and push if there are changes
+            if git status | grep -q "Changes to be committed"; then
+              git commit -m "Sync frontend from main repository [skip ci]"
+              git push origin HEAD
+              echo "Changes pushed to frontend fork repository"
+            else
+              echo "No changes to commit"
+            fi
+workflows:
+  deploy:
+    jobs:
+      - deploy-frontend

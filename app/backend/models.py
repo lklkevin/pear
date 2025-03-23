@@ -101,7 +101,7 @@ class GeminiModel(ModelProvider):
 
 class Cohere(ModelProvider):
 
-    def __init__(self, model: str = 'command-r-plus-08-2024', max_retries: int = 5):
+    def __init__(self, model: str = 'command-a-03-2025', max_retries: int = 5):
         super().__init__(model, max_retries)
         self.client = cohere.AsyncClient(os.environ.get("COHERE_API_KEY"))
 

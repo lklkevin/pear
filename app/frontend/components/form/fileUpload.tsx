@@ -1,110 +1,163 @@
-import { useState, useCallback } from "react"
+import { useState, useCallback } from "react";
+import { useErrorStore } from "@/store/store";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface FileUploadProps {
-  files?: File[]
-  setFiles?: (files: File[]) => void
-  acceptedFormats?: string[]
-  maxFileSize?: number // in bytes
-  maxFiles?: number
+  files?: File[];
+  setFiles?: (files: File[]) => void;
+  acceptedFormats?: string[];
+  maxFileSize?: number; // in bytes
+  maxFiles?: number;
 }
 
 export default function FileUpload({
   files = [],
   setFiles,
-  acceptedFormats = [".pdf", ".jpg", ".png"],
+  acceptedFormats = [".pdf"],
   maxFileSize = 10 * 1024 * 1024,
-  maxFiles = 5,
+  maxFiles = 3,
 }: FileUploadProps) {
-  const [internalFiles, setInternalFiles] = useState<File[]>(files)
-  const [isDragging, setIsDragging] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [internalFiles, setInternalFiles] = useState<File[]>(files);
 
-  const acceptString = acceptedFormats.join(",")
+  const acceptString = acceptedFormats.join(",");
 
   const handleFiles = useCallback(
     (newFiles: File[]) => {
-      setError(null)
+      // Clear previous global error
+      useErrorStore.getState().setError(null);
+
       const validFiles = newFiles.filter((file) => {
-        const extension = "." + file.name.split(".").pop()?.toLowerCase()
+        const extension = "." + file.name.split(".").pop()?.toLowerCase();
         if (!acceptedFormats.includes(extension)) {
-          setError(`File type ${extension} is not accepted.`)
-          return false
+          useErrorStore
+            .getState()
+            .setError(`File type ${extension} is not accepted.`);
+          return false;
         }
         if (file.size > maxFileSize) {
-          setError(`File ${file.name} is larger than 10MB.`)
-          return false
+          useErrorStore
+            .getState()
+            .setError(`File ${file.name} is larger than 10MB.`);
+          return false;
         }
-        return true
-      })
+        return true;
+      });
 
       if (internalFiles.length + validFiles.length > maxFiles) {
-        setError(`You can only upload up to ${maxFiles} files.`)
-        return
+        useErrorStore
+          .getState()
+          .setError(`You can only upload up to ${maxFiles} files.`);
+        return;
       }
 
-      const updatedFiles = [...internalFiles, ...validFiles]
-      setInternalFiles(updatedFiles)
+      const updatedFiles = [...internalFiles, ...validFiles];
+      setInternalFiles(updatedFiles);
 
       if (typeof setFiles === "function") {
-        setFiles(updatedFiles)
+        setFiles(updatedFiles);
       } else {
-        console.warn("setFiles is not a function. File state is only updated internally.")
+        console.warn(
+          "setFiles is not a function. File state is only updated internally."
+        );
       }
     },
-    [internalFiles, setFiles, acceptedFormats, maxFileSize, maxFiles],
-  )
+    [internalFiles, setFiles, acceptedFormats, maxFileSize, maxFiles]
+  );
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
-      const newFiles = Array.from(event.target.files)
-      handleFiles(newFiles)
+      const newFiles = Array.from(event.target.files);
+      handleFiles(newFiles);
+      // Reset the file input value to allow reselecting the same file
     }
-  }
+    event.target.value = "";
+  };
 
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(true)
-  }
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
-  }
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-  }
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setIsDragging(false)
+    e.preventDefault();
+    e.stopPropagation();
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const newFiles = Array.from(e.dataTransfer.files)
-      handleFiles(newFiles)
-      e.dataTransfer.clearData()
+      const newFiles = Array.from(e.dataTransfer.files);
+      handleFiles(newFiles);
+      e.dataTransfer.clearData();
     }
-  }
+  };
 
   const removeFile = (indexToRemove: number) => {
-    const updatedFiles = internalFiles.filter((_, index) => index !== indexToRemove)
-    setInternalFiles(updatedFiles)
+    const updatedFiles = internalFiles.filter(
+      (_, index) => index !== indexToRemove
+    );
+    setInternalFiles(updatedFiles);
 
     if (typeof setFiles === "function") {
-      setFiles(updatedFiles)
+      setFiles(updatedFiles);
     } else {
-      console.warn("setFiles is not a function. File state is only updated internally.")
+      console.warn(
+        "setFiles is not a function. File state is only updated internally."
+      );
     }
-  }
+  };
 
-  const hasFiles = internalFiles.length > 0
-  const isMaxFilesReached = internalFiles.length >= maxFiles
+  const hasFiles = internalFiles.length > 0;
+  const isMaxFilesReached = internalFiles.length >= maxFiles;
+  const dropzoneClass =
+    "h-full border border-zinc-800 rounded-md text-center bg-zinc-900 transition-all duration-500 ease-in-out";
 
-  const dropzoneClass = `h-full border border-zinc-800 rounded-lg p-6 text-center bg-zinc-900 transition-colors duration-300`
+  // Animation variants for consistent animations
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+        duration: 0.3,
+        ease: "easeOut",
+      },
+    },
+    exit: {
+      opacity: 0,
+      transition: {
+        duration: 0.2,
+        ease: "easeIn",
+      },
+    },
+  };
+
+  const fileItemVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.2,
+        ease: "easeOut",
+      },
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      transition: {
+        duration: 0.15,
+        ease: "easeIn",
+      },
+    },
+  };
 
   return (
     <div
@@ -114,46 +167,115 @@ export default function FileUpload({
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <div className="h-full flex flex-col gap-6">
-        {hasFiles && (
-          <div className="flex flex-wrap gap-3">
-            {internalFiles.map((file, index) => (
-              <div key={index} className="bg-zinc-800 px-3 py-1 rounded-md flex items-center text-sm">
-                <span className="mr-2">{file.name}</span>
-                <button
-                  onClick={() => removeFile(index)}
-                  className="text-zinc-400 hover:text-zinc-200 material-icons text-base"
-                  aria-label={`Remove ${file.name}`}
+      <motion.div
+        layout
+        className="h-full flex flex-col"
+        transition={{
+          layout: {
+            duration: 0.3,
+            ease: "easeOut",
+            type: "tween",
+          },
+        }}
+      >
+        <AnimatePresence mode="popLayout">
+          {hasFiles && (
+            <motion.div
+              layout
+              style={{ overflow: "hidden", zIndex: 1 }}
+              className="flex flex-wrap gap-3 sm:gap-4 p-4 sm:p-6 bg-zinc-950/25 rounded-t-md border-b border-zinc-800"
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={containerVariants}
+              layoutRoot
+            >
+              {internalFiles.map((file, index) => (
+                <motion.div
+                  key={`file-${file.name}-${index}`}
+                  className="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded flex items-center text-sm"
+                  variants={fileItemVariants}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{
+                    opacity: 0,
+                    scale: 0.95,
+                    transition: { duration: 0.15 },
+                  }}
+                  transition={{ duration: 0.2 }}
+                  whileHover={{
+                    scale: 1.03,
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                    borderColor: "rgba(161, 161, 170, 0.5)",
+                  }}
+                  layout="position"
                 >
-                  close
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        <label
-          className={`flex-1 flex flex-col w-full h-full ${isMaxFilesReached ? "cursor-not-allowed " : "cursor-pointer hover:bg-zinc-800/30"} items-center justify-center px-4 py-8 border border-dashed rounded-md self-start transition-colors ${
-            isMaxFilesReached ? "border-zinc-700" : isDragging ? "border-emerald-700" : "border-zinc-700"
-          }`}
-        >
-          <span className="text-9xl -mt-6">+</span>
-          <span className={`text-xl -mt-4 text-zinc-400`}>
-            {isMaxFilesReached ? "File limit reached" : hasFiles ? "Add more files" : "Drop your files here"}
-          </span>
-          <span className="text-zinc-500 mt-2">
-            {isMaxFilesReached
-              ? `Maximum ${maxFiles} files uploaded`
-              : `Up to ${maxFiles - internalFiles.length} more file(s), 10MB each`}
-          </span>
-          <span className="text-zinc-500 -mt-0.5">{`Accepted formats: ${acceptedFormats.join(", ")}`}</span>
-          {!isMaxFilesReached && (
-            <input type="file" className="hidden" onChange={handleFileUpload} accept={acceptString} multiple />
+                  <span className="mr-2">{file.name}</span>
+                  <motion.button
+                    onClick={() => removeFile(index)}
+                    className="text-zinc-400 hover:text-white material-icons text-sm sm:text-base"
+                    aria-label={`Remove ${file.name}`}
+                  >
+                    close
+                  </motion.button>
+                </motion.div>
+              ))}
+            </motion.div>
           )}
-          {error && <div className="mt-2 text-red-500 text-sm">{error}</div>}
-        </label>
-      </div>
+        </AnimatePresence>
+        <motion.div
+          layout
+          style={{ overflow: "hidden", position: "relative", zIndex: 2 }}
+          transition={{
+            layout: {
+              duration: 0.4,
+              ease: [0.25, 0.1, 0.25, 1.0],
+              type: "spring",
+              stiffness: 200,
+              damping: 25,
+            },
+          }}
+          className="p-4 sm:p-6 flex-1"
+        >
+          <motion.label
+            className={`flex-1 flex flex-col w-full h-full ${
+              isMaxFilesReached
+                ? "cursor-not-allowed "
+                : "cursor-pointer hover:bg-zinc-800/30"
+            } items-center justify-center px-4 py-8 border border-dashed rounded self-start transition-all duration-300 ${
+              isMaxFilesReached ? "border-zinc-700" : "border-zinc-700"
+            }`}
+          >
+            <motion.span className="text-9xl -mt-6">+</motion.span>
+            <motion.span className="text-base sm:text-xl -mt-2 sm:-mt-4 text-zinc-400">
+              {isMaxFilesReached
+                ? "File limit reached"
+                : hasFiles
+                ? "Add more files"
+                : "Drop your files here"}
+            </motion.span>
+            <span className="text-sm sm:text-base text-zinc-500 mt-1 sm:mt-2">
+              {isMaxFilesReached
+                ? `Maximum ${maxFiles} files uploaded`
+                : `Up to ${
+                    maxFiles - internalFiles.length
+                  } more file(s), 10MB each`}
+            </span>
+            <span className="text-sm sm:text-base text-zinc-500 -mt-0.5">
+              {`Accepted formats: ${acceptedFormats.join(", ")}`}
+            </span>
+            {!isMaxFilesReached && (
+              <input
+                type="file"
+                className="hidden"
+                onChange={handleFileUpload}
+                accept={acceptString}
+                multiple
+              />
+            )}
+          </motion.label>
+        </motion.div>
+      </motion.div>
     </div>
-  )
+  );
 }
-
