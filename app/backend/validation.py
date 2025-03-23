@@ -387,14 +387,14 @@ class LLMAnswerComparator:
         # Base case: If it's a number or contains a number, it's always valid.
         if expr.is_number:
             return 0  # Numbers don't count.
-
         # Case 1: If it's a single-letter symbol, check if it's recognized.
         if isinstance(expr, Symbol):
             name = expr.name.lower()
-            if len(name) == 1 and name.isalpha():  # Ensure it's a single letter
+            count = 0
+            for letter in name:
                 if name not in RECOGNIZED_VARIABLES:
-                    return 1  # Count as unrecognized
-            return 0  # Recognized single letters are ignored.
+                    count += 1  # Count as unrecognized
+            return count  
 
         # Case 2: If it's an operation (Multiplication, Addition, Function, etc.), check all parts recursively.
         count = 0
@@ -411,10 +411,8 @@ class LLMAnswerComparator:
     def _symbolic_equal(self, a: str, b: str) -> bool:
         """Check if two expressions are symbolically equivalent using sympy."""
 
-        
         expr_a = self._try_parse_sympy(a)
         expr_b = self._try_parse_sympy(b)
-        
         
         if expr_a is None or expr_b is None:
             return Equality.FAILED
@@ -667,20 +665,20 @@ if __name__ == "__main__":
  
     
     examples = [
-        ("\\frac{10}{2}", "5"),
-        ("7 \\frac{3}{4}", "7.75"),
-        ("Interval.open(1, 2)", "(1,2)"),
-        (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
-        ("x + x", "2*x"),
-        ("{  10, 20 }", "[10,20]"),
-        ("2.000001", "2.0"),
-        ("sqrt(25)", "5"),
-        ("3+4j", "3+4j"),
-        ("3", "3.01"),
-        ("The expression is 4.3", "The expression is 2 + 2.3"),
-        ("The expression is 4.3", "The expression is 2 + 2.1"),
-        ("sqrt(25)", "6"),
-        ("\\frac{10}{2}", "7"),
+        # ("\\frac{10}{2}", "5"),
+        # ("7 \\frac{3}{4}", "7.75"),
+        # ("Interval.open(1, 2)", "(1,2)"),
+        # (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
+        # ("x + x", "2*x"),
+        # ("{  10, 20 }", "[10,20]"),
+        # ("2.000001", "2.0"),
+        # ("sqrt(25)", "5"),
+        # ("3+4j", "3+4j"),
+        # ("3", "3.01"),
+        # ("The expression is 4.3", "The expression is 2 + 2.3"),
+        # ("The expression is 4.3", "The expression is 2 + 2.1"),
+        # ("sqrt(25)", "6"),
+        ("sin(x) * 2", "sin(x) + sin(x)",),
     ]
 
     # print(comparator._symbolic_equal('(1, 2)', '(1,2)'))
