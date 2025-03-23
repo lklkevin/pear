@@ -11,7 +11,7 @@ from enum import Enum
 from sympy import Eq, simplify, symbols, cancel
 from sympy import Mul, Symbol, Add, Pow
 from sympy.core.function import Function
-
+import concurrent.futures
 class Equality(Enum):
     EQUAL = 1
     UNEQUAL = 0
@@ -333,27 +333,21 @@ class LLMAnswerComparator:
                 )
         return a_stripped == b_stripped
 
-    # def _try_parse_sympy(self, s: str):
-    #     """Attempt to parse string s using parse_expr and parse_latex."""
-    #     for parse_fn in (parse_expr, parse_latex):
-    #         try:
-    #             return parse_fn(s)
-    #         except Exception:
-    #             continue
-    #     return None
     
     def _try_parse_sympy(self, s: str):
         """
-        Attempt to parse string s using parse_expr and parse_latex. 
-        - Return None if both fail, or if we detect that the parse was 
-        effectively just a group of letters (like h*e*l*l*o) or 
-        a single letter-based Symbol with no mathematical structure.
+        Attempt to parse string s using parse_expr and parse_latex with a 5-second timeout.
+        Return None if both fail or time out.
         """
+
+
         for parse_fn in (parse_expr, parse_latex):
             try:
-                expr = parse_fn(s)
-                return expr
-            except Exception:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(parse_fn, s)
+                    expr = future.result(timeout=5)  # 5 second timeout
+                    return expr
+            except (Exception, concurrent.futures.TimeoutError):
                 continue
 
         return None
