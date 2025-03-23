@@ -10,7 +10,7 @@ import { useState, useEffect } from "react";
 import MobileMenu from "./mobileMenu";
 import { Skeleton } from "../ui/skeleton";
 import { useScroll } from "@/utils/useScroll";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar({ landing = false }: { landing?: boolean }) {
   const { data: session, status } = useSession(); // Get authentication state
@@ -175,16 +175,21 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
                   </span>
                 </button>
               )}
-              {mobileMenuOpen && (
-                <MobileMenu
-                  mobileMenuOpen={mobileMenuOpen}
-                  setMobileMenuOpen={setMobileMenuOpen}
-                />
-              )}
             </div>
           </div>
         </div>
       </motion.nav>
+      
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <MobileMenu
+            mobileMenuOpen={mobileMenuOpen}
+            setMobileMenuOpen={setMobileMenuOpen}
+          />
+        )}
+      </AnimatePresence>
+      
       <div className="hidden sm:block relative z-50 max-w-7xl mx-auto">
         {menuOpen && session && (
           <UserDropdown

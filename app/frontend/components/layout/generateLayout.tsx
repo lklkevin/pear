@@ -1,3 +1,5 @@
+"use client";
+
 import InfoCard from "../sidebar/infoCard";
 import { useLoadingStore } from "@/store/store";
 import ProgressBar from "../ui/loading";

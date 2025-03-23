@@ -5,6 +5,7 @@ import Navbar from "./navNormal";
 import Sidebar from "./sideBar";
 import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 // Function to calculate scrollbar width
 export function getScrollbarWidth() {
@@ -38,25 +39,54 @@ export default function BaseLayout({
   sidebarContent,
   otherContent,
 }: BaseLayoutProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // State for sidebar collapse and initial animation flag
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [initialRender, setInitialRender] = useState(true);
+
+  // Set isCollapsed based on URL parameter after initial render
+  useEffect(() => {
+    const paramValue = searchParams.get("s");
+    const newIsCollapsed = paramValue === "e" ? false : true;
+
+    setIsCollapsed(newIsCollapsed);
+
+    // Mark initial render as complete after first parameter-based state change
+    if (initialRender) {
+      setInitialRender(false);
+    }
+  }, [searchParams, initialRender]);
+
   const expandedWidth = 360; // pixels in expanded state
   const gapSize = 32; // 32px gap between sidebar and content
   const { status } = useSession();
   const [shouldPad, setShouldPad] = useState(false);
   const [adjustedPadding, setAdjustedPadding] = useState(0);
   const [scrollbarWidth, setScrollbarWidth] = useState(0);
-  const [basePadding, setBasePadding] = useState(() => {
-    if (typeof window !== "undefined") {
-      return window.innerWidth >= 640 ? 32 : 16;
-    }
-    return 32;
-  });
   const [isLargeScreen, setIsLargeScreen] = useState(() => {
     if (typeof window !== "undefined") {
       return window.innerWidth >= 800;
     }
     return false;
   });
+
+  // Custom setIsCollapsed function that also updates URL
+  const updateSidebarState = (collapsed: boolean) => {
+    setIsCollapsed(collapsed);
+
+    // Update URL query parameter
+    const params = new URLSearchParams(searchParams.toString());
+    if (collapsed) {
+      params.delete("s");
+    } else {
+      params.set("s", "e");
+    }
+
+    // Replace URL without causing a navigation
+    router.replace(`?${params.toString()}`, { scroll: false });
+  };
 
   // Detect scrollbar width on component mount
   useEffect(() => {
@@ -72,7 +102,6 @@ export default function BaseLayout({
     const checkOverlap = () => {
       const windowWidth = window.innerWidth;
 
-      setBasePadding(windowWidth >= 640 ? 32 : 16);
       setIsLargeScreen(windowWidth >= 800);
 
       if (windowWidth >= 2000 || windowWidth < 800) {
@@ -109,7 +138,7 @@ export default function BaseLayout({
   }, [isCollapsed, expandedWidth, gapSize, scrollbarWidth]);
 
   // Calculate the padding value based on current state
-  const getPaddingValue = () => {
+  const getPaddingValue = (basePadding: number) => {
     if (shouldPad && !isCollapsed) {
       return adjustedPadding > 0
         ? basePadding + adjustedPadding
@@ -131,12 +160,12 @@ export default function BaseLayout({
     <div className="min-h-screen flex flex-col bg-zinc-950">
       <Navbar />
 
-      <div className="h-full relative flex-1">
+      <div className="h-full relative flex-1 sm:block hidden">
         {/* Main Content with Framer Motion animations */}
         <motion.main
           initial={false}
           animate={{
-            paddingLeft: `${getPaddingValue()}px`,
+            paddingLeft: `${getPaddingValue(32)}px`,
             filter: getBlurValue(),
           }}
           transition={{
@@ -157,7 +186,45 @@ export default function BaseLayout({
               height: "calc(100vh - 72px)",
             }}
           >
-            <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed}>
+            <Sidebar
+              isCollapsed={isCollapsed}
+              setIsCollapsed={updateSidebarState}
+            >
+              {sidebarContent}
+            </Sidebar>
+          </div>
+        )}
+      </div>
+      <div className="h-full relative flex-1 sm:hidden block">
+        {/* Main Content with Framer Motion animations */}
+        <motion.main
+          initial={false}
+          animate={{
+            paddingLeft: `${getPaddingValue(16)}px`,
+            filter: getBlurValue(),
+          }}
+          transition={{
+            duration: 0.3,
+            ease: "easeInOut",
+          }}
+          className={`flex bg-zinc-950 text-white flex-1 flex-col max-w-7xl mx-auto min-h-[calc(100vh-72px)] py-8 sm:py-12 pr-4 sm:pr-8`}
+        >
+          {children}
+        </motion.main>
+
+        {/* Sidebar */}
+        {status !== "loading" && (
+          <div
+            className="fixed top-[72px] left-0"
+            style={{
+              zIndex: 30,
+              height: "calc(100vh - 72px)",
+            }}
+          >
+            <Sidebar
+              isCollapsed={isCollapsed}
+              setIsCollapsed={updateSidebarState}
+            >
               {sidebarContent}
             </Sidebar>
           </div>

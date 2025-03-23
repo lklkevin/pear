@@ -1,4 +1,4 @@
-export type Color = "teal" | "blue" | "purple" | "red" | "orange" | "gray" | "pink";
+export type Color = "teal" | "cyan" | "sky" | "blue" | "indigo" | "violet" | "purple";
 
 interface ColorOption {
   value: Color;
@@ -15,40 +15,40 @@ export const colors: ColorOption[] = [
     hex: "#0f766e",
   },
   {
+    value: "cyan",
+    class: "bg-cyan-700",
+    outline: "ring-cyan-300",
+    hex: "#0e7490",
+  },
+  {
+    value: "sky",
+    class: "bg-sky-700",
+    outline: "ring-sky-300",
+    hex: "#0369a1",
+  },
+  {
     value: "blue",
+    class: "bg-blue-700",
+    outline: "ring-blue-300",
+    hex: "#1d4ed8",
+  },
+  {
+    value: "indigo",
     class: "bg-indigo-700",
     outline: "ring-indigo-300",
     hex: "#4338ca",
   },
   {
-    value: "purple",
+    value: "violet",
     class: "bg-violet-700",
     outline: "ring-violet-300",
     hex: "#6d28d9",
   },
   {
-    value: "pink",
-    class: "bg-rose-700",
-    outline: "ring-rose-300",
-    hex: "#be123c",
-  },
-  {
-    value: "red",
-    class: "bg-red-700",
-    outline: "ring-red-300",
-    hex: "#b91c1c",
-  },
-  {
-    value: "orange",
-    class: "bg-amber-700",
-    outline: "ring-amber-300",
-    hex: "#b45309",
-  },
-  {
-    value: "gray",
-    class: "bg-zinc-700",
-    outline: "ring-zinc-300",
-    hex: "#3f3f46",
+    value: "purple",
+    class: "bg-purple-700",
+    outline: "ring-purple-300",
+    hex: "#7e22ce",
   },
 ];
 

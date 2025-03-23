@@ -1,3 +1,5 @@
+"use client";
+
 import Generated from "../sidebar/newUser";
 import BaseLayout from "./sidebarLayout";
 
