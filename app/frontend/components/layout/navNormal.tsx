@@ -11,6 +11,7 @@ import MobileMenu from "./mobileMenu";
 import { Skeleton } from "../ui/skeleton";
 import { useScroll } from "@/utils/useScroll";
 import { motion, AnimatePresence } from "framer-motion";
+import { colors } from "../form/stylingOptions";
 
 export default function Navbar({ landing = false }: { landing?: boolean }) {
   const { data: session, status } = useSession(); // Get authentication state
@@ -42,15 +43,6 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     if (menuOpen) document.addEventListener("click", handleClickOutside);
     return () => document.removeEventListener("click", handleClickOutside);
   }, [menuOpen]);
-
-  const colors = [
-    "bg-cyan-700",
-    "bg-indigo-700",
-    "bg-violet-700",
-    "bg-pink-700",
-    "bg-red-700",
-    "bg-amber-700",
-  ];
 
   // Function to hash a string into an index
   const getColorFromName = (name: string) => {
@@ -135,7 +127,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
                 <button
                   className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${getColorFromName(
                     session.user?.name || "User"
-                  )}
+                  ).class}
               transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
                   onClick={(e) => {
                     e.stopPropagation(); // Prevents triggering the document click event

@@ -32,7 +32,7 @@ export default function BrowsePage() {
   // Local state for fetched results and loading
   const [results, setResults] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState(true);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Get values from URL query or fall back to defaults.
   const activeTab =
@@ -74,7 +74,7 @@ export default function BrowsePage() {
     [router]
   );
 
-  // Handle tab changes. Note the parameter type to match Dispatch<SetStateAction<string>>.
+  // Handle tab changes
   const handleTabChange = useCallback(
     (value: React.SetStateAction<string>) => {
       // If the value is a function, call it with the current activeTab; otherwise, use it directly.
@@ -142,7 +142,7 @@ export default function BrowsePage() {
       };
     }
     return { url, fetchOptions };
-  }, [activeTab, page, searchQuery]);
+  }, [activeTab, page, searchQuery, status]);
 
   // Fetch exams from the backend.
   const fetchExams = useCallback(async () => {
@@ -166,19 +166,23 @@ export default function BrowsePage() {
     } finally {
       setIsLoading(false);
     }
-  }, [buildFetchParams]);
+  }, [buildFetchParams, status]);
 
   // Fetch data when router query parameters or session status change.
   useEffect(() => {
-    if (!router.isReady) return;
+    if (!router.isReady || status === "loading") return;
+
+    // Set loading state immediately
+    setIsLoading(true);
 
     // Validate the active tab.
     if (!availableTabs.includes(activeTab)) {
       handleTabChange(DEFAULT_TAB);
       return;
     }
+
     fetchExams();
-  }, [fetchExams]);
+  }, [router.isReady, status, router.query, fetchExams]);
 
   const tabTitles: { [key: string]: string } = {
     "My Exams": "My Exams",
