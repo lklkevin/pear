@@ -11,7 +11,7 @@ from enum import Enum
 from sympy import Eq, simplify, symbols, cancel
 from sympy import Mul, Symbol, Add, Pow
 from sympy.core.function import Function
-
+import concurrent.futures
 class Equality(Enum):
     EQUAL = 1
     UNEQUAL = 0
@@ -333,27 +333,21 @@ class LLMAnswerComparator:
                 )
         return a_stripped == b_stripped
 
-    # def _try_parse_sympy(self, s: str):
-    #     """Attempt to parse string s using parse_expr and parse_latex."""
-    #     for parse_fn in (parse_expr, parse_latex):
-    #         try:
-    #             return parse_fn(s)
-    #         except Exception:
-    #             continue
-    #     return None
     
     def _try_parse_sympy(self, s: str):
         """
-        Attempt to parse string s using parse_expr and parse_latex. 
-        - Return None if both fail, or if we detect that the parse was 
-        effectively just a group of letters (like h*e*l*l*o) or 
-        a single letter-based Symbol with no mathematical structure.
+        Attempt to parse string s using parse_expr and parse_latex with a 5-second timeout.
+        Return None if both fail or time out.
         """
+
+
         for parse_fn in (parse_expr, parse_latex):
             try:
-                expr = parse_fn(s)
-                return expr
-            except Exception:
+                with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                    future = executor.submit(parse_fn, s)
+                    expr = future.result(timeout=5)  # 5 second timeout
+                    return expr
+            except (Exception, concurrent.futures.TimeoutError):
                 continue
 
         return None
@@ -387,14 +381,14 @@ class LLMAnswerComparator:
         # Base case: If it's a number or contains a number, it's always valid.
         if expr.is_number:
             return 0  # Numbers don't count.
-
         # Case 1: If it's a single-letter symbol, check if it's recognized.
         if isinstance(expr, Symbol):
             name = expr.name.lower()
-            if len(name) == 1 and name.isalpha():  # Ensure it's a single letter
+            count = 0
+            for letter in name:
                 if name not in RECOGNIZED_VARIABLES:
-                    return 1  # Count as unrecognized
-            return 0  # Recognized single letters are ignored.
+                    count += 1  # Count as unrecognized
+            return count  
 
         # Case 2: If it's an operation (Multiplication, Addition, Function, etc.), check all parts recursively.
         count = 0
@@ -411,10 +405,8 @@ class LLMAnswerComparator:
     def _symbolic_equal(self, a: str, b: str) -> bool:
         """Check if two expressions are symbolically equivalent using sympy."""
 
-        
         expr_a = self._try_parse_sympy(a)
         expr_b = self._try_parse_sympy(b)
-        
         
         if expr_a is None or expr_b is None:
             return Equality.FAILED
@@ -667,20 +659,20 @@ if __name__ == "__main__":
  
     
     examples = [
-        ("\\frac{10}{2}", "5"),
-        ("7 \\frac{3}{4}", "7.75"),
-        ("Interval.open(1, 2)", "(1,2)"),
-        (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
-        ("x + x", "2*x"),
-        ("{  10, 20 }", "[10,20]"),
-        ("2.000001", "2.0"),
-        ("sqrt(25)", "5"),
-        ("3+4j", "3+4j"),
-        ("3", "3.01"),
-        ("The expression is 4.3", "The expression is 2 + 2.3"),
-        ("The expression is 4.3", "The expression is 2 + 2.1"),
-        ("sqrt(25)", "6"),
-        ("\\frac{10}{2}", "7"),
+        # ("\\frac{10}{2}", "5"),
+        # ("7 \\frac{3}{4}", "7.75"),
+        # ("Interval.open(1, 2)", "(1,2)"),
+        # (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
+        # ("x + x", "2*x"),
+        # ("{  10, 20 }", "[10,20]"),
+        # ("2.000001", "2.0"),
+        # ("sqrt(25)", "5"),
+        # ("3+4j", "3+4j"),
+        # ("3", "3.01"),
+        # ("The expression is 4.3", "The expression is 2 + 2.3"),
+        # ("The expression is 4.3", "The expression is 2 + 2.1"),
+        # ("sqrt(25)", "6"),
+        ("sin(x) * 2", "sin(x) + sin(x)",),
     ]
 
     # print(comparator._symbolic_equal('(1, 2)', '(1,2)'))
