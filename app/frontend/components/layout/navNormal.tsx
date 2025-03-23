@@ -25,7 +25,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
   const closeMenu = () => setMenuOpen(false);
 
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
-  const scrolled = useScroll(10);
+  const scrolled = useScroll(5);
 
   useEffect(() => {
     const handleClickOutside = () => {
