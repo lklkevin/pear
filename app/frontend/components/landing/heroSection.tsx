@@ -5,13 +5,13 @@ import Image from "next/image";
 
 const HeroSection = () => {
   return (
-    <section className="min-h-[650px] md:min-h-[900px] lg:min-h-[900px] h-[calc(100vh-72px)] w-full bg-zinc-950">
-      <div className="h-full max-w-7xl mx-auto w-full p-4 sm:p-8">
+    <section className="min-h-[700px] sm:min-h-[800px] md:min-h-[850px] lg:min-h-[900px] h-[calc(100vh-72px)] w-full bg-zinc-950">
+      <div className="h-full max-w-7xl mx-auto w-full sm:py-4 px-4 sm:p-8">
         <div className="flex flex-col h-full rounded-xl sm:rounded-2xl w-full relative overflow-hidden bg-zinc-950">
           {/* Background Image */}
           <div className="absolute inset-0">
             <Image
-              src="/images/Ultravibe2002.png"
+              src="/images/hero.png"
               alt="Hero background"
               fill
               className="object-cover object-center [filter:brightness(0.8)_contrast(1.1)_saturate(1.2)_hue-rotate(-45deg)]"
@@ -46,7 +46,10 @@ const HeroSection = () => {
 
             {/* Graphic positioned at the bottom */}
             <div className="w-full mt-auto relative">
-              <div className="absolute inset-x-0 bottom-0 h-[25%] bg-gradient-to-t from-zinc-950/75 to-transparent z-10 pointer-events-none" />
+              <div
+                className="absolute inset-x-0 bottom-0 h-[25%] bg-gradient-to-t from-zinc-950/75 to-zinc-950/0 z-20 pointer-events-none"
+                style={{ left: "-2rem", right: "-2rem", bottom: "-2rem" }}
+              />
               <Graphic />
             </div>
           </div>

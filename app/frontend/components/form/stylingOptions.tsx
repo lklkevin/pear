@@ -10,8 +10,8 @@ interface ColorOption {
 export const colors: ColorOption[] = [
   {
     value: "teal",
-    class: "bg-cyan-700",
-    outline: "ring-cyan-300",
+    class: "bg-teal-700",
+    outline: "ring-teal-300",
     hex: "#0f766e",
   },
   {

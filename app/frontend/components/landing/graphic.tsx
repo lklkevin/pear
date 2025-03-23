@@ -13,18 +13,18 @@ export default function SkewedStack() {
   return (
     <div className="relative my-10 md:my-20">
       {/* Mobile/Tablet Layout (diagonal without skew) */}
-      <div className="md:hidden relative h-[50vh] w-full">
+      <div className="md:hidden relative h-[400px] md:h-[50vh] w-full">
         {rectangles.map((rect, index) => (
           <motion.div
             key={rect.id}
             className={`
-              absolute w-[40%] h-[50%]
+              absolute w-[40%] h-[196px] sm:h-[288px] sm:min-h-[288px] sm:max-h-[288px]
               border ${rect.border} ${rect.color}
               drop-shadow-[0_0_10px_rgba(0,0,0,0.3)] 
               rounded-xl
             `}
             initial={{ y: 0 }}
-            whileHover={{ y: -20 }}
+            whileHover={{ y: -40 }}
             transition={{ type: "spring", stiffness: 200, damping: 20 }}
             style={{
               backdropFilter: "blur(3px)",

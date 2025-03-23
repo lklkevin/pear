@@ -37,7 +37,16 @@ export default function App({ Component, pageProps }: AppProps) {
         <Component {...pageProps} />
       </SessionProvider>
       {!loading && (
-        <footer className="w-full h-[72px] border-t border-zinc-800 relative bg-zinc-950"></footer>
+        <footer className="w-full h-[72px] border-t border-zinc-800 relative bg-zinc-950">
+          <div className="flex flex-row justify-between max-w-7xl mx-auto w-full px-4 sm:px-8 h-full items-center">
+            <p className=" text-zinc-400">
+              Built with :3 by Group 27
+            </p>
+            <p className=" text-zinc-400">
+              &copy; 2025 Pear.
+            </p>
+          </div>
+        </footer>
       )}
     </main>
   );

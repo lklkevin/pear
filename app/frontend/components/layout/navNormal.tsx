@@ -67,7 +67,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
         className={`backdrop-blur-lg text-zinc-400 text-base h-[72px] ${
           landing
             ? scrolled && !mobileMenuOpen
-              ? "shadow-xl shadow-zinc-950/50 bg-zinc-950/75"
+              ? "shadow-lg shadow-zinc-950/25 bg-zinc-950/75"
               : "bg-zinc-950"
             : mobileMenuOpen
             ? "bg-zinc-950"
@@ -133,7 +133,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
               <div className="relative">
                 {/* Avatar Button */}
                 <button
-                  className={`h-9 w-9 rounded-full text-white font-semibold ${getColorFromName(
+                  className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${getColorFromName(
                     session.user?.name || "User"
                   )}
               transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
