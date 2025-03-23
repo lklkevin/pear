@@ -43,7 +43,6 @@ export default function ExamCard({
   };
 }) {
   const darkerColor = darkenColor(exam.color, 0.85);
-  console.log(darkerColor);
 
   return (
     <Link href={`/exam/${exam.exam_id}`} className="block">
