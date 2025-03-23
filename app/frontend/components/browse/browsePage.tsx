@@ -253,7 +253,7 @@ export default function BrowsePage() {
         ) : (
           <ExamGrid exams={results} />
         )}
-        <div className="justify-center flex items-center gap-3 w-full mt-4 sm:mt-8">
+        <div className="justify-center flex items-center gap-3 w-full mt-8 sm:mt-12">
           <button
             onClick={() => handlePageChange(Math.max(page - 1, 1))}
             disabled={page === 1 || isLoading}
