@@ -19,7 +19,7 @@ export default function UserDropdown({
       onClick={(e) => e.stopPropagation()} // Prevents closing dropdown when clicking inside it
     >
       <div className="p-4 border-b border-zinc-800 text-white">
-        <p className="font-semibold text-lg break-all max-w-full">{name}</p>
+        <p className="font-semibold text-lg break-all max-w-full truncate">{name}</p>
         <p className="text-xs text-zinc-400 break-words">{email}</p>
       </div>
       <Link
