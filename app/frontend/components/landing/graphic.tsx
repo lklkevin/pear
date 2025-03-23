@@ -1,3 +1,5 @@
+"use client";
+
 import { motion } from "framer-motion";
 
 const rectangles = [
@@ -9,38 +11,58 @@ const rectangles = [
 
 export default function SkewedStack() {
   return (
-    <div className="relative flex items-center justify-center my-16">
-      {rectangles.map((rect, index) => (
-        <motion.div
-          key={rect.id}
-          className={`
-            w-[14rem] h-[14rem] sm:w-[15rem] sm:h-[15rem] md:w-[16rem] md:h-[16rem] lg:w-[20rem] lg:h-[20rem] border ${rect.border} ${rect.color}
-            drop-shadow-[0_0_10px_rgba(0,0,0,0.3)] 
-            rounded-tl-[1.25rem] rounded-br-[1.25rem] 
-            rounded-tr-[2rem] rounded-bl-[2rem]
-            ${rect.id === 4 ? "hidden sm:block" : ""}
-          `}
-          initial={{ y: 0 }}
-          whileHover={{ y: -50 }}
-          transition={{ type: "spring", stiffness: 200, damping: 20 }}
-          style={{
-            pointerEvents: "auto",
-            marginLeft: index === 0 ? 0 : -180,
-            zIndex: rectangles.length - index,
-            backdropFilter: "blur(3px)",
-            position: "relative",
-          }}
-          transformTemplate={(latest, generated) =>
-            `skewX(-36deg) skewY(14deg) ${generated}`
-          }
-        >
-          {/* <img
-            src={`${rect.id}.png`}
-            alt="Text line background"
-            className="absolute inset-0 object-cover object-center"
-          /> */}
-        </motion.div>
-      ))}
+    <div className="relative my-10 md:my-20">
+      {/* Mobile/Tablet Layout (diagonal without skew) */}
+      <div className="md:hidden relative h-[50vh] w-full">
+        {rectangles.map((rect, index) => (
+          <motion.div
+            key={rect.id}
+            className={`
+              absolute w-[40%] h-[50%]
+              border ${rect.border} ${rect.color}
+              drop-shadow-[0_0_10px_rgba(0,0,0,0.3)] 
+              rounded-xl
+            `}
+            initial={{ y: 0 }}
+            whileHover={{ y: -20 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            style={{
+              backdropFilter: "blur(3px)",
+              top: `${index * 15}%`,
+              left: `${index * 20}%`,
+              zIndex: rectangles.length - index,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* Desktop Layout (skewed stack) */}
+      <div className="hidden md:flex items-center justify-center">
+        {rectangles.map((rect, index) => (
+          <motion.div
+            key={rect.id}
+            className={`
+              w-[17rem] h-[17rem] lg:w-[20rem] lg:h-[20rem] border ${rect.border} ${rect.color}
+              drop-shadow-[0_0_10px_rgba(0,0,0,0.3)] 
+              rounded-tl-[1.25rem] rounded-br-[1.25rem] 
+              rounded-tr-[2rem] rounded-bl-[2rem]
+            `}
+            initial={{ y: 0 }}
+            whileHover={{ y: -50 }}
+            transition={{ type: "spring", stiffness: 200, damping: 20 }}
+            style={{
+              pointerEvents: "auto",
+              marginLeft: index === 0 ? 0 : -180,
+              zIndex: rectangles.length - index,
+              backdropFilter: "blur(3px)",
+              position: "relative",
+            }}
+            transformTemplate={(latest, generated) =>
+              `skewX(-36deg) skewY(14deg) ${generated}`
+            }
+          />
+        ))}
+      </div>
     </div>
   );
 }
