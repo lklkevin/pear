@@ -9,48 +9,58 @@ import UserDropdown from "../account/userDropdown";
 import { useState, useEffect } from "react";
 import MobileMenu from "./mobileMenu";
 import { Skeleton } from "../ui/skeleton";
-import { useScroll } from "@/utils/useScroll";
-import { motion, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useMotionValueEvent,
+} from "framer-motion";
 import { colors } from "../form/stylingOptions";
 
 export default function Navbar({ landing = false }: { landing?: boolean }) {
-  const { data: session, status } = useSession(); // Get authentication state
-
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const callbackUrl = encodeURIComponent(router.asPath); // Preserve current URL
+  const callbackUrl = encodeURIComponent(router.asPath);
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const closeMenu = () => setMenuOpen(false);
-
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
-  const scrolled = useScroll(5);
+
+  // Using Framer Motion's useScroll and useMotionValueEvent to track scroll changes
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setScrolled(latest > 5);
+  });
 
   useEffect(() => {
     const handleClickOutside = () => {
       closeMenu();
       setMobileMenuOpen(false);
     };
-    if (menuOpen || mobileMenuOpen)
+    if (menuOpen || mobileMenuOpen) {
       document.addEventListener("click", handleClickOutside);
+    }
     return () => document.removeEventListener("click", handleClickOutside);
   }, [menuOpen, mobileMenuOpen]);
 
-  // Close menu when clicking anywhere on the document
   useEffect(() => {
     const handleClickOutside = () => closeMenu();
-    if (menuOpen) document.addEventListener("click", handleClickOutside);
+    if (menuOpen) {
+      document.addEventListener("click", handleClickOutside);
+    }
     return () => document.removeEventListener("click", handleClickOutside);
   }, [menuOpen]);
 
-  // Function to hash a string into an index
   const getColorFromName = (name: string) => {
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return colors[Math.abs(hash) % colors.length]; // Pick color based on hash
+    return colors[Math.abs(hash) % colors.length];
   };
 
   return (
@@ -94,7 +104,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
               </div>
             </Link>
             <Link
-              className={` hidden sm:block font-medium hover:text-white ${
+              className={`hidden sm:block font-medium hover:text-white ${
                 router.pathname === "/browse" ? "text-white" : "text-gray-400"
               }`}
               href="/browse"
@@ -118,19 +128,16 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
           >
             {status === "loading" ? (
               <div className="relative flex flex-row items-center justify-center">
-                <Skeleton className="h-9 w-9 rounded-full bg-zinc-800"></Skeleton>
+                <Skeleton className="h-9 w-9 rounded-full bg-zinc-800" />
               </div>
             ) : session ? (
-              // Show this when user is logged in
               <div className="relative">
-                {/* Avatar Button */}
                 <button
-                  className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${getColorFromName(
-                    session.user?.name || "User"
-                  ).class}
-              transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
+                  className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${
+                    getColorFromName(session.user?.name || "User").class
+                  } transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
                   onClick={(e) => {
-                    e.stopPropagation(); // Prevents triggering the document click event
+                    e.stopPropagation();
                     toggleMenu();
                   }}
                 >
@@ -138,21 +145,18 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
                 </button>
               </div>
             ) : (
-              // Show this when user is logged out
               <>
                 <div className="hidden sm:block">
                   <Link href={`/login?callbackUrl=${callbackUrl}`}>
                     <Button text="Login" />
                   </Link>
                 </div>
-
                 <Link href={`/signup?callbackUrl=${callbackUrl}`}>
                   <ButtonG text="Sign Up" />
                 </Link>
               </>
             )}
 
-            {/* Mobile Menu Button (Always Visible on Small Screens) */}
             <div className="sm:hidden">
               {status !== "loading" && (
                 <button
@@ -171,8 +175,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
           </div>
         </div>
       </motion.nav>
-      
-      {/* Mobile Menu */}
+
       <AnimatePresence>
         {mobileMenuOpen && (
           <MobileMenu
@@ -181,7 +184,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
           />
         )}
       </AnimatePresence>
-      
+
       <div className="hidden sm:block relative z-50 max-w-7xl mx-auto">
         {menuOpen && session && (
           <UserDropdown

@@ -24,7 +24,7 @@ export default function InputField({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-zinc-300"
+          className="block font-medium text-zinc-300"
         >
           {label}
         </label>

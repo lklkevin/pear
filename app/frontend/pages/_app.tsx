@@ -39,8 +39,9 @@ export default function App({ Component, pageProps }: AppProps) {
       {!loading && (
         <footer className="w-full h-[72px] border-t border-zinc-800 relative bg-zinc-950">
           <div className="flex flex-row justify-end max-w-7xl mx-auto w-full px-4 sm:px-8 h-full items-center">
-            <p className=" text-zinc-400">
+            <p className="flex flex-row text-zinc-400">
               &copy; 2025 Pear
+              <p className="sm:block hidden">. Made with :3 by Group 27</p>
             </p>
           </div>
         </footer>

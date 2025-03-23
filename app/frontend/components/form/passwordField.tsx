@@ -20,7 +20,7 @@ export default function PasswordField({
 
   return (
     <div className="relative">
-      <label className="flex justify-between text-sm font-medium text-zinc-300">
+      <label className="flex justify-between font-medium text-zinc-300">
         {label}
         {showForgotPassword && (
           <button
