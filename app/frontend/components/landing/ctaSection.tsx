@@ -10,7 +10,7 @@ export default function CtaSection() {
         <div className="flex flex-row gap-4 sm:gap-6 mt-4 sm:mt-6">
           <Link href="/signup">
             <button
-              className={`sm:text-lg w-32 sm:w-48 font-semibold sm:px-8 py-1.5 sm:py-2 rounded-lg transition-all duration-200 tracking-normal bg-zinc-950 border-zinc-700 border hover:bg-zinc-700 hover:text-white`}
+              className={`sm:text-lg w-32 sm:w-48 font-semibold sm:px-8 py-1.5 sm:py-2 rounded-md sm:rounded-lg transition-all duration-200 tracking-normal bg-zinc-950 border-zinc-700 border hover:bg-zinc-700 hover:text-white`}
             >
               Sign Up
             </button>
