@@ -29,7 +29,7 @@ export default function FeatureCards() {
       <div className="flex-shrink-0">
         <FeatureCard
           title="Drop and Generate"
-          description="Simply drag and drop your existing test or homework, and Pear instantly generates customized practice problems matching your content. No setup required."
+          description="Simply drag and drop your existing test or homework, and Pear instantly generates customized practice problems matching your content—no setup required."
         >
           <div className="w-full h-full grid grid-cols-3 grid-rows-3 gap-4 sm:gap-6">
             <DraggableIcon
@@ -71,7 +71,7 @@ export default function FeatureCards() {
               rightImage="/images/example2.png"
               vertical={true}
               hover={false}
-              sliderLineColor="#a1a1aa"
+              sliderLineColor="#3f3f46"
             />
           </div>
         </FeatureCard>

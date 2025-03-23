@@ -52,7 +52,7 @@ export default function ExpandingCardGrid() {
         setHoveredIndex(null);
       }
       hoverTimeoutRef.current = null;
-    }, 150); // 150ms delay - enough time to move between cards, but not too long to feel sluggish
+    }, 150);
   };
 
   const cards: CardProps[] = [
@@ -203,7 +203,7 @@ export default function ExpandingCardGrid() {
             <CardWrapper key={card.id} card={card}>
               <div
                 className={cn(
-                  "rounded-lg p-4 overflow-hidden flex flex-col transition-all duration-300 ease-out group",
+                  "rounded-xl p-4 overflow-hidden flex flex-col transition-all duration-300 ease-out group",
                   card.className,
                   isHovered && card.hoverClassName
                 )}
@@ -225,7 +225,7 @@ export default function ExpandingCardGrid() {
             <CardWrapper key={card.id} card={card}>
               <div
                 className={cn(
-                  "rounded-xl p-6 overflow-hidden flex flex-col h-full transition-all duration-300 ease-out group",
+                  "rounded-2xl p-6 overflow-hidden flex flex-col h-full transition-all duration-300 ease-out group",
                   card.className,
                   isHovered && card.hoverClassName
                 )}
@@ -320,20 +320,18 @@ export default function ExpandingCardGrid() {
                   </motion.h3>
                   <motion.div
                     layout
-                    initial={{ opacity: 0, y: 8 }}
+                    initial={{ opacity: 0 }}
                     animate={{
                       opacity: isHovered ? 1 : 0,
-                      y: isHovered ? 0 : 8,
                     }}
-                    className="flex items-center mt-auto"
+                    className="flex items-center mt-auto gap-1 sm:gap-1.5"
                     transition={{
                       opacity: { duration: 0.3, ease: "easeInOut" },
-                      y: { duration: 0.35, ease: "easeOut" },
                       layout: { duration: 0.25, ease: [0.25, 0.1, 0.25, 1.0] },
                     }}
                   >
-                    <span className="text-white text-sm">Explore</span>
-                    <span className="mt-[1.5px] material-icons text-white text-base transition-transform duration-300 ease-out group-hover:translate-x-1">
+                    <span className="text-white text-sm sm:text-base">Explore</span>
+                    <span className="mt-[1px] material-icons text-white text-base sm:text-lg">
                       arrow_forward
                     </span>
                   </motion.div>

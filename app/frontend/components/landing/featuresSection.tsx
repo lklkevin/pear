@@ -14,10 +14,10 @@ export default function FeaturesSection() {
   return (
     <section className="min-h-96 bg-gradient-to-b from-zinc-950 to-zinc-900">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl sm:text-5xl font-bold tracking-tight pt-4 sm:pt-8 px-4 sm:px-8">
+        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight pt-4 sm:pt-8 px-4 sm:px-8">
           Features
         </h1>
-        <p className="text-sm sm:text-base text-zinc-400 mt-2 sm:mt-4 md:max-w-[75%] lg:max-w-[60%] xl:max-w-[50%] px-4 sm:px-8">
+        <p className="text-base sm:text-lg text-zinc-400 mt-3 sm:mt-4 md:max-w-[75%] lg:max-w-[60%] xl:max-w-[55%] px-4 sm:px-8">
           Transform your math preparation with Pear. It takes less than 2
           minutes to create personalized practice sets based on your actual
           tests.

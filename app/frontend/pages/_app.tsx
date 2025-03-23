@@ -43,7 +43,7 @@ export default function App({ Component, pageProps }: AppProps) {
               Built with :3 by Group 27
             </p>
             <p className=" text-zinc-400">
-              &copy; 2025 Pear.
+              &copy; 2025 Pear
             </p>
           </div>
         </footer>

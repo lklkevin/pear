@@ -96,13 +96,13 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
           <div className="flex items-center h-full space-x-4 sm:space-x-8">
             <Link href="/" passHref>
               <div
-                className={`h-8 w-16 text-center text-xl font-semibold pt-[1px] text-white rounded-full bg-gradient-to-r from-emerald-700 to-emerald-600/90 tracking-tighter`}
+                className={`h-8 w-16 text-center text-xl font-semibold pt-[1px] text-white rounded-full bg-gradient-to-r from-emerald-700 to-emerald-600/90 hover:bg-emerald-700 transition-colors duration-200 tracking-tighter`}
               >
                 pear
               </div>
             </Link>
             <Link
-              className={`hidden sm:block hover:text-white ${
+              className={` hidden sm:block font-medium hover:text-white ${
                 router.pathname === "/browse" ? "text-white" : "text-gray-400"
               }`}
               href="/browse"
@@ -110,7 +110,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
               Browse
             </Link>
             <Link
-              className={`hidden sm:block hover:text-white ${
+              className={`hidden sm:block font-medium hover:text-white ${
                 router.pathname === "/generate" ? "text-white" : "text-gray-400"
               }`}
               href="/generate"

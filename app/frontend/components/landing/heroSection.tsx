@@ -32,11 +32,11 @@ const HeroSection = () => {
           {/* Content container with padding */}
           <div className="flex flex-col h-full w-full p-4 sm:p-8 relative z-10">
             <div className="flex flex-col items-center text-center mb-auto pt-6 md:pt-8 lg:pt-10">
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2 sm:mb-3 md:mb-4 lg:mb-6">
+              <h1 className="px-4 sm:px-16 lg:px-0 text-4xl sm:text-5xl md:text-6xl font-bold text-white mb-3 sm:mb-4 md:mb-5 lg:mb-6 tracking-tight">
                 Pear Helps You Stay Prepared
               </h1>
-              <p className="text-base sm:text-lg md:text-xl text-zinc-300 max-w-2xl mb-4 sm:mb-5 md:mb-6 lg:mb-8">
-                AI-powered, tailored math practice—built instantly from your
+              <p className="px-4 sm:px-16 md:px-0 font-medium text-base sm:text-lg md:text-xl text-zinc-300 mb-4 sm:mb-6 md:mb-8 tracking-tight">
+                AI-powered, tailored math practice built instantly from your
                 exams.
               </p>
 
