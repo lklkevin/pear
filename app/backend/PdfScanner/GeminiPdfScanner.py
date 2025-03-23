@@ -166,7 +166,7 @@ if __name__ == "__main__":
     from werkzeug.datastructures import FileStorage
 
     # Simulate a Flask file upload
-    with open("./backend/tests/example_pdfs/20240706Tyrrell_Lab Protocol.pdf", "rb") as pdf_file:
+    with open("./backend/tests/example_pdfs/normal1.pdf", "rb") as pdf_file:
         pdf_bytes = pdf_file.read()  # Read the binary content
 
     # Create an in-memory file-like object
