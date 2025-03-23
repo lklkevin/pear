@@ -9,13 +9,26 @@ import asyncio
 from backend.models import Cohere
 from enum import Enum
 from sympy import Eq, simplify, symbols, cancel
-
+from sympy import Mul, Symbol, Add, Pow
+from sympy.core.function import Function
 
 class Equality(Enum):
     EQUAL = 1
     UNEQUAL = 0
     FAILED = -1
-
+RECOGNIZED_FUNCTIONS = {
+    "sin", "cos", "tan", "cot", "sec", "csc",
+    "sinh", "cosh", "tanh", "log", "ln",
+    "sqrt", "exp", "asin", "acos", "atan",
+    "asinh", "acosh", "atanh", "pow", "abs",
+    "erf", "erfc"
+}
+RECOGNIZED_CONSTANTS = {
+    "pi", "e", "oo", "inf", "nan"
+}
+RECOGNIZED_VARIABLES = {
+    "x", "y", "z", "t", "a", "b", "c", "m", "n", "i", "j", "k"
+}
 
 class ValidationObject:
     stages = ["string", "math", "brackets", "matrices", "symbolic", "llm"]
@@ -73,6 +86,22 @@ def safe_execution(default_return=None, catch_exceptions=(Exception,)):
 
 
 class LLMAnswerComparator:
+    # A comprehensive set of allowed multi-letter tokens (case-insensitive)
+    ALLOWED_TOKENS = {
+        # Common functions
+        "sin", "cos", "tan", "cot", "sec", "csc", "log", "ln", "exp", "sqrt", "abs",
+        "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
+        "floor", "ceiling", "gamma", "erf", "min", "max", "gcd", "lcm",
+        # Greek letters and other common multi-letter variables/constants
+        "alpha", "beta", "gamma", "delta", "epsilon", "zeta", "eta", "theta",
+        "iota", "kappa", "lambda", "mu", "nu", "xi", "omicron", "pi", "rho", "sigma",
+        "tau", "upsilon", "phi", "chi", "psi", "omega",
+        # Standard constants and special values
+        "inf", "nan"
+    }
+
+    ALLOWED_SINGLE = {"x", "y", "z", "i", "j", "k", "e", "π"}
+    
     def __init__(self, tolerance: float = 1e-4):
         self.tolerance = tolerance
 
@@ -304,13 +333,29 @@ class LLMAnswerComparator:
                 )
         return a_stripped == b_stripped
 
+    # def _try_parse_sympy(self, s: str):
+    #     """Attempt to parse string s using parse_expr and parse_latex."""
+    #     for parse_fn in (parse_expr, parse_latex):
+    #         try:
+    #             return parse_fn(s)
+    #         except Exception:
+    #             continue
+    #     return None
+    
     def _try_parse_sympy(self, s: str):
-        """Attempt to parse string s using parse_expr and parse_latex."""
+        """
+        Attempt to parse string s using parse_expr and parse_latex. 
+        - Return None if both fail, or if we detect that the parse was 
+        effectively just a group of letters (like h*e*l*l*o) or 
+        a single letter-based Symbol with no mathematical structure.
+        """
         for parse_fn in (parse_expr, parse_latex):
             try:
-                return parse_fn(s)
+                expr = parse_fn(s)
+                return expr
             except Exception:
                 continue
+
         return None
 
     @safe_execution()
@@ -326,15 +371,56 @@ class LLMAnswerComparator:
         return isclose(
             float(sympy.N(expr_a)), float(sympy.N(expr_b)), rel_tol=self.tolerance
         )
+        
+    
+    
+
+    def count_unrecognized_single_letters(self, expr: str) -> int:
+        """
+        Recursively counts the number of single-letter symbols that are NOT recognized.
+        
+        - If a single-letter symbol is in the recognized set, it is ignored.
+        - If a symbol is **multi-letter**, it is assumed to be a legitimate variable or function (not counted here).
+        - If a symbol is a number or contains a number, it's ignored.
+        - The count is aggregated across nested expressions (multiplication, addition, functions, etc.).
+        """
+        # Base case: If it's a number or contains a number, it's always valid.
+        if expr.is_number:
+            return 0  # Numbers don't count.
+
+        # Case 1: If it's a single-letter symbol, check if it's recognized.
+        if isinstance(expr, Symbol):
+            name = expr.name.lower()
+            if len(name) == 1 and name.isalpha():  # Ensure it's a single letter
+                if name not in RECOGNIZED_VARIABLES:
+                    return 1  # Count as unrecognized
+            return 0  # Recognized single letters are ignored.
+
+        # Case 2: If it's an operation (Multiplication, Addition, Function, etc.), check all parts recursively.
+        count = 0
+        if hasattr(expr, 'args'):
+            for arg in expr.args:
+                count += self.count_unrecognized_single_letters(arg)
+        
+        return count
+    def is_uncrecognized(self, expr: str, threshold: int = 2):
+        return self.count_unrecognized_single_letters(expr) > threshold
+    
+
 
     def _symbolic_equal(self, a: str, b: str) -> bool:
         """Check if two expressions are symbolically equivalent using sympy."""
 
+        
         expr_a = self._try_parse_sympy(a)
         expr_b = self._try_parse_sympy(b)
-
+        
+        
         if expr_a is None or expr_b is None:
             return Equality.FAILED
+        if self.is_uncrecognized(expr_a) or self.is_uncrecognized(expr_b):
+            return Equality.FAILED
+
         diff_check = self.check_difference(expr_a, expr_b)
         if diff_check:
             return Equality.EQUAL
@@ -355,7 +441,7 @@ class LLMAnswerComparator:
                 return Equality.EQUAL
             return Equality.UNEQUAL
         return Equality.EQUAL if self.check_close(expr_a, expr_b) else Equality.UNEQUAL
-
+# run llm to see what kinda answers it gives, will be very useful
     def _parse_matrix(self, expr: str):
         """
         Attempt to parse a matrix expression from LaTeX or sympy.Matrix format.
@@ -399,6 +485,7 @@ class LLMAnswerComparator:
         try:
             mat_a = self._parse_matrix(a)
             mat_b = self._parse_matrix(b)
+
         except Exception:
             return False
 
@@ -421,6 +508,7 @@ class LLMAnswerComparator:
     async def llm_check(self, ans1: str, ans2: str) -> Equality:
         """Use LLM to check equivalence as last resort"""
         model = Cohere()
+
 
         prompt = f"Evaluate the values within expression 1: <{ans1}> and expression 2: <{ans2}>. Show your steps. It does not matter if the format is different, just tell me if the final value is numerically equal."
         response = await model.call_model(
@@ -542,9 +630,10 @@ class LLMAnswerComparator:
 
         symbolic = self._symbolic_equal(a, b)
 
+
         if symbolic == Equality.EQUAL:
             validation.add_equal("symbolic")
-        else:
+        elif symbolic == Equality.UNEQUAL:
             validation.add_unequal("symbolic")
 
         return validation
@@ -555,52 +644,52 @@ class LLMAnswerComparator:
         """
         Check whether two LLM-generated answers are essentially equivalent. Doesn't include final LLM check.
         """
+        
         # NOTE: sometimes sympy parses even though its meaningless
         validation = self._llm_answers_equivalent(ans1, ans2)
-        # we are not confident in UNEQUAL value so dont set it
-        if validation.status != Equality.FAILED and not (
-            validation.status == Equality.UNEQUAL
-            and validation.state[-1]["type"] == "symbolic comparison"
-        ):
+
+        if validation.status != Equality.FAILED:
+        
             return validation
-        # must clear it because of above reason
-        validation = ValidationObject()
         final = await self.llm_check(ans1, ans2)
         if final == Equality.EQUAL:
             validation.add_equal("llm")
         else:
             validation.add_unequal("llm")
+
         return validation
 
 
 # ---------------------- Example Usage ----------------------
 if __name__ == "__main__":
-
+    
     comparator = LLMAnswerComparator(tolerance=1e-5)
+ 
+    
     examples = [
-        # Fraction vs. number.
-        # ("\\frac{10}{2}", "5"),
-        # # Mixed fraction (implicit plus).
-        # ("7 \\frac{3}{4}", "7.75"),
-        # # Interval representations.
-        # ("Interval.open(1, 2)", "(1,2)"),
-        # # Point representation.
-        # ("Point(2,3)", "(2,3)"),
-        # # Symbolic expressions.
-        # ("x + x", "2*x"),
-        # # Bracketed lists.
-        # ("{  10, 20 }", "[10,20]"),
-        # # Numeric tolerance.
-        # ("(2.000001)", "(2.0)"),
-        # # Matrix examples: LaTeX vs. Matrix(...)
-        # (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
+        ("\\frac{10}{2}", "5"),
+        ("7 \\frac{3}{4}", "7.75"),
+        ("Interval.open(1, 2)", "(1,2)"),
+        (r"\begin{pmatrix} 1 & 2 \\ 3 & 4 \end{pmatrix}", "Matrix([[1,2],[3,4]])"),
+        ("x + x", "2*x"),
+        ("{  10, 20 }", "[10,20]"),
+        ("2.000001", "2.0"),
+        ("sqrt(25)", "5"),
+        ("3+4j", "3+4j"),
+        ("3", "3.01"),
         ("The expression is 4.3", "The expression is 2 + 2.3"),
-        # ("5+3", "8"),
-        # ("2", "2.05"),
+        ("The expression is 4.3", "The expression is 2 + 2.1"),
+        ("sqrt(25)", "6"),
+        ("\\frac{10}{2}", "7"),
     ]
+
     # print(comparator._symbolic_equal('(1, 2)', '(1,2)'))
     for i, (ansA, ansB) in enumerate(examples, 1):
         eq = asyncio.run(comparator.llm_answers_equivalent_full(ansA, ansB))
         print(eq.status)
         print(eq.state)
-        print(f"Example {i}: '{ansA}' vs. '{ansB}' => {eq}")
+        print(f"Example {i}: '{ansA}' vs. '{ansB}' => {eq}", '\n\n')
+
+
+
+
