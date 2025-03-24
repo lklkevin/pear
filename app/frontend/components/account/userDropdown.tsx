@@ -1,6 +1,8 @@
 import Link from "next/link";
 import signOutWithBackend from "@/utils/signOut";
 import { useSession } from "next-auth/react";
+import AccountModal from "./accountModal";
+import { useState } from "react";
 
 export default function UserDropdown({
   name,
@@ -12,6 +14,7 @@ export default function UserDropdown({
   closeMenu: () => void;
 }) {
   const { data: session } = useSession();
+  const [showModal, setShowModal] = useState(false);
 
   return (
     <div
@@ -22,14 +25,26 @@ export default function UserDropdown({
         <p className="font-semibold text-lg break-all max-w-full">{name}</p>
         <p className="text-xs text-zinc-400 break-words">{email}</p>
       </div>
-      <Link
-        href="/account"
-        className="w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-md hover:bg-opacity-50"
-        onClick={closeMenu}
-      >
-        <span className="material-icons">person_outline</span>
-        Account
-      </Link>
+      <div>
+        <button
+          className="w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-md hover:bg-opacity-50"
+          onClick={() => {
+            setShowModal(true);
+          }}
+        >
+          <span className="material-icons">person_outline</span>
+          Account
+        </button>
+        <AccountModal
+          email={email}
+          username={name}
+          show={showModal}
+          closeModal={() => {
+            setShowModal(false);
+            closeMenu();
+          }}
+        />
+      </div>
 
       {session && (
         <button
