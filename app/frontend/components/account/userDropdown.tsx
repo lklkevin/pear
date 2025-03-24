@@ -2,7 +2,7 @@ import Link from "next/link";
 import signOutWithBackend from "@/utils/signOut";
 import { useSession } from "next-auth/react";
 import AccountModal from "./accountModal";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export default function UserDropdown({
   name,
@@ -15,6 +15,11 @@ export default function UserDropdown({
 }) {
   const { data: session } = useSession();
   const [showModal, setShowModal] = useState(false);
+  const [userName, setUserName] = useState(name);
+
+  const handleUsernameUpdate = (updatedName: string) => {
+    setUserName(updatedName);
+  };
 
   return (
     <div
@@ -23,7 +28,7 @@ export default function UserDropdown({
     >
       <div className="p-4 border-b border-zinc-800 text-white">
         <p className="font-semibold text-lg break-all max-w-full truncate">
-          {name}
+          {userName}
         </p>
         <p className="text-sm text-zinc-400 truncate">{email}</p>
       </div>
@@ -37,15 +42,16 @@ export default function UserDropdown({
           <span className="material-icons">person_outline</span>
           Account
         </button>
-        <AccountModal
+        {/* <AccountModal
           email={email}
-          username={name}
+          username={userName}
           show={showModal}
           closeModal={() => {
             setShowModal(false);
             closeMenu();
           }}
-        />
+          onUsernameUpdated={handleUsernameUpdate}
+        /> */}
       </div>
 
       {session && (
