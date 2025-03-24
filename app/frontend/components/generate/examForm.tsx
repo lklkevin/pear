@@ -212,7 +212,7 @@ export default function ExamForm() {
   };
 
   return (
-    <div className="flex-1 mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-2 sm:gap-8 h-full">
+    <div className="flex-1 lg:flex-none min-h-[804px] mt-6 sm:mt-8 grid grid-cols-1 lg:grid-cols-2 sm:gap-8 h-full">
       {/* Left: File Upload */}
       <div className="flex flex-col h-full">
         {status === "loading" ? (

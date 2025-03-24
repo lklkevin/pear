@@ -12,7 +12,7 @@ export default function Button({
         className={`text-sm font-semibold h-8 w-24 rounded-full transition-all duration-200 tracking-tight
           ${disabled 
             ? "bg-gray-400 cursor-not-allowed" 
-            : "bg-emerald-900 border-emerald-400 border hover:bg-emerald-800 hover:text-white"}
+            : "text-white bg-emerald-900 border-emerald-400 border hover:bg-emerald-800 hover:text-white"}
         `}
         disabled={disabled}
         onClick={!disabled ? onClick : undefined}

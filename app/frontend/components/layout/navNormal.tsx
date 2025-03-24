@@ -14,23 +14,24 @@ import {
   AnimatePresence,
   useScroll,
   useMotionValueEvent,
+  useCycle,
 } from "framer-motion";
 import { colors } from "../form/stylingOptions";
+import { MenuToggle } from "../ui/menuToggle";
 
 export default function Navbar({ landing = false }: { landing?: boolean }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const callbackUrl = encodeURIComponent(router.asPath);
 
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, toggleMenu] = useCycle(false, true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const toggleMenu = () => setMenuOpen((prev) => !prev);
-  const closeMenu = () => setMenuOpen(false);
+  const closeMenu = () => toggleMenu(0);
+  const closeMobileMenu = () => setMobileMenuOpen(false);
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
 
-  // Using Framer Motion's useScroll and useMotionValueEvent to track scroll changes
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 10);
@@ -39,21 +40,13 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
   useEffect(() => {
     const handleClickOutside = () => {
       closeMenu();
-      setMobileMenuOpen(false);
+      closeMobileMenu();
     };
     if (menuOpen || mobileMenuOpen) {
       document.addEventListener("click", handleClickOutside);
     }
     return () => document.removeEventListener("click", handleClickOutside);
   }, [menuOpen, mobileMenuOpen]);
-
-  useEffect(() => {
-    const handleClickOutside = () => closeMenu();
-    if (menuOpen) {
-      document.addEventListener("click", handleClickOutside);
-    }
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [menuOpen]);
 
   const getColorFromName = (name: string) => {
     let hash = 0;
@@ -63,35 +56,35 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     return colors[Math.abs(hash) % colors.length];
   };
 
+  // Nav background & border styles based on conditions
+  const getNavStyles = () => {
+    if (mobileMenuOpen) {
+      return "bg-zinc-950 border-b border-zinc-800/0"; // Mobile menu open: no border
+    }
+    if (landing) {
+      return scrolled
+        ? "shadow-lg shadow-zinc-950/25 bg-zinc-950/75 border-b border-zinc-800" // Landing & scrolled: show border
+        : "bg-zinc-950 border-b border-zinc-800/0"; // Landing & not scrolled: no border
+    }
+    return "bg-zinc-950/75 border-b border-zinc-800"; // Other pages: always show border
+  };
+
   return (
     <div className="sticky top-0 z-50">
       <motion.nav
-        className={`backdrop-blur-lg text-zinc-400 text-base h-[72px] ${
-          landing
-            ? scrolled && !mobileMenuOpen
-              ? "shadow-lg shadow-zinc-950/25 bg-zinc-950/75"
-              : "bg-zinc-950"
-            : mobileMenuOpen
-            ? "bg-zinc-950"
-            : "bg-zinc-950/75 border-b border-zinc-800"
-        }`}
+        className={`backdrop-blur-lg text-zinc-400 text-base h-[72px] ${getNavStyles()}`}
         key={`nav-${mobileMenuOpen}`}
-        initial={
-          landing || mobileMenuOpen
-            ? { borderBottomColor: "rgba(39, 39, 42, 0)" }
-            : false
-        }
-        animate={
-          landing || mobileMenuOpen
-            ? {
-                borderBottomColor:
-                  scrolled && !mobileMenuOpen
-                    ? "rgba(39, 39, 42, 1)"
-                    : "rgba(39, 39, 42, 0)",
-                borderBottomWidth: "1px",
-              }
-            : false
-        }
+        initial={{ borderBottomColor: "rgba(39, 39, 42, 0)" }}
+        animate={{
+          borderBottomColor: mobileMenuOpen
+            ? "rgba(39, 39, 42, 0)"
+            : landing
+            ? scrolled
+              ? "rgba(39, 39, 42, 1)"
+              : "rgba(39, 39, 42, 0)"
+            : "rgba(39, 39, 42, 1)",
+          borderBottomWidth: "1px",
+        }}
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
         <div className="h-full flex flex-row justify-between max-w-7xl w-full mx-auto px-4 sm:px-8 ">
@@ -105,7 +98,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
             </Link>
             <Link
               className={`hidden sm:block font-medium hover:text-white ${
-                router.pathname === "/browse" ? "text-white" : "text-gray-400"
+                router.pathname === "/browse" ? "text-white" : "text-zinc-400"
               }`}
               href="/browse"
             >
@@ -113,7 +106,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
             </Link>
             <Link
               className={`hidden sm:block font-medium hover:text-white ${
-                router.pathname === "/generate" ? "text-white" : "text-gray-400"
+                router.pathname === "/generate" ? "text-white" : "text-zinc-400"
               }`}
               href="/generate"
             >
@@ -151,36 +144,30 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
                     <Button text="Login" />
                   </Link>
                 </div>
-                <Link href={`/signup?callbackUrl=${callbackUrl}`}>
-                  <ButtonG text="Sign Up" />
-                </Link>
+                <div className="pr-10 sm:pr-0">
+                  <Link href={`/signup?callbackUrl=${callbackUrl}`}>
+                    <ButtonG text="Sign Up" />
+                  </Link>
+                </div>
               </>
             )}
-
-            <div className="sm:hidden">
-              {status !== "loading" && (
-                <button
-                  className="mt-1 block sm:hidden focus:outline-none"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleMobileMenu();
-                  }}
-                >
-                  <span className="material-icons text-white text-2xl">
-                    {mobileMenuOpen ? "close" : "menu"}
-                  </span>
-                </button>
-              )}
-            </div>
           </div>
         </div>
       </motion.nav>
 
-      <AnimatePresence>
+      <motion.div
+        className="sm:hidden fixed top-[26px] right-[16px] z-[60]"
+        animate={mobileMenuOpen ? "open" : "closed"}
+        initial={false}
+      >
+        <MenuToggle toggle={toggleMobileMenu} />
+      </motion.div>
+
+      <AnimatePresence mode="wait" initial={false}>
         {mobileMenuOpen && (
           <MobileMenu
             mobileMenuOpen={mobileMenuOpen}
-            setMobileMenuOpen={setMobileMenuOpen}
+            setMobileMenuOpen={closeMobileMenu}
           />
         )}
       </AnimatePresence>

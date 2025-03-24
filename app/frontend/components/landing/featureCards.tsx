@@ -104,8 +104,14 @@ export default function FeatureCards() {
               textColor="text-emerald-400"
               rounded="rounded-full"
             />
-            <div className="font-semibold sm:text-lg col-span-3 w-full h-full border-2 border-zinc-700 flex items-center justify-center rounded-b-[6rem]">
-              Validation System
+            <div className="font-semibold sm:text-lg col-span-3 w-full h-full border-2 border-zinc-700 items-center justify-center rounded-b-[6rem] flex gap-2 sm:gap-3">
+              <span className="material-icons text-zinc-600 font-medium text-2xl sm:text-3xl -mt-0.5">
+                arrow_downward
+              </span>
+              <div className="-mt-0.5">Validation System</div>
+              <span className="material-icons text-zinc-600 font-medium text-2xl sm:text-3xl -mt-0.5">
+                arrow_downward
+              </span>
             </div>
             <div className="col-span-2 font-semibold sm:text-lg w-full h-full border-2 border-zinc-700 flex items-center justify-center rounded-full">
               Final Answer
