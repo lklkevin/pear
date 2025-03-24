@@ -225,7 +225,7 @@ export default function ExpandingCardGrid() {
             <CardWrapper key={card.id} card={card}>
               <div
                 className={cn(
-                  "rounded-2xl p-6 overflow-hidden flex flex-col h-full transition-all duration-300 ease-out group pointer-events-none",
+                  "rounded-2xl p-6 overflow-hidden flex flex-col h-full transition-all duration-300 ease-out group",
                   card.className,
                   isHovered && card.hoverClassName
                 )}
