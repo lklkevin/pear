@@ -28,7 +28,7 @@ export default function Sidebar({
               onClick={() => setIsCollapsed(false)}
               className="text-white focus:outline-none"
             >
-              <span className="material-icons mt-0.5 ml-0.5 text-2xl">
+              <span className="select-none material-icons mt-0.5 ml-0.5 text-2xl">
                 keyboard_double_arrow_right
               </span>
             </button>
@@ -48,7 +48,7 @@ export default function Sidebar({
                 onClick={() => setIsCollapsed(true)}
                 className="text-white focus:outline-none bg-zinc-900 rounded-full ml-4 sm:ml-8 my-4 sm:my-6 flex items-center justify-center w-12 h-12 flex-shrink-0 bg-opacity-75 xl:bg-opacity-100 border border-zinc-800 hover:bg-zinc-800/60 transition-colors"
               >
-                <span className="material-icons mt-0.5 -ml-0.5 text-2xl">
+                <span className="select-none material-icons mt-0.5 -ml-0.5 text-2xl">
                   keyboard_double_arrow_left
                 </span>
               </button>

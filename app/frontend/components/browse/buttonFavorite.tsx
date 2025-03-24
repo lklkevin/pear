@@ -65,7 +65,7 @@ export default function Favorite({ examId, initialFavorite }: FavoriteProps) {
 
   return (
     <div
-      className="absolute z-10 top-3 right-3 cursor-pointer"
+      className="absolute z-10 top-3 right-3 select-none cursor-pointer"
       onClick={handleClick}
     >
       <span

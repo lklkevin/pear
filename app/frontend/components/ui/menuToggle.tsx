@@ -28,7 +28,7 @@ export const MenuToggle = ({
       e.stopPropagation();
       toggle();
     }}
-    className="focus:outline-none"
+    className="select-none focus:outline-none"
     aria-label="Toggle menu"
   >
     <svg width="23" height="23" viewBox="0 0 23 23">

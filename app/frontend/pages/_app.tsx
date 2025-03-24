@@ -41,7 +41,7 @@ export default function App({ Component, pageProps }: AppProps) {
           <div className="flex flex-row justify-end max-w-7xl mx-auto w-full px-4 sm:px-8 h-full items-center">
             <div className="flex flex-row text-zinc-400">
               &copy; 2025 Pear
-              <p className="sm:block hidden">. Made with :3 by Group 27</p>
+              <p className="sm:block hidden">. Made with &lt;3 by Group 27</p>
             </div>
           </div>
         </footer>

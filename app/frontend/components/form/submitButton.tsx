@@ -10,7 +10,7 @@ export default function SubmitButton({
     return (
       <button
         type="submit"
-        className={`w-full font-medium bg-zinc-200 text-black py-[9px] rounded-md hover:bg-zinc-50 transition !mt-8
+        className={`select-none w-full font-medium bg-zinc-200 text-black py-[9px] rounded-md hover:bg-zinc-50 transition !mt-8
         ${loading ? "opacity-50 cursor-not-allowed hover:bg-zinc-100" : ""}`}
         disabled={loading}
         >

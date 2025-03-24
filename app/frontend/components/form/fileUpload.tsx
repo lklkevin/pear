@@ -55,10 +55,6 @@ export default function FileUpload({
 
       if (typeof setFiles === "function") {
         setFiles(updatedFiles);
-      } else {
-        console.warn(
-          "setFiles is not a function. File state is only updated internally."
-        );
       }
     },
     [internalFiles, setFiles, acceptedFormats, maxFileSize, maxFiles]
@@ -107,17 +103,13 @@ export default function FileUpload({
 
     if (typeof setFiles === "function") {
       setFiles(updatedFiles);
-    } else {
-      console.warn(
-        "setFiles is not a function. File state is only updated internally."
-      );
     }
   };
 
   const hasFiles = internalFiles.length > 0;
   const isMaxFilesReached = internalFiles.length >= maxFiles;
   const dropzoneClass =
-    "h-full border border-zinc-800 rounded-md text-center bg-zinc-900 transition-all duration-500 ease-in-out";
+    "h-full w-full flex-col flex border border-zinc-800 rounded-md text-center bg-zinc-900 transition-all duration-500 ease-in-out";
 
   // Animation variants for consistent animations
   const containerVariants = {
@@ -133,8 +125,7 @@ export default function FileUpload({
     exit: {
       opacity: 0,
       transition: {
-        duration: 0.2,
-        ease: "easeIn",
+        opacity: { duration: 0 },
       },
     },
   };
@@ -160,23 +151,24 @@ export default function FileUpload({
   };
 
   return (
-    <div
+    <motion.div
       className={dropzoneClass}
       onDragEnter={handleDragEnter}
       onDragLeave={handleDragLeave}
       onDragOver={handleDragOver}
       onDrop={handleDrop}
+      layout
+      transition={{
+        layout: {
+          duration: 0.2,
+          ease: "easeOut",
+          type: "tween",
+        },
+      }}
     >
       <motion.div
         layout
         className="h-full flex flex-col"
-        transition={{
-          layout: {
-            duration: 0.3,
-            ease: "easeOut",
-            type: "tween",
-          },
-        }}
       >
         <AnimatePresence mode="popLayout">
           {hasFiles && (
@@ -213,7 +205,7 @@ export default function FileUpload({
                   <span className="mr-2">{file.name}</span>
                   <motion.button
                     onClick={() => removeFile(index)}
-                    className="text-zinc-400 hover:text-white material-icons text-sm sm:text-base"
+                    className="text-zinc-400 hover:text-white material-icons text-sm sm:text-base select-none"
                     aria-label={`Remove ${file.name}`}
                   >
                     close
@@ -227,18 +219,16 @@ export default function FileUpload({
           layout
           style={{ overflow: "hidden", position: "relative", zIndex: 2 }}
           transition={{
-            layout: {
-              duration: 0.4,
-              ease: [0.25, 0.1, 0.25, 1.0],
-              type: "spring",
-              stiffness: 200,
-              damping: 25,
-            },
-          }}
+          layout: {
+            duration: 0.2,
+            ease: "easeOut",
+            type: "tween",
+          },
+        }}
           className="p-4 sm:p-6 flex-1"
         >
           <motion.label
-            className={`flex-1 flex flex-col w-full h-full ${
+            className={`select-none flex-1 flex flex-col w-full h-full ${
               isMaxFilesReached
                 ? "cursor-not-allowed "
                 : "cursor-pointer hover:bg-zinc-800/30"
@@ -276,6 +266,6 @@ export default function FileUpload({
           </motion.label>
         </motion.div>
       </motion.div>
-    </div>
+    </motion.div>
   );
 }
