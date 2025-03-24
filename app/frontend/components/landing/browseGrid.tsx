@@ -184,7 +184,7 @@ export default function ExpandingCardGrid() {
   }) => {
     if (card.href) {
       return (
-        <Link href={card.href} className="h-full">
+        <Link href={card.href} className="h-full pointer-events-auto">
           {children}
         </Link>
       );
@@ -203,7 +203,7 @@ export default function ExpandingCardGrid() {
             <CardWrapper key={card.id} card={card}>
               <div
                 className={cn(
-                  "rounded-xl p-4 overflow-hidden flex flex-col transition-all duration-300 ease-out group",
+                  "rounded-xl p-4 overflow-hidden flex flex-col transition-all duration-300 ease-out group pointer-events-none",
                   card.className,
                   isHovered && card.hoverClassName
                 )}
@@ -225,7 +225,7 @@ export default function ExpandingCardGrid() {
             <CardWrapper key={card.id} card={card}>
               <div
                 className={cn(
-                  "rounded-2xl p-6 overflow-hidden flex flex-col h-full transition-all duration-300 ease-out group",
+                  "rounded-2xl p-6 overflow-hidden flex flex-col h-full transition-all duration-300 ease-out group pointer-events-none",
                   card.className,
                   isHovered && card.hoverClassName
                 )}
