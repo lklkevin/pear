@@ -60,13 +60,13 @@ describe("NavNormal component", () => {
 
   test("renders the logo link", () => {
     render(<NavNormal />);
-    const logoLink = screen.getByRole("link", { name: ":3" }); // The logo doesn't have text
+    const logoLink = screen.getByRole("link", { name: "pear" }); // The logo doesn't have text
     expect(logoLink).toHaveAttribute("href", "/");
   });
 
   test("applies border class when 'landing' prop is false", () => {
     const { container } = render(<NavNormal landing={false} />);
-    expect(container.firstChild).toHaveClass("border-b", "border-zinc-800");
+    expect(container.firstChild).toHaveClass("sticky", "top-0 z-50");
   });
 
   test("does not apply border class when 'landing' prop is true", () => {

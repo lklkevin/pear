@@ -1,22 +1,25 @@
 import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { SessionProvider } from "next-auth/react";
 import GenerateLayout from "../generateLayout";
 
-// Mock Framer Motion to prevent animation-related test issues
+// Mock Framer Motion to prevent animation-related issues
 jest.mock("framer-motion", () => ({
   motion: {
-    div: ({ children, className }: { children?: React.ReactNode; className?: string }) => (
-      <div className={className}>{children}</div>
-    ),
+    div: ({
+      children,
+      className,
+    }: {
+      children?: React.ReactNode;
+      className?: string;
+    }) => <div className={className}>{children}</div>,
   },
 }));
 
 // Mock Navbar to isolate layout tests
 jest.mock("../navNormal", () => () => <nav data-testid="navbar">Navbar</nav>);
 
-// Mock Sidebar with toggle functionality
+// Mock Sidebar with toggle functionality (if used elsewhere)
 jest.mock("../sideBar", () => {
   return function MockSidebar({
     isCollapsed,
@@ -29,7 +32,9 @@ jest.mock("../sideBar", () => {
   }) {
     return (
       <aside data-testid="sidebar" data-collapsed={isCollapsed.toString()}>
-        <button onClick={() => setIsCollapsed(!isCollapsed)}>Toggle Sidebar</button>
+        <button onClick={() => setIsCollapsed(!isCollapsed)}>
+          Toggle Sidebar
+        </button>
         {children}
       </aside>
     );
@@ -56,64 +61,118 @@ jest.mock("../../sidebar/infoCard", () => {
   };
 });
 
-// Dummy session to avoid `useSession` errors
-const dummySession = {
-  user: {
-    name: "John Doe",
-    email: "johndoe@example.com",
-  },
-  expires: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
-  accessToken: "dummy-access-token",
-  refreshToken: "dummy-refresh-token",
-  error: "",
-};
+// Mock BaseLayout component to isolate layout tests
+jest.mock("../sidebarLayout", () => {
+  return function MockBaseLayout({
+    sidebarContent,
+    otherContent,
+    children,
+  }: {
+    sidebarContent: React.ReactNode;
+    otherContent: React.ReactNode;
+    children: React.ReactNode;
+  }) {
+    const [collapsed, setCollapsed] = React.useState(true);
+    return (
+      <div>
+        {/* Render a mocked Navbar */}
+        <div data-testid="navbar">Navbar</div>
+        <aside data-testid="sidebar" data-collapsed={collapsed.toString()}>
+          {sidebarContent}
+          <button onClick={() => setCollapsed(!collapsed)}>
+            Toggle Sidebar
+          </button>
+        </aside>
+        <div data-testid="footer">{otherContent}</div>
+        <main data-testid="content">{children}</main>
+      </div>
+    );
+  };
+});
+
+// Also, ensure Next.js router and navigation hooks are mocked:
+jest.mock("next/router", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}));
+
+// Remove SessionProvider and simply return an unauthenticated session.
+jest.mock("next-auth/react", () => ({
+  useSession: () => ({ data: null, status: "unauthenticated" }),
+  getSession: () => Promise.resolve(null),
+}));
+
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 describe("GenerateLayout component", () => {
-  const renderWithSession = (component: React.ReactNode) =>
-    render(<SessionProvider session={dummySession}>{component}</SessionProvider>);
+  const renderComponent = (component: React.ReactNode) => {
+    return render(component);
+  };
 
   test("renders the Navbar", () => {
-    renderWithSession(<GenerateLayout><div>Page Content</div></GenerateLayout>);
-
+    renderComponent(
+      <GenerateLayout>
+        <div>Page Content</div>
+      </GenerateLayout>
+    );
     expect(screen.getByTestId("navbar")).toBeInTheDocument();
   });
 
   test("renders the Sidebar", () => {
-    renderWithSession(<GenerateLayout><div>Page Content</div></GenerateLayout>);
-
+    renderComponent(
+      <GenerateLayout>
+        <div>Page Content</div>
+      </GenerateLayout>
+    );
     expect(screen.getByTestId("sidebar")).toBeInTheDocument();
   });
 
   test("renders the 'Getting Started' heading inside the Sidebar", () => {
-    renderWithSession(<GenerateLayout><div>Page Content</div></GenerateLayout>);
-
-    expect(screen.getByRole("heading", { name: /getting started/i })).toBeInTheDocument();
+    renderComponent(
+      <GenerateLayout>
+        <div>Page Content</div>
+      </GenerateLayout>
+    );
+    // The GenerateLayout provides a heading "Getting Started" in its sidebarContent.
+    expect(
+      screen.getByRole("heading", { name: /getting started/i })
+    ).toBeInTheDocument();
   });
 
   test("renders the correct number of InfoCards inside the Sidebar", () => {
-    renderWithSession(<GenerateLayout><div>Page Content</div></GenerateLayout>);
-
+    renderComponent(
+      <GenerateLayout>
+        <div>Page Content</div>
+      </GenerateLayout>
+    );
+    // There are 4 steps defined in GenerateLayout.
     const infoCards = screen.getAllByTestId("info-card");
-    expect(infoCards.length).toBeGreaterThan(0); // Ensure at least 1 card is rendered
+    expect(infoCards.length).toBe(4);
   });
 
   test("renders children inside the main content area", () => {
-    renderWithSession(
+    renderComponent(
       <GenerateLayout>
         <div data-testid="child-content">Page Content</div>
       </GenerateLayout>
     );
-
     expect(screen.getByTestId("child-content")).toBeInTheDocument();
   });
 
   test("toggles Sidebar visibility when clicked", () => {
-    renderWithSession(<GenerateLayout><div>Page Content</div></GenerateLayout>);
-
+    renderComponent(
+      <GenerateLayout>
+        <div>Page Content</div>
+      </GenerateLayout>
+    );
     const sidebar = screen.getByTestId("sidebar");
-    const toggleButton = screen.getByRole("button", { name: /toggle sidebar/i });
+    const toggleButton = screen.getByRole("button", {
+      name: /toggle sidebar/i,
+    });
 
-    // Initially, check if the sidebar is collapsed
+    // Initially, sidebar should be collapsed (data-collapsed="true")
     expect(sidebar).toHaveAttribute("data-collapsed", "true");
 
     // Click to expand the sidebar

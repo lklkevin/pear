@@ -20,7 +20,10 @@ export default function PasswordField({
 
   return (
     <div className="relative">
-      <label className="flex justify-between font-medium text-zinc-300">
+      <label
+        htmlFor="password"
+        className="flex justify-between font-medium text-zinc-300"
+      >
         {label}
         {showForgotPassword && (
           <button
@@ -32,9 +35,10 @@ export default function PasswordField({
           </button>
         )}
       </label>
-      
+
       <div className="relative">
         <input
+          id="password"
           type={showPassword ? "text" : "password"}
           className="w-full p-2 mt-1 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500 pr-10" // Add padding-right for button space
           value={value}
@@ -53,5 +57,5 @@ export default function PasswordField({
         </button>
       </div>
     </div>
-  ); 
+  );
 }
