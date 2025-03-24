@@ -19,7 +19,7 @@ export default function ConfidenceBar({ confidence }: { confidence: number }) {
 
       <div className="items-center w-[104px] sm:w-32 h-1 bg-zinc-800 rounded-[1px] overflow-hidden flex">
         <div
-          className="h-full bg-emerald-500 transition-all duration-300"
+          className="h-full bg-gradient-to-r from-emerald-600 to-emerald-500 transition-all duration-300"
           style={{ width: `${confidence}%` }}
         />
       </div>

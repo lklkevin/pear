@@ -3,11 +3,11 @@ import React from "react";
 
 const CTA = () => {
   return (
-    <section className="text-center fixed bottom-0 mb-12 sm:mb-0 left-0 right-0 sm:static md:mt-24 z-10 ">
+    <section className="text-center">
       <Link href="/generate" passHref>
-        <button className="drop-shadow-xl backdrop-blur-lg z-10 group mx-auto w-[20rem] sm:w-[26rem] max-w-lg flex items-center justify-between rounded-2xl sm:rounded-3xl bg-emerald-300 bg-opacity-15 text-white py-3 sm:py-4 px-6 border border-white font-medium text-lg text-left transition-colors duration-200 hover:bg-opacity-20">
+        <button className="gap-4 drop-shadow-xl shadow-zinc-950 backdrop-blur-lg z-10 group flex items-center justify-between rounded-full bg-gradient-to-r from-emerald-700 to-emerald-600/90 text-white px-4 py-2 sm:px-5 sm:py-2.5 font-medium text-left transition-colors duration-200 hover:bg-emerald-700">
           <span className="drop-shadow-xl">Try now for free</span>
-          <span className="material-icons text-3xl transition-transform duration-200 group-hover:translate-x-2">
+          <span className="mt-[1px] material-icons text-xl transition-transform duration-200 group-hover:translate-x-1">
             arrow_forward
           </span>
         </button>

@@ -111,3 +111,11 @@ class TestSQLiteDB(BaseTestDAO):
                     (user_id, exam_id))
 
         return cur.fetchone() is not None
+
+    def user_password(self, db: sqlitedb.SQLiteDB, user_id: int) -> str:
+        cur = db.conn.cursor()
+
+        cur.execute('SELECT password FROM "User" '
+                    'WHERE id = ?;', (user_id,))
+        
+        return cur.fetchone()[0]

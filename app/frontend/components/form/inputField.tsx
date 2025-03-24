@@ -24,7 +24,7 @@ export default function InputField({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-zinc-300"
+          className="block font-medium text-zinc-300"
         >
           {label}
         </label>
@@ -37,6 +37,7 @@ export default function InputField({
           value={value}
           onChange={onChange}
           rows={4}
+          maxLength={1000}
         />
       ) : (
         <input
@@ -48,6 +49,7 @@ export default function InputField({
           placeholder={placeholder}
           value={value}
           onChange={onChange}
+          maxLength={100}
         />
       )}
     </div>

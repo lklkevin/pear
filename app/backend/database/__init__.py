@@ -188,6 +188,47 @@ class DataAccessObject(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def update_username(self, user_id: int, new_username: str) -> None:
+        """Update the username of a user.
+
+        Args:
+            user_id: The ID of the user whose username is to be updated.
+            new_username: The new username to be set.
+
+        Raises:
+            DatabaseError: If a database error occurs.
+            DataError: If the new username is invalid or already in use.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_password(self, user_id: int, new_hashed_password: str) -> None:
+        """Update the password of a user.
+
+        Args:
+            user_id: The ID of the user whose password is to be updated.
+            new_hashed_password: The new hashed password.
+
+        Raises:
+            DatabaseError: If a database error occurs.
+            DataError: If the password update fails due to bad data.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_user_account(self, user_id: int) -> None:
+        """Delete a user's account from the database.
+
+        Args:
+            user_id: The ID of the user to delete.
+
+        Raises:
+            DatabaseError: If a database error occurs.
+            DataError: If the deletion request fails due to data constraints.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def get_exam(self, 
         exam_id: int
     ) -> Optional[tuple[int, str, str, str, str, str, bool, int, Exam]]:
@@ -276,6 +317,21 @@ class DataAccessObject(ABC):
         Raises:
             DatabaseError: An error related to the database occurred.
             DataError: An error related to the processed data occurred.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_exam(self, exam_id: int) -> None:
+        """
+        Delete a given exam from the database and all associated information.
+
+        Args:
+            exam_id (int): The ID of the exam.
+
+        Raises:
+            DatabaseError: If an error occurs while interacting with the 
+                           database.
+            DataError: If there is an issue with the provided data.
         """
         raise NotImplementedError
     

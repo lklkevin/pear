@@ -9,10 +9,10 @@ export default function Button({
   }) {
     return (
       <button
-        className={`text-sm font-semibold h-8 w-24 rounded-md transition-all duration-200 tracking-normal
+        className={`text-sm tracking-tight font-semibold h-8 w-24 rounded-full transition-all duration-200
           ${disabled 
             ? "cursor-not-allowed" 
-            : "bg-zinc-950 border-zinc-700 border hover:bg-zinc-700 hover:text-white"}
+            : "text-white bg-zinc-950 border-zinc-700 border hover:bg-zinc-700 hover:text-white"}
         `}
         disabled={disabled}
         onClick={!disabled ? onClick : undefined}

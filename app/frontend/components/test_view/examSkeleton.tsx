@@ -6,7 +6,7 @@ export default function ExamSkeleton() {
       <Skeleton className="h-7 w-20 mb-4"></Skeleton>
       <Skeleton className="h-[2.25rem] sm:h-[3rem] w-1/3"></Skeleton>
       <div className="flex flex-col mt-2 sm:mt-4 mb-4 sm:mb-8 gap-3">
-        <Skeleton className="h-[1.25rem] sm:h-[1.5rem] w-full"></Skeleton>
+        <Skeleton className="h-[1.25rem] sm:h-[1.5rem] w-3/4"></Skeleton>
       </div>
       <div className="flex items-center justify-between mb-8 sm:mb-12">
         <Skeleton className=" w-[196px] h-[44px]"></Skeleton>

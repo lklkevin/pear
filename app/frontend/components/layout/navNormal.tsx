@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { useRouter } from "next/router";
 import ButtonG from "../ui/buttonGreen";
@@ -7,159 +9,178 @@ import UserDropdown from "../account/userDropdown";
 import { useState, useEffect } from "react";
 import MobileMenu from "./mobileMenu";
 import { Skeleton } from "../ui/skeleton";
+import {
+  motion,
+  AnimatePresence,
+  useScroll,
+  useMotionValueEvent,
+  useCycle,
+} from "framer-motion";
+import { colors } from "../form/stylingOptions";
+import { MenuToggle } from "../ui/menuToggle";
 
 export default function Navbar({ landing = false }: { landing?: boolean }) {
-  const { data: session, status } = useSession(); // Get authentication state
-
+  const { data: session, status } = useSession();
   const router = useRouter();
-  const callbackUrl = encodeURIComponent(router.asPath); // Preserve current URL
-  const [menuOpen, setMenuOpen] = useState(false);
+  const callbackUrl = encodeURIComponent(router.asPath);
+
+  const [menuOpen, toggleMenu] = useCycle(false, true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-  const toggleMenu = () => setMenuOpen((prev) => !prev);
-  const closeMenu = () => setMenuOpen(false);
-
+  const closeMenu = () => toggleMenu(0);
+  const closeMobileMenu = () => setMobileMenuOpen(false);
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
+
+  const { scrollY } = useScroll();
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setScrolled(latest > 10);
+  });
 
   useEffect(() => {
     const handleClickOutside = () => {
       closeMenu();
-      setMobileMenuOpen(false);
+      closeMobileMenu();
     };
-    if (menuOpen || mobileMenuOpen)
+    if (menuOpen || mobileMenuOpen) {
       document.addEventListener("click", handleClickOutside);
+    }
     return () => document.removeEventListener("click", handleClickOutside);
   }, [menuOpen, mobileMenuOpen]);
 
-  // Close menu when clicking anywhere on the document
-  useEffect(() => {
-    const handleClickOutside = () => closeMenu();
-    if (menuOpen) document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, [menuOpen]);
-
-  const colors = [
-    "bg-cyan-700",
-    "bg-indigo-700",
-    "bg-violet-700",
-    "bg-pink-700",
-    "bg-red-700",
-    "bg-amber-700",
-  ];
-
-  // Function to hash a string into an index
   const getColorFromName = (name: string) => {
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
-    return colors[Math.abs(hash) % colors.length]; // Pick color based on hash
+    return colors[Math.abs(hash) % colors.length];
+  };
+
+  // Nav background & border styles based on conditions
+  const getNavStyles = () => {
+    if (mobileMenuOpen) {
+      return "bg-zinc-950 border-b border-zinc-800/0"; // Mobile menu open: no border
+    }
+    if (landing) {
+      return scrolled
+        ? "shadow-lg shadow-zinc-950/25 bg-zinc-950/75 border-b border-zinc-800" // Landing & scrolled: show border
+        : "bg-zinc-950 border-b border-zinc-800/0"; // Landing & not scrolled: no border
+    }
+    return "bg-zinc-950/75 border-b border-zinc-800"; // Other pages: always show border
   };
 
   return (
-    <nav
-      className={`relative text-zinc-400 text-sm md:text-base flex flex-row w-screen h-[72px] px-5 sm:px-8 justify-between py-3 ${
-        landing
-          ? "bg-transparent"
-          : `bg-zinc-950 ${mobileMenuOpen ? "" : "border-b border-zinc-800"}`
-      }`}
-    >
-      <div className="flex items-center h-full space-x-4 md:space-x-8">
-        <Link href="/" passHref>
-          <div className="items-center flex justify-center text-lg text-emerald-400 h-9 w-9 bg-emerald-900 border border-emerald-400 rounded-full">
-            :3
-          </div>
-        </Link>
-        <Link
-          className={`hidden sm:block hover:text-white ${
-            router.pathname === "/browse" ? "text-white" : "text-gray-400"
-          }`}
-          href="/browse"
-        >
-          Browse
-        </Link>
-        <Link
-          className={`hidden sm:block hover:text-white ${
-            router.pathname === "/generate" ? "text-white" : "text-gray-400"
-          }`}
-          href="/generate"
-        >
-          Generate
-        </Link>
-      </div>
-
-      <div
-        className={`text-zinc-200 flex items-center h-full ${
-          status === "loading" ? "" : "space-x-4 md:space-x-6"
-        }`}
+    <div className="sticky top-0 z-50">
+      <motion.nav
+        className={`backdrop-blur-lg text-zinc-400 text-base h-[72px] ${getNavStyles()}`}
+        key={`nav-${mobileMenuOpen}`}
+        initial={{ borderBottomColor: "rgba(39, 39, 42, 0)" }}
+        animate={{
+          borderBottomColor: mobileMenuOpen
+            ? "rgba(39, 39, 42, 0)"
+            : landing
+            ? scrolled
+              ? "rgba(39, 39, 42, 1)"
+              : "rgba(39, 39, 42, 0)"
+            : "rgba(39, 39, 42, 1)",
+          borderBottomWidth: "1px",
+        }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
       >
-        {status === "loading" ? (
-          <div className="relative flex flex-row items-center justify-center">
-            <Skeleton className="h-8 w-24 sm:w-36 rounded-md"></Skeleton>
-          </div>
-        ) : session ? (
-          // Show this when user is logged in
-          <div className="relative">
-            {/* Avatar Button */}
-            <button
-              className={`h-9 w-9 rounded-full text-white font-semibold ${getColorFromName(
-                session.user?.name || "User"
-              )}
-              transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
-              onClick={(e) => {
-                e.stopPropagation(); // Prevents triggering the document click event
-                toggleMenu();
-              }}
+        <div className="h-full flex flex-row justify-between max-w-7xl w-full mx-auto px-4 sm:px-8 ">
+          <div className="flex items-center h-full space-x-4 sm:space-x-6 md:space-x-8">
+            <Link href="/" passHref>
+              <div
+                className={`select-none h-8 w-16 text-center text-xl font-semibold pt-[1px] text-white rounded-full bg-gradient-to-r from-emerald-700 to-emerald-600/90 hover:bg-emerald-700 transition-colors duration-200 tracking-tighter`}
+              >
+                pear
+              </div>
+            </Link>
+            <Link
+              className={`hidden sm:block font-medium hover:text-white ${
+                router.pathname === "/browse" ? "text-white" : "text-zinc-400"
+              }`}
+              href="/browse"
             >
-              {session.user?.name?.charAt(0).toUpperCase() || "U"}
-            </button>
+              Browse
+            </Link>
+            <Link
+              className={`hidden sm:block font-medium hover:text-white ${
+                router.pathname === "/generate" ? "text-white" : "text-zinc-400"
+              }`}
+              href="/generate"
+            >
+              Generate
+            </Link>
+          </div>
 
-            {menuOpen && (
-              <UserDropdown
-                name={session.user?.name || "User"}
-                email={session.user?.email || ""}
-                closeMenu={closeMenu}
-              />
+          <div
+            className={`text-zinc-200 flex items-center h-full ${
+              status === "loading" ? "" : "space-x-4 md:space-x-6"
+            }`}
+          >
+            {status === "loading" ? (
+              <div className="relative flex flex-row items-center justify-center">
+                <Skeleton className="h-9 w-9 rounded-full bg-zinc-800" />
+              </div>
+            ) : session ? (
+              <div className="relative">
+                <button
+                  className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${
+                    getColorFromName(session.user?.name || "User").class
+                  } transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleMenu();
+                  }}
+                >
+                  {session.user?.name?.charAt(0).toUpperCase() || "U"}
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="hidden sm:block">
+                  <Link href={`/login?callbackUrl=${callbackUrl}`}>
+                    <Button text="Login" />
+                  </Link>
+                </div>
+                <div className="pr-10 sm:pr-0">
+                  <Link href={`/signup?callbackUrl=${callbackUrl}`}>
+                    <ButtonG text="Sign Up" />
+                  </Link>
+                </div>
+              </>
             )}
           </div>
-        ) : (
-          // Show this when user is logged out
-          <>
-            <div className="hidden sm:block">
-              <Link href={`/login?callbackUrl=${callbackUrl}`}>
-                <Button text="Login" />
-              </Link>
-            </div>
-
-            <Link href={`/signup?callbackUrl=${callbackUrl}`}>
-              <ButtonG text="Sign Up" />
-            </Link>
-          </>
-        )}
-
-        {/* Mobile Menu Button (Always Visible on Small Screens) */}
-        <div className="sm:hidden">
-          {status !== "loading" && (
-            <button
-              className="block sm:hidden focus:outline-none"
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleMobileMenu();
-              }}
-            >
-              <span className="material-icons text-white text-2xl">
-                {mobileMenuOpen ? "close" : "menu"}
-              </span>
-            </button>
-          )}
-          {mobileMenuOpen && (
-            <MobileMenu
-              mobileMenuOpen={mobileMenuOpen}
-              setMobileMenuOpen={setMobileMenuOpen}
-            />
-          )}
         </div>
+      </motion.nav>
+
+      <motion.div
+        className="sm:hidden fixed top-[26px] right-[16px] z-[60]"
+        animate={mobileMenuOpen ? "open" : "closed"}
+        initial={false}
+      >
+        <MenuToggle toggle={toggleMobileMenu} />
+      </motion.div>
+
+      <AnimatePresence mode="wait" initial={false}>
+        {mobileMenuOpen && (
+          <MobileMenu
+            mobileMenuOpen={mobileMenuOpen}
+            setMobileMenuOpen={closeMobileMenu}
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="hidden sm:block relative z-50 max-w-7xl mx-auto">
+        {menuOpen && session && (
+          <UserDropdown
+            name={session.user?.name || "User"}
+            email={session.user?.email || ""}
+            closeMenu={closeMenu}
+          />
+        )}
       </div>
-    </nav>
+    </div>
   );
 }

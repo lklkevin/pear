@@ -26,6 +26,7 @@ export default function SearchBar({ placeholder, value, onChange, onSearch }: Se
             onSearch();
           }
         }}
+        maxLength={100}
         className="w-full pl-10 pr-4 py-2 bg-zinc-900 border border-zinc-800 rounded-md text-white placeholder:text-zinc-400 focus:outline-none focus:border-zinc-700"
       />
     </div>
