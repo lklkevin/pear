@@ -6,6 +6,8 @@ For your criteria, be generous to the question, and just try to exclude gibberis
 as you can look at it and see what computation needs to be done or if it can be answered with a single number or word.
 You can assume that just a formula by itself means to solve that formula and is a valid question.
 
+Aside from the question, also confirm that the domain/theme of the question is not inappropriate or explicit.
+
 In your response, only include the word 'yes' or 'no'.
 
 Here is the question:
