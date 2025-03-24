@@ -67,10 +67,10 @@ export default function MobileMenu({
         <motion.div variants={itemVariants}>
           <Link href="/browse" className="block text-lg w-screen px-4 py-1">
             <div
-              className={`py-2 rounded-md hover:bg-zinc-800 ${
+              className={`font-medium py-2 rounded-md hover:bg-zinc-800 ${
                 router.pathname === "/browse"
-                  ? "font-medium text-emerald-400"
-                  : "text-zinc-200"
+                  ? "text-emerald-400"
+                  : "text-zinc-200 hover:text-white"
               }`}
             >
               Browse
@@ -80,10 +80,10 @@ export default function MobileMenu({
         <motion.div variants={itemVariants}>
           <Link href="/generate" className="block text-lg w-screen px-4 py-1">
             <div
-              className={`py-2 rounded-md hover:bg-zinc-800 ${
+              className={`font-medium py-2 rounded-md hover:bg-zinc-800 ${
                 router.pathname === "/generate"
-                  ? "text-emerald-400 font-medium "
-                  : "text-zinc-200"
+                  ? "text-emerald-400"
+                  : "text-zinc-200 hover:text-white"
               }`}
             >
               Generate
@@ -98,10 +98,10 @@ export default function MobileMenu({
                 className="block text-lg w-screen px-4 py-1"
               >
                 <div
-                  className={`py-2 rounded-md hover:bg-zinc-800 ${
+                  className={`font-medium py-2 rounded-md hover:bg-zinc-800 ${
                     router.pathname === "/account"
-                      ? "text-emerald-400 font-medium "
-                      : "text-zinc-200"
+                      ? "text-emerald-400"
+                      : "text-zinc-200 hover:text-white"
                   }`}
                 >
                   Account
@@ -116,7 +116,7 @@ export default function MobileMenu({
                   setMobileMenuOpen(false);
                 }}
               >
-                <div className="py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 flex justify-center items-center gap-2">
+                <div className="text-zinc-200 hover:text-white font-medium py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 flex justify-center items-center gap-2">
                   <span className="material-icons">logout</span>
                   Logout
                 </div>
@@ -130,10 +130,10 @@ export default function MobileMenu({
               className="block text-lg w-screen px-4 py-1"
             >
               <div
-                className={`py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 ${
+                className={`font-medium py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 ${
                   router.pathname === "/login"
-                    ? "text-emerald-400 font-medium "
-                    : "text-zinc-200"
+                    ? "text-emerald-400"
+                    : "text-zinc-200 hover:text-white"
                 }`}
               >
                 Login

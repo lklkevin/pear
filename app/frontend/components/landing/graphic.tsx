@@ -11,12 +11,12 @@ export default function SkewedStack() {
   return (
     <div className="relative my-10 md:my-20">
       {/* Mobile/Tablet Layout (diagonal without skew) */}
-      <div className="md:hidden relative h-[400px] md:h-[50vh] w-full">
+      <div className="md:hidden relative h-[400px] w-full">
         {rectangles.map((rect, index) => (
           <motion.div
             key={rect.id}
             className={`
-              absolute w-[40%] h-[196px] sm:h-[288px] sm:min-h-[288px] sm:max-h-[288px]
+              absolute w-[40%] h-[196px] sm:h-[240px] sm:min-h-[240px] sm:max-h-[240px]
               border ${rect.border} ${rect.color}
               drop-shadow-[0_0_10px_rgba(0,0,0,0.3)] 
               rounded-xl

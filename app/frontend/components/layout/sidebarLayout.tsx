@@ -172,7 +172,7 @@ export default function BaseLayout({
             duration: 0.3,
             ease: "easeInOut",
           }}
-          className={`flex bg-zinc-950 text-white flex-1 flex-col max-w-7xl mx-auto min-h-[calc(100vh-72px)] py-8 sm:py-12 pr-4 sm:pr-8`}
+          className={`flex bg-zinc-950 text-white flex-1 flex-col max-w-7xl mx-auto min-h-[calc(100vh-72px)] pt-8 pb-4 sm:pb-8 sm:pt-12 pr-4 sm:pr-8`}
         >
           {children}
         </motion.main>
@@ -207,7 +207,7 @@ export default function BaseLayout({
             duration: 0.3,
             ease: "easeInOut",
           }}
-          className={`flex bg-zinc-950 text-white flex-1 flex-col max-w-7xl mx-auto min-h-[calc(100vh-72px)] py-8 sm:py-12 pr-4 sm:pr-8`}
+          className={`flex bg-zinc-950 text-white flex-1 flex-col max-w-7xl mx-auto min-h-[calc(100vh-72px)] pt-8 pb-4 sm:pb-8 sm:pt-12 pr-4 sm:pr-8`}
         >
           {children}
         </motion.main>

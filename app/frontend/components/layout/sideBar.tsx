@@ -60,7 +60,7 @@ export default function Sidebar({
               </p>
             </div>
             {/* Content area with improved scrolling */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-900 py-4 sm:py-6">
+            <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-zinc-800 scrollbar-track-zinc-900 py-4 sm:py-8">
               {children}
             </div>
           </motion.div>

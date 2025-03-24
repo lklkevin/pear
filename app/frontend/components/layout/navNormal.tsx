@@ -33,7 +33,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
   // Using Framer Motion's useScroll and useMotionValueEvent to track scroll changes
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (latest) => {
-    setScrolled(latest > 5);
+    setScrolled(latest > 10);
   });
 
   useEffect(() => {
@@ -95,10 +95,10 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
         transition={{ duration: 0.3, ease: "easeInOut" }}
       >
         <div className="h-full flex flex-row justify-between max-w-7xl w-full mx-auto px-4 sm:px-8 ">
-          <div className="flex items-center h-full space-x-4 sm:space-x-8">
+          <div className="flex items-center h-full space-x-4 sm:space-x-6 md:space-x-8">
             <Link href="/" passHref>
               <div
-                className={`h-8 w-16 text-center text-xl font-semibold pt-[1px] text-white rounded-full bg-gradient-to-r from-emerald-700 to-emerald-600/90 hover:bg-emerald-700 transition-colors duration-200 tracking-tighter`}
+                className={`select-none h-8 w-16 text-center text-xl font-semibold pt-[1px] text-white rounded-full bg-gradient-to-r from-emerald-700 to-emerald-600/90 hover:bg-emerald-700 transition-colors duration-200 tracking-tighter`}
               >
                 pear
               </div>
@@ -160,7 +160,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
             <div className="sm:hidden">
               {status !== "loading" && (
                 <button
-                  className="block sm:hidden focus:outline-none"
+                  className="mt-1 block sm:hidden focus:outline-none"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleMobileMenu();

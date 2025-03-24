@@ -5,8 +5,8 @@ import Image from "next/image";
 
 const HeroSection = () => {
   return (
-    <section className="min-h-[700px] sm:min-h-[800px] md:min-h-[850px] lg:min-h-[900px] h-[calc(100vh-72px)] w-full bg-zinc-950">
-      <div className="h-full max-w-7xl mx-auto w-full sm:py-4 px-4 sm:p-8">
+    <section className="min-h-[700px] sm:min-h-[810px] md:min-h-[850px] lg:min-h-[900px] h-[calc(100vh-72px)] w-full bg-zinc-950">
+      <div className="h-full max-w-7xl mx-auto w-full px-4 sm:px-8">
         <div className="flex flex-col h-full rounded-xl sm:rounded-2xl w-full relative overflow-hidden bg-zinc-950">
           {/* Background Image */}
           <div className="absolute inset-0">

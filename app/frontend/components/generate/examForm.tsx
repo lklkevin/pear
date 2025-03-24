@@ -258,7 +258,7 @@ export default function ExamForm() {
           <Skeleton className="w-full h-[46px]"></Skeleton>
         </div>
       ) : (
-        <div className="flex flex-col h-full gap-8 justify-between">
+        <div className="flex flex-col h-full gap-4 sm:gap-8 justify-between">
           <div>
             <h3 className="text-lg sm:text-xl font-semibold mt-4 sm:mt-0 mb-2 sm:mb-4">
               Exam Title

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Link from "next/link";
-import Button from "../ui/buttonGreen";
+import Button from "../ui/longButtonGreen";
 import {
   VisibilityOption,
   Visibility,
@@ -185,7 +185,7 @@ export default function Sidebar() {
       />
 
       {/* Save Button */}
-      <div className="mt-4 mb-8">
+      <div className="mt-4 text-lg">
         <Button text={"Save"} onClick={handleSave} />
       </div>
     </div>

@@ -20,11 +20,11 @@ export default function UserDropdown({
     >
       <div className="p-4 border-b border-zinc-800 text-white">
         <p className="font-semibold text-lg break-all max-w-full truncate">{name}</p>
-        <p className="text-xs text-zinc-400 break-words">{email}</p>
+        <p className="text-sm text-zinc-400 truncate">{email}</p>
       </div>
       <Link
         href="/account"
-        className="w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-md hover:bg-opacity-50"
+        className="font-medium tracking-tight w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-md hover:bg-opacity-50"
         onClick={closeMenu}
       >
         <span className="material-icons">person_outline</span>
@@ -37,7 +37,7 @@ export default function UserDropdown({
             signOutWithBackend(session?.refreshToken);
             closeMenu();
           }}
-          className="w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-md hover:bg-opacity-50"
+          className="pl-[9px] font-medium tracking-tight w-[calc(100%-1rem)] m-2 px-2 py-2 text-white flex items-center gap-2 hover:bg-zinc-700 hover:rounded-md hover:bg-opacity-50"
         >
           <span className="material-icons scale-90">logout</span>
           Log Out
