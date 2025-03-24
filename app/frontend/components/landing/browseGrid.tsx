@@ -166,7 +166,7 @@ export default function ExpandingCardGrid() {
         </h3>
         <div className="flex items-center mt-auto transition-all duration-500 ease-in-out opacity-0 transform translate-y-2 group-hover:opacity-100 group-hover:translate-y-0">
           <span className="text-white text-sm">Explore</span>
-          <span className="mt-[1.5px] material-icons text-white text-base transition-transform duration-300 ease-out group-hover:translate-x-1">
+          <span className="mt-[1px] material-icons text-white text-base transition-transform duration-300 ease-out group-hover:translate-x-1">
             arrow_forward
           </span>
         </div>
