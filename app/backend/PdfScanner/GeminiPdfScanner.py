@@ -1,4 +1,5 @@
 import asyncio
+import os
 
 from backend.PdfScanner.pdfobject import PDFObject
 from backend.models import ModelProvider, Cohere, GeminiModel
@@ -22,13 +23,20 @@ class GeminiPDFScanner(PDFScannerInterface):
             image_scanner (ModelProvider): API object responsible for extracting content from PDFs.
             text_processor (ModelProvider): API object responsible for processing extracted text.
         """
+        self._dir = os.path.dirname(os.path.abspath(__file__))
         if image_scanner is None:
             image_scanner = GeminiModel()
         if text_processor is None:
             text_processor = Cohere()
         super().__init__(image_scanner, text_processor)
 
-    async def scan_pdfs(self, list_of_pdfs: list[str | bytes]) -> list[PDFObject]:
+    def _load_prompt(self, prompt_type: str):
+        filepath = f"prompts/{prompt_type}.txt"
+        file_path = os.path.join(self._dir, filepath)
+        with open(file_path, "r") as prompt_file:
+            return prompt_file.read()
+
+    async def scan_pdfs(self, list_of_pdfs: list[str | bytes], validate: bool = True) -> list[PDFObject]:
         """
         Scans multiple PDFs and extracts question–answer pairs.
 
@@ -38,27 +46,14 @@ class GeminiPDFScanner(PDFScannerInterface):
 
         Args:
             list_of_pdfs (list[str]): List of file paths to PDF documents.
+            validate (bool) : whether to validate questions or not
 
         Returns:
             list[PDFObject]: A collection of processed PDF objects, each containing QA pairs.
         """
 
-        prompt = """
-You are given a PDF of a math exam and your job is to extract the questions in a text applicable format.
+        prompt = self._load_prompt("scanner")
 
-For each question, first determine if it can be represented logically and solvably in a text-based format.
-Make sure it is a computational question and not some explaination based question.
-
-Then if so, write out a representation of the question in the form:
-[===]
-Question:
-
-Answer:
-
-Have separators between each question and answer pair. If there is no detectable answer, specify answer as N/A
-If there is an answer, keep only the numerical portion of the answer.
-Keep only the question part of the question, do not preserve any extra formatting like numerical ordering
-"""
         pdf_objects = []
         print(f"Processing {len(list_of_pdfs)} PDFs")
 
@@ -72,7 +67,7 @@ Keep only the question part of the question, do not preserve any extra formattin
                     pdf_data=pdf_data,  # Pass raw binary PDF data
                 )
                 # Use the image scanner to extract the full PDF content using bytes.
-                pdf_obj = await self._process_pdf_text(extracted_content)
+                pdf_obj = await self._process_pdf_text(extracted_content, validate)
                 pdf_objects.append(pdf_obj)
         else:
             for pdf_path in list_of_pdfs:
@@ -83,12 +78,12 @@ Keep only the question part of the question, do not preserve any extra formattin
                     pdf_path=pdf_path,
                 )
                 # Process the extracted text to obtain question–answer pairs.
-                pdf_obj = await self._process_pdf_text(extracted_content)
+                pdf_obj = await self._process_pdf_text(extracted_content, validate)
                 pdf_objects.append(pdf_obj)
 
         return pdf_objects
 
-    async def _process_pdf_text(self, text: str) -> PDFObject:
+    async def _process_pdf_text(self, text: str, validate: bool = True) -> PDFObject:
         """
         Processes the extracted text to generate question–answer pairs using the text processor.
 
@@ -124,7 +119,7 @@ Keep only the question part of the question, do not preserve any extra formattin
             answer = section[a_index + len("answer:"):].strip()
 
             # Validate the extracted question.
-            if not await self._validate_question(question):
+            if validate and not await self.validate_question(question):
                 print(f"Invalid question skipped: {question}")
                 continue
 
@@ -132,7 +127,7 @@ Keep only the question part of the question, do not preserve any extra formattin
 
         return PDFObject(qa_pairs)
 
-    async def _validate_question(self, question: str) -> bool:
+    async def validate_question(self, question: str) -> bool:
         """
         Validates whether a given question meets the expected format.
 
@@ -143,19 +138,11 @@ Keep only the question part of the question, do not preserve any extra formattin
             bool: True if the question is valid, False otherwise.
         """
 
-        prompt = f"""You are validator for a math exam creation and you are to oversee exam questions. The goal is to have
-text based questions that result in a singular answer. 
+        prompt = self._load_prompt("validator").format(question)
 
-You will be given an exam question and respond whether it is satisfactory to be included in the math exam.
-For your criteria, be generous to the question, and just try to exclude gibberish or non-math questions, as long
-as you can look at it and see what computation needs to be done.
-You can assume that just a formula by itself means to solve that formula and is a valid question.
+        if question == "":
+            return False
 
-In your response, only include the word 'yes' or 'no'
-
-Here is the question:
-{question}
-"""
         response = await self.text_processor.call_model(
             prompt,
             accept_func=lambda x: any(s in x.lower() for s in ['yes', 'no'])
@@ -164,7 +151,7 @@ Here is the question:
         if response is None:
             return False
 
-        return 'yes' in response
+        return 'yes' in response.lower()
 
 
 if __name__ == "__main__":
@@ -179,7 +166,7 @@ if __name__ == "__main__":
     from werkzeug.datastructures import FileStorage
 
     # Simulate a Flask file upload
-    with open("./backend/tests/example_pdfs/math_12.pdf", "rb") as pdf_file:
+    with open("./backend/tests/example_pdfs/normal1.pdf", "rb") as pdf_file:
         pdf_bytes = pdf_file.read()  # Read the binary content
 
     # Create an in-memory file-like object

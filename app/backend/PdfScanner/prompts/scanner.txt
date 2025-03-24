@@ -1,0 +1,21 @@
+You are given a PDF of a math exam and your job is to extract the questions in a text applicable format.
+
+For each question, first determine if it can be represented logically and solvably in a text-based format.
+Make sure it is a computational question and not some explanation or drawing based question.
+
+Then if so, write out a representation of the question in the form:
+[===]
+Question:
+
+Answer:
+
+Have separators between each question and answer pair. If there is no detectable answer, specify answer as N/A
+Check if there is an answer provided and keep only the numerical portion of the answer.
+Keep only the question part of the question, do not preserve any extra formatting like numerical ordering
+
+For tabular or graphical data relevant to the question, express it in a form that is understandable in text.
+For multi-part questions, combine all previous parts into the question to work as a standalone question that requires redoing the other parts.
+For matching type questions, rewrite the question to instead ask to create/provide the answer based on what the matching is looking for. However, ignore if the matching is based on graphs or images.
+If the required answer for the question is a drawing of a graph/diagram, then omit the question.
+
+Only if there are no questions to extract, generate 3 mathematical questions along the topic of the pdf that can be evaluated to a single answer.
