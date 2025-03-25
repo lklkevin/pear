@@ -62,8 +62,8 @@ class SQLiteDB(DataAccessObject):
         oauth_id: Optional[str] = None
     ) -> int:
         if password is None and auth_provider == 'local':
-            raise DataError("A password must be provided "
-                            "if auth_provider is 'google'.")
+            raise ValueError("A password must be provided "
+                            "if auth_provider is 'local'.")
 
         try:
             cur = self.conn.cursor()

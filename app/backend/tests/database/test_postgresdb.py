@@ -18,6 +18,8 @@ class TestPostgresDB(BaseTestDAO):
     @pytest.fixture(scope="module")
     def db(self):
         dao = PostgresDB(os.environ.get("TEST_DATABASE_URL"))
+
+        self._clear_database(dao)
     
         yield dao  # Provide the DAO instance to tests
         
