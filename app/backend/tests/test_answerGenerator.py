@@ -118,4 +118,4 @@ async def test_model_exception(sample_question, mock_cohere):
     model = Cohere()
     
     result = await generate_answers(sample_question, 3, model)
-    assert result == {}
+    assert result == {"no answers generated": 0}
