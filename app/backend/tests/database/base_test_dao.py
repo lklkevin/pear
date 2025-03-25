@@ -201,9 +201,9 @@ class BaseTestDAO(ABC):
         assert db.user_exists(email="test@example.com")
 
     def test_add_user_invalid(self, db: DataAccessObject):
-        with pytest.raises(DataError,
+        with pytest.raises(ValueError,
                            match="A password must be provided if "
-                                 "auth_provider is 'google'."):
+                                 "auth_provider is 'local'."):
             db.add_user("testuser", "test@example.com", None, "local")
 
     def test_add_user_correct_id(self, db: DataAccessObject):

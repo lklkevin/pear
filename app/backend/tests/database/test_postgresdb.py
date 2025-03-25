@@ -18,9 +18,18 @@ class TestPostgresDB(BaseTestDAO):
     @pytest.fixture(scope="module")
     def db(self):
         dao = PostgresDB(os.environ.get("TEST_DATABASE_URL"))
-
-        self._clear_database(dao)
     
+        # Clear the database before yielding
+        conn = dao._get_conn()
+        cur = conn.cursor()
+
+        cur.execute('TRUNCATE TABLE '
+                    '"User", "RefreshToken", "Exam", "Question", "Answer", '
+                    '"Favourite" RESTART IDENTITY CASCADE;')
+
+        conn.commit()
+        dao._release_conn(conn)
+
         yield dao  # Provide the DAO instance to tests
         
         # Close the connection pool after the tests
