@@ -55,13 +55,13 @@ const Login: React.FC = () => {
   };
 
   return (
-    <>
-      <div className="relative flex items-center -mx-3 sm:-mx-10 -my-6 bg-zinc-800 p-4 rounded-t-xl mb-4 h-20">
-        <h2 className="w-full flex justify-center text-lg font-semibold">
+    <div className="flex h-full sm:h-auto flex-col">
+      <div className="max-w-[480px] w-full mx-auto sm:border-b border-zinc-800 relative flex items-center -my-6 sm:bg-zinc-800/35 sm:p-4 mb-0 sm:mb-4 h-20">
+        <h2 className="w-full flex pl-8 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold">
           Welcome Back
         </h2>
         <button
-          className="absolute right-8 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200"
+          className="select-none absolute right-8 sm:right-10 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200"
           onClick={() => {
             router.push(callbackUrl);
           }}
@@ -69,9 +69,9 @@ const Login: React.FC = () => {
           <span className="material-icons">close</span>
         </button>
       </div>
-      <div>
+      <div className="px-8 sm:px-10 max-w-[480px] w-full mx-auto sm:mx-0">
         <div>
-          <form className="space-y-4" onSubmit={handleLogin}>
+          <form className="space-y-5" onSubmit={handleLogin}>
             <InputField
               label="Email"
               auth={true}
@@ -83,7 +83,7 @@ const Login: React.FC = () => {
               label="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              showForgotPassword={true}
+              showForgotPassword={false}
             />
 
             <SubmitButton text="Log in" loading={loading} />
@@ -96,7 +96,7 @@ const Login: React.FC = () => {
           </div>
 
           <button
-            className="w-full flex items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700"
+            className="select-none w-full flex items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700"
             onClick={() => signIn("google", { callbackUrl })}
           >
             <span className="mr-2">
@@ -116,7 +116,7 @@ const Login: React.FC = () => {
           </p>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

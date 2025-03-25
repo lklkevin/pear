@@ -42,7 +42,7 @@ export default function ExamCard({
     // ...other exam properties if needed
   };
 }) {
-  const darkerColor = darkenColor(exam.color, 0.75);
+  const darkerColor = darkenColor(exam.color, 0.85);
 
   return (
     <Link href={`/exam/${exam.exam_id}`} className="block">

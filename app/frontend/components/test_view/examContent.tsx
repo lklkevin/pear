@@ -55,7 +55,7 @@ export default function ExamContent({ exam }: { exam: Exam }) {
       {/* Buttons: Reveal/Hide All Answers & Download */}
       <div className="flex items-center justify-between mb-8 sm:mb-12">
         <button
-          className="w-48 sm:w-[200px] font-medium px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
+          className="select-none w-48 sm:w-[200px] font-medium px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
           onClick={() => toggleAllAnswers(!allRevealed)}
         >
           <span className="material-icons mr-2 text-xl">
@@ -66,7 +66,7 @@ export default function ExamContent({ exam }: { exam: Exam }) {
           </p>
         </button>
         <button
-          className="px-3 sm:px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
+          className="select-none px-3 sm:px-4 py-2 bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
           onClick={() => handleDownload(exam)}
         >
           <span className="material-icons sm:mr-2 text-xl">download</span>

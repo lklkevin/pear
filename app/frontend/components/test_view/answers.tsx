@@ -40,7 +40,7 @@ const textVariants = {
   },
   exit: {
     opacity: 0,
-    transition: { duration: 0.2 },
+    transition: { duration: 0.15 },
   },
 };
 
@@ -74,7 +74,7 @@ export default function AnswerSection({
           <ConfidenceBar confidence={confidence} />
           <button
             onClick={onToggleReveal}
-            className="sm:w-24 px-2 sm:px-3 py-1 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
+            className="select-none sm:w-24 px-2 sm:px-3 py-1 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
           >
             <span className="material-icons sm:mr-2 text-xl">
               {isRevealed ? "visibility_off" : "visibility"}
@@ -103,14 +103,14 @@ export default function AnswerSection({
                 className="mt-4 bg-zinc-900 p-4 rounded font-mono text-sm"
                 variants={textVariants}
               >
-                <pre className="whitespace-pre-wrap">{answer}</pre>
+                <pre className={`whitespace-pre-wrap ${dmMono.className}`}>{answer}</pre>
               </motion.div>
 
               {hasAlternatives && (
                 <div className="gap-4 mt-4">
                   <button
                     onClick={() => setShowAlternatives(!showAlternatives)}
-                    className="w-[224px] px-3 py-1 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
+                    className="select-none w-[224px] px-3 py-1 text-sm bg-zinc-800 hover:bg-zinc-700 text-white rounded flex items-center"
                   >
                     <span className="material-icons mr-2 text-xl">
                       {showAlternatives ? "unfold_less" : "unfold_more"}

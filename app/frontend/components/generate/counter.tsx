@@ -67,7 +67,7 @@ export default function Counter({
   return (
     <div className="flex items-center justify-end gap-3 w-full max-w-[240px]">
       <button
-        className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
+        className="select-none flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
         onClick={decrement}
         disabled={value <= min}
         aria-label="Decrease value"
@@ -90,7 +90,7 @@ export default function Counter({
       />
 
       <button
-        className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
+        className="select-none flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
         onClick={increment}
         disabled={value >= max}
         aria-label="Increase value"

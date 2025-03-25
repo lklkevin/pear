@@ -20,7 +20,10 @@ export default function PasswordField({
 
   return (
     <div className="relative">
-      <label className="flex justify-between text-sm font-medium text-zinc-300">
+      <label
+        htmlFor="password"
+        className="flex justify-between font-medium text-zinc-300"
+      >
         {label}
         {showForgotPassword && (
           <button
@@ -32,19 +35,21 @@ export default function PasswordField({
           </button>
         )}
       </label>
-      
+
       <div className="relative">
         <input
+          id="password"
           type={showPassword ? "text" : "password"}
           className="w-full p-2 mt-1 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500 pr-10" // Add padding-right for button space
           value={value}
           onChange={onChange}
           required
+          maxLength={100}
         />
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 right-3 top-1 flex items-center text-zinc-400 hover:text-zinc-200"
+          className="select-none absolute inset-y-0 right-3 top-1 flex items-center text-zinc-400 hover:text-zinc-200"
         >
           <span className="material-icons scale-90">
             {showPassword ? "visibility" : "visibility_off"}
@@ -52,5 +57,5 @@ export default function PasswordField({
         </button>
       </div>
     </div>
-  ); 
+  );
 }

@@ -29,7 +29,12 @@ export function VisibilityOption({
           name="visibility"
           checked={selected}
           onChange={onChange}
-          className="appearance-none w-4 h-4 rounded-full border-2 border-zinc-600 checked:border-emerald-500 checked:bg-emerald-500 transition-colors cursor-pointer"
+          className="appearance-none w-4 h-4 rounded-full border-2 border-zinc-600 checked:border-emerald-500 checked:bg-emerald-500 focus:border-emerald-500 focus:outline-none transition-colors cursor-pointer"
+          style={{
+            backgroundImage: selected ? "none" : "none",
+            backgroundColor: selected ? "rgb(16 185 129)" : "transparent",
+            borderColor: selected ? "rgb(16 185 129)" : undefined,
+          }}
         />
         <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
           {selected && (

@@ -1,28 +1,19 @@
-import LandingLayout from "../layout/landingLayout";
-import Graphic from "./graphic";
+import Nav from "../layout/navNormal";
+import HeroSection from "@/components/landing/heroSection";
+import FeaturesSection from "@/components/landing/featuresSection";
+import BrowseSection from "@/components/landing/browseSection";
+import CtaSection from "@/components/landing/ctaSection";
 
 export default function Home() {
   return (
-    <LandingLayout>
-      {/* Headings Section */}
-      <section
-        className="text-center mb-24"
-        style={{ zIndex: "-10" }}
-      >
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold md:mb-2 tracking-tight sm:tracking-normal">
-          Custom Practice Tests,
-        </h1>
-        <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-6 tracking-tight sm:tracking-normal">
-          Built Instantly from Your Exams
-        </h1>
-        <h3 className="font-medium text-sm md:text-base lg:text-lg text-zinc-300 -z-10 tracking-tight sm:tracking-normal">
-          AI-powered, tailored math practice—built just for you.
-        </h3>
-      </section>
-      {/* Graphic Section */}
-      <section className="z-5">
-        <Graphic />
-      </section>
-    </LandingLayout>
+    <div className="flex flex-col min-h-screen">
+      <Nav landing={true} />
+      <div className="select-none flex flex-col flex-1 overflow-hidden">
+        <HeroSection />
+        <FeaturesSection />
+        <BrowseSection />
+        <CtaSection />
+      </div>
+    </div>
   );
 }

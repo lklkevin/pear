@@ -4,6 +4,18 @@ import "@testing-library/jest-dom";
 import { SessionProvider } from "next-auth/react";
 import GenerateLayout from "../generateLayout";
 
+// Mocks for router/navigation hooks
+jest.mock("next/router", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+}));
+jest.mock("next/navigation", () => ({
+  useRouter: () => ({ push: jest.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+// Mock for Navbar to isolate the layout test
+jest.mock("../navNormal", () => () => <nav data-testid="navbar">Navbar</nav>);
+
 const dummySession = {
   user: {
     name: "John Doe",
@@ -14,9 +26,6 @@ const dummySession = {
   refreshToken: "dummy-refresh-token",
   error: "",
 };
-
-// Mock for Navbar to isolate the layout test
-jest.mock("../navNormal", () => () => <nav data-testid="navbar">Navbar</nav>);
 
 describe("GenerateLayout component", () => {
   test("renders Navbar and children", () => {
@@ -31,6 +40,8 @@ describe("GenerateLayout component", () => {
     // Verify that the Navbar is rendered.
     expect(screen.getByTestId("navbar")).toBeInTheDocument();
     // Verify that the children are rendered.
-    expect(screen.getByTestId("child-content")).toBeInTheDocument();
+    // Since the layout renders the children twice (for responsive design), expect two elements.
+    const childContents = screen.getAllByTestId("child-content");
+    expect(childContents.length).toBe(2);
   });
 });
