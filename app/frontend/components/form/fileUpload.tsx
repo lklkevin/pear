@@ -183,7 +183,7 @@ export default function FileUpload({
             <motion.div
               layout
               style={{ overflow: "hidden", zIndex: 1 }}
-              className="flex flex-wrap gap-3 sm:gap-4 p-4 sm:p-6 bg-zinc-950/25 rounded-t-md border-b border-zinc-800 relative"
+              className="flex flex-wrap gap-3 sm:gap-4 p-4 sm:p-6 bg-zinc-950/25 rounded-t-md border-b border-zinc-800"
               initial="hidden"
               animate="visible"
               exit="exit"
