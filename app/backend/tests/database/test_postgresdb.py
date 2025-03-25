@@ -31,6 +31,16 @@ class TestPostgresDB(BaseTestDAO):
         dao._release_conn(conn)
 
         yield dao  # Provide the DAO instance to tests
+
+        conn = dao._get_conn()
+        cur = conn.cursor()
+
+        cur.execute('TRUNCATE TABLE '
+                    '"User", "RefreshToken", "Exam", "Question", "Answer", '
+                    '"Favourite" RESTART IDENTITY CASCADE;')
+
+        conn.commit()
+        dao._release_conn(conn)
         
         # Close the connection pool after the tests
         dao.pool.closeall()
