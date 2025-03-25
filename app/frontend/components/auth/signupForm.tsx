@@ -80,7 +80,7 @@ const Signup: React.FC = () => {
           Get Started With Pear!
         </h2>
         <button
-          className="absolute right-8 sm:right-10 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200"
+          className="select-none absolute right-8 sm:right-10 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200"
           onClick={() => {
             router.push(callbackUrl);
           }}
@@ -121,7 +121,7 @@ const Signup: React.FC = () => {
           </div>
 
           <button
-            className="w-full flex font-medium items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700"
+            className="select-none w-full flex font-medium items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700"
             onClick={handleGoogle}
           >
             <span className="mr-2">

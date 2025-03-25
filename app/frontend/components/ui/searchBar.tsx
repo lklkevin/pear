@@ -11,7 +11,7 @@ export default function SearchBar({ placeholder, value, onChange, onSearch }: Se
   return (
     <div className="relative">
       <span
-        className="material-icons absolute left-3 top-2.5 text-zinc-400 cursor-pointer"
+        className="select-none material-icons absolute left-3 top-2.5 text-zinc-400 cursor-pointer"
         onClick={onSearch}
       >
         search

@@ -9,7 +9,7 @@ export default function Button({
   }) {
     return (
       <button
-        className={`font-semibold p-2 w-full rounded-md transition-all duration-200 tracking-normal
+        className={`select-none font-semibold p-2 w-full rounded-md transition-all duration-200 tracking-normal
           ${disabled 
             ? "bg-gray-400 cursor-not-allowed" 
             : "bg-emerald-900 border-emerald-400 border hover:bg-emerald-800 hover:text-white"}

@@ -9,7 +9,7 @@ export default function Button({
   }) {
     return (
       <button
-        className={`text-sm tracking-tight font-semibold h-8 w-24 rounded-full transition-all duration-200
+        className={`select-none text-sm tracking-tight font-semibold h-8 w-24 rounded-full transition-all duration-200
           ${disabled 
             ? "cursor-not-allowed" 
             : "text-white bg-zinc-950 border-zinc-700 border hover:bg-zinc-700 hover:text-white"}

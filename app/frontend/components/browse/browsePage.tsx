@@ -258,7 +258,7 @@ export default function BrowsePage() {
             onClick={() => handlePageChange(Math.max(page - 1, 1))}
             disabled={page === 1 || isLoading}
             aria-label="Previous page"
-            className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
+            className="select-none flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
           >
             <span className="material-icons text-zinc-400">chevron_left</span>
           </button>
@@ -273,7 +273,7 @@ export default function BrowsePage() {
             onClick={() => handlePageChange(hasMore ? page + 1 : page)}
             disabled={!hasMore || isLoading}
             aria-label="Next page"
-            className="flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
+            className="select-none flex items-center justify-center w-9 h-9 border border-zinc-800 rounded bg-zinc-950 hover:bg-zinc-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-zinc-950"
           >
             <span className="material-icons text-zinc-400">chevron_right</span>
           </button>

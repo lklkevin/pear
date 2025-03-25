@@ -158,7 +158,7 @@ export default function ExpandingCardGrid() {
       <div className="flex flex-col h-full justify-between">
         <h3
           className={cn(
-            "text-xl font-semibold mb-2 text-white",
+            "text-xl font-semibold sm:mb-2 text-white",
             hasMultipleWords ? "break-words" : "truncate"
           )}
         >

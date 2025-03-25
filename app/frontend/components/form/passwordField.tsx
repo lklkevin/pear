@@ -49,7 +49,7 @@ export default function PasswordField({
         <button
           type="button"
           onClick={() => setShowPassword(!showPassword)}
-          className="absolute inset-y-0 right-3 top-1 flex items-center text-zinc-400 hover:text-zinc-200"
+          className="select-none absolute inset-y-0 right-3 top-1 flex items-center text-zinc-400 hover:text-zinc-200"
         >
           <span className="material-icons scale-90">
             {showPassword ? "visibility" : "visibility_off"}
