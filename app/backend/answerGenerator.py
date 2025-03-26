@@ -75,7 +75,7 @@ async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[
         num_answers = len(unique_answers)
 
         if num_answers == 0:
-            return {}
+            return {"no answers generated": 0}
 
 
         # Initialize 2D matrix for equivalence checks
@@ -130,7 +130,7 @@ async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[
         return merged_dict
 
     except Exception as e:
-        return {}
+        return {"error generating answers": 0}
 
 
 # ---------------------- Example Usage ----------------------

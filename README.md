@@ -89,6 +89,12 @@ To use the application, follow these steps:
      - Unlock **customization** options for better organization.
    - You can create an account using username, email, and password, or simply use your Google account.
     
+### Content Guidelines
+
+Our application supports the uploading of unrelated PDFs instead of math exams during the generation process; doing so will include assorted questions on the theme of the document uploaded. However, blank documents will not be considered for generation.
+
+In the case of inappropriate content, the extractor will flag any documents uploaded, preventing any questions from being extracted from the document.
+
 ## **Developer Instructions**
 ### **Setting Up the Project Locally**
 #### **Prerequisites**
@@ -164,7 +170,15 @@ npx jest
 
 We utilize the Pytest python framework for our automated testing in the backend. 
 
-Currently we only have test coverage across our `validator` module, however we plan on expanding our coverage to the other modules that rely on API calls to ensure stability.
+We have automated test coverage across our entire pipeline to ensure functionality after any changes. This includes the other modules that rely on API calls to ensure stability.
+
+Our testing covers the following aspects:
+
+- Question Extractor
+- Extracted Question Validator
+- Question Generation
+- Answer Generation
+- Answer Validator
 
 ### CI/CD
 1. We are using various pre-commit hooks to ensure consistent coding conventions and formatting such as ```black```.
