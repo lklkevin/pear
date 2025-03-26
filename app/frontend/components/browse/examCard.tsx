@@ -47,17 +47,43 @@ export default function ExamCard({
   return (
     <Link href={`/exam/${exam.exam_id}`} className="block">
       <div
-        className="relative w-full h-[200px] rounded-lg overflow-hidden border border-zinc-800 z-0"
+        className="group relative w-full h-[200px] rounded-lg overflow-hidden border border-zinc-800 z-0"
         style={{
           background: `linear-gradient(to bottom, ${exam.color}, ${darkerColor})`,
         }}
       >
-        <Favorite examId={exam.exam_id} initialFavorite={exam.liked} />
-        <div className="absolute bottom-0 py-3 px-4 text-white bg-zinc-900 w-full rounded-b-lg border-t border-zinc-800">
-          <h3 className="text-md font-medium mb-1 truncate">{exam.name}</h3>
+        <div className="absolute top-2 right-2 z-10">
+          <Favorite examId={exam.exam_id} initialFavorite={exam.liked} />
+        </div>
+
+        {/* BOTTOM BAR (Title + Date) */}
+        <div
+          className={`
+            absolute inset-x-0 bottom-0
+            py-3 px-4 text-white
+            bg-zinc-900
+            transition-[transform,background-color] duration-300
+            transform
+            group-hover:-translate-y-[125px]
+            group-hover:bg-transparent
+          `}
+        >
+          <h3 className="text-md font-medium mb-1 truncate pr-8">
+            {exam.name}
+          </h3>
           <p className={`text-xs text-zinc-400 ${dmMono.className}`}>
             {exam.date}
           </p>
+        </div>
+
+        {/* DESCRIPTION BAR */}
+        <div
+          className={`absolute inset-x-0 bottom-0 h-[125px] px-4 py-3 text-white bg-zinc-900/80 border-t border-zinc-800
+          transition-transform duration-300 transform translate-y-[125px]
+          group-hover:translate-y-0
+          `}
+        >
+          <p className="text-sm break-words line-clamp-5">{exam.description}</p>
         </div>
       </div>
     </Link>

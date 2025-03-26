@@ -18,11 +18,15 @@ import {
 } from "framer-motion";
 import { colors } from "../form/stylingOptions";
 import { MenuToggle } from "../ui/menuToggle";
+import { useUserStore } from "../../store/user";
 
 export default function Navbar({ landing = false }: { landing?: boolean }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const callbackUrl = encodeURIComponent(router.asPath);
+
+  // Get the username and setter from the global store
+  const { username, setUsername } = useUserStore();
 
   const [menuOpen, toggleMenu] = useCycle(false, true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -36,6 +40,30 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 10);
   });
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (session?.accessToken) {
+        try {
+          const res = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`,
+            {
+              headers: {
+                Authorization: `Bearer ${session.accessToken}`,
+              },
+            }
+          );
+          if (res.ok) {
+            const profileData = await res.json();
+            setUsername(profileData.username);
+          }
+        } catch (error) {
+          console.error("Failed to fetch user profile", error);
+        }
+      }
+    }
+    fetchProfile();
+  }, [session, setUsername]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -127,14 +155,14 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
               <div className="relative">
                 <button
                   className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${
-                    getColorFromName(session.user?.name || "User").class
+                    getColorFromName(username || "User").class
                   } transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleMenu();
                   }}
                 >
-                  {session.user?.name?.charAt(0).toUpperCase() || "U"}
+                  {username.charAt(0).toUpperCase() || "U"}
                 </button>
               </div>
             ) : (
@@ -172,15 +200,16 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
         )}
       </AnimatePresence>
 
-      <div className="hidden sm:block relative z-50 max-w-7xl mx-auto">
-        {menuOpen && session && (
+      {menuOpen && session && (
+        <div className="hidden sm:block relative z-50 max-w-7xl mx-auto">
           <UserDropdown
-            name={session.user?.name || "User"}
+            username={username}
             email={session.user?.email || ""}
+            setUsername={setUsername}
             closeMenu={closeMenu}
           />
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
