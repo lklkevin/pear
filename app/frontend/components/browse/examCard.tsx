@@ -52,12 +52,14 @@ export default function ExamCard({
   // Animation variants
   const bottomBarVariants = {
     initial: {
+      borderTop: "1px solid rgb(39, 39, 42)",
       y: 0,
       backgroundColor: "rgb(24, 24, 27)", // zinc-900
     },
     hover: {
+      borderTop: "0px solid rgb(39, 39, 42)",
       y: -130,
-      backgroundColor: exam.color, 
+      backgroundColor: exam.color,
       transition: {
         duration: 0.3,
         ease: "easeInOut",

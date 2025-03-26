@@ -48,14 +48,14 @@ export default function AccountModal({
   useEffect(() => {
     if (show) {
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
     }
 
     return () => {
-      document.body.style.overflow = "unset";
+      if (!show && !showChangePasswordModal) {
+        document.body.style.overflow = "unset";
+      }
     };
-  }, [show]);
+  }, [show, showChangePasswordModal]);
 
   const handleUsernameChange = async () => {
     if (!session?.accessToken) return;
@@ -146,7 +146,7 @@ export default function AccountModal({
           }
         >
           <div
-            className="justify-center pt-8 sm:pt-0 w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
+            className="overflow-hidden justify-center w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
             {deleting && (
@@ -162,33 +162,44 @@ export default function AccountModal({
             )}
 
             {/* Header */}
-            <div className="max-w-[480px] w-full mx-auto sm:border-b border-zinc-800 relative flex items-center sm:bg-zinc-800/35 sm:p-4 h-20">
-              <h2 className="w-full flex pl-8 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold">
+            <div className="sm:max-w-[480px] w-full mx-auto border-b border-zinc-800 relative flex items-center bg-zinc-800/35 sm:p-4 h-[72px]">
+              <h2 className="mt-0.5 sm:-mt-0 w-full flex pl-5 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold text-white">
                 My Profile
               </h2>
               <button
                 onClick={!deleting ? closeModal : undefined}
                 disabled={deleting}
-                className="select-none absolute right-8 sm:right-10 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200 transition"
+                className="select-none absolute right-4 sm:right-10 top-1 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200 transition"
               >
-                <span className="material-icons">close</span>
+                <svg
+                  width="23"
+                  height="23"
+                  viewBox="0 0 23 23"
+                  fill="transparent"
+                  strokeWidth="2"
+                  stroke="white"
+                  strokeLinecap="round"
+                >
+                  <path d="M 3 2.5 L 17 16.346" />
+                  <path d="M 3 16.346 L 17 2.5" />
+                </svg>
               </button>
             </div>
 
-            <div className="px-8 sm:px-10 pt-8 pb-6 max-w-[480px] w-full mx-auto space-y-5">
+            <div className="px-4 sm:px-10 pt-6 sm:pt-8 sm:pb-6 max-w-[480px] w-full mx-auto space-y-5">
               {/* Email Display */}
               <div>
                 <label className="font-medium text-zinc-300 mb-1 block">
                   Email
                 </label>
-                <div className="select-none bg-zinc-800/35 rounded-md border border-zinc-800 p-2.5 text-zinc-100">
+                <div className="select-none bg-zinc-800/35 rounded-md border border-zinc-800 px-2.5 py-2 text-zinc-100">
                   {email}
                 </div>
               </div>
 
               {/* Username Field */}
               <div>
-                <label className="font-medium text-zinc-300 mb-1 block">
+                <label className="font-medium text-zinc-300 block">
                   Username
                 </label>
                 <InputField
