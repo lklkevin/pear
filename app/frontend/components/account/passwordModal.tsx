@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { DM_Sans } from "next/font/google";
 import { useSession } from "next-auth/react";
@@ -19,6 +19,18 @@ export default function PasswordModal({
 }) {
   const { data: session } = useSession();
   const { setError } = useErrorStore();
+
+  useEffect(() => {
+    if (show) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [show]);
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");

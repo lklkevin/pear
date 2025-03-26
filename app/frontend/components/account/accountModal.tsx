@@ -45,6 +45,18 @@ export default function AccountModal({
     }
   }, [show, username]);
 
+  useEffect(() => {
+    if (show) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [show]);
+
   const handleUsernameChange = async () => {
     if (!session?.accessToken) return;
     setStatus("loading");
