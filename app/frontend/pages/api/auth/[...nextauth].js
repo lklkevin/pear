@@ -77,6 +77,7 @@ export default NextAuth({
             accessToken: responseData.access_token,
             refreshToken: responseData.refresh_token,
             accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 min expiration
+            auth_provider: "local",
           };
         } catch (error) {
           console.error("Credentials sign-in failed:", error.message);
@@ -94,6 +95,7 @@ export default NextAuth({
           accessToken: user.accessToken,
           refreshToken: user.refreshToken,
           accessTokenExpires: user.accessTokenExpires,
+          auth_provider: user.auth_provider,
         };
       }
 
@@ -106,6 +108,7 @@ export default NextAuth({
     async session({ session, token }) {
       session.accessToken = token.accessToken;
       session.refreshToken = token.refreshToken;
+      session.auth_provider = token.auth_provider;
 
       if (token.error) {
         session.error = token.error;
@@ -138,11 +141,26 @@ async function refreshAccessToken(token) {
       throw new Error(responseData.message || "Failed to refresh token");
     }
 
+    // Fetch the updated profile after refreshing the token.
+    const profileResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`,
+      {
+        headers: {
+          Authorization: `Bearer ${responseData.access_token}`,
+        },
+      }
+    );
+    let updatedProfile = {};
+    if (profileResponse.ok) {
+      updatedProfile = await profileResponse.json();
+    }
+
     return {
       ...token,
       accessToken: responseData.access_token,
       refreshToken: responseData.refresh_token,
       accessTokenExpires: Date.now() + 10 * 60 * 1000, // 10 min expiration
+      name: updatedProfile.username || token.name,
     };
   } catch (error) {
     console.error("Error refreshing token:", error.message);

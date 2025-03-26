@@ -8,9 +8,7 @@ export default async function signOutWithBackend(refreshToken?: string) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
-    } catch (error) {
-      console.error("Failed to revoke refresh token on backend:", error);
-    }
+    } catch (error) {}
   }
 
   signOut();

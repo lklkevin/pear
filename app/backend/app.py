@@ -323,7 +323,10 @@ def update_username(current_user):
         # Placeholder: Replace with actual DB update function
         print(f"Updating username for user_id {user_id} to {new_username}")
         db.update_username(user_id, new_username)
-        return jsonify({'message': 'Username updated successfully.'}), 200
+        return jsonify({
+            'message': 'Username updated successfully!!!.',
+            'username': new_username
+        }), 200
     except Exception as e:
         return jsonify({'message': f'Failed to update username: {str(e)}'}), 500
 
@@ -333,17 +336,27 @@ def update_username(current_user):
 def update_password(current_user):
     user_id = current_user[0]
     data = request.get_json()
+    old_password = data.get('oldPassword')
     new_password = data.get('password')
 
-    if not new_password:
-        return jsonify({'message': 'New password is required.'}), 400
+    if not old_password or not new_password:
+        return jsonify({'message': 'Old and new password are required.'}), 400
 
     try:
+        user = db.get_user(user_id=user_id)
+        if not user:
+            return jsonify({'message': 'User not found.'}), 404
+
+        stored_password = user[3]  # Assuming password is at index 3
+
+        if not check_password_hash(stored_password, old_password):
+            return jsonify({'message': 'Old password is incorrect.'}), 401
+
         hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256')
-        # Placeholder: Replace with actual DB update function
-        print(f"Updating password for user_id {user_id}")
         db.update_password(user_id, hashed_password)
-        return jsonify({'message': 'Password updated successfully.'}), 200
+
+        return jsonify({'message': 'Password updated successfully!'}), 200
+
     except Exception as e:
         return jsonify({'message': f'Failed to update password: {str(e)}'}), 500
 
