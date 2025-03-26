@@ -1,6 +1,10 @@
+"use client";
+
 import { DM_Mono } from "next/font/google";
 import Favorite from "./buttonFavorite";
 import Link from "next/link";
+import { motion } from "framer-motion";
+import { useSession } from "next-auth/react";
 
 const dmMono = DM_Mono({
   subsets: ["latin"],
@@ -12,7 +16,7 @@ function darkenColor(hex: string, percent: number): string {
   // Remove the hash if present
   hex = hex.replace(/^#/, "");
   // Parse r, g, b values
-  const num = parseInt(hex, 16);
+  const num = Number.parseInt(hex, 16);
   let r = (num >> 16) & 0xff;
   let g = (num >> 8) & 0xff;
   let b = num & 0xff;
@@ -43,49 +47,111 @@ export default function ExamCard({
   };
 }) {
   const darkerColor = darkenColor(exam.color, 0.85);
+  const { data: session } = useSession();
+
+  // Animation variants
+  const bottomBarVariants = {
+    initial: {
+      y: 0,
+      backgroundColor: "rgb(24, 24, 27)", // zinc-900
+    },
+    hover: {
+      y: -130,
+      backgroundColor: exam.color, 
+      transition: {
+        duration: 0.3,
+        ease: "easeInOut",
+        backgroundColor: {
+          duration: 0.3,
+          delay: 0.1,
+          ease: "easeInOut",
+        },
+      },
+    },
+  };
 
   return (
     <Link href={`/exam/${exam.exam_id}`} className="block">
-      <div
-        className="group relative w-full h-[200px] rounded-lg overflow-hidden border border-zinc-800 z-0"
+      <motion.div
+        className="relative w-full h-[200px] rounded-lg overflow-hidden border border-zinc-800 z-0"
         style={{
           background: `linear-gradient(to bottom, ${exam.color}, ${darkerColor})`,
         }}
+        initial="initial"
+        whileHover="hover"
       >
         <div className="absolute top-2 right-2 z-10">
           <Favorite examId={exam.exam_id} initialFavorite={exam.liked} />
         </div>
 
         {/* BOTTOM BAR (Title + Date) */}
-        <div
-          className={`
-            absolute inset-x-0 bottom-0
-            py-3 px-4 text-white
-            bg-zinc-900
-            transition-[transform,background-color] duration-300
-            transform
-            group-hover:-translate-y-[125px]
-            group-hover:bg-transparent
-          `}
+        <motion.div
+          className="absolute inset-x-0 bottom-0 py-3 px-4 text-white border-t border-zinc-800"
+          variants={bottomBarVariants}
         >
-          <h3 className="text-md font-medium mb-1 truncate pr-8">
+          <motion.h3
+            className="text-md font-medium mb-1 truncate"
+            variants={{
+              initial: { paddingRight: "0rem" },
+              hover: { paddingRight: session ? "2.5rem" : "0rem" },
+            }}
+          >
             {exam.name}
-          </h3>
-          <p className={`text-xs text-zinc-400 ${dmMono.className}`}>
+          </motion.h3>
+          <motion.p
+            className={`text-xs ${dmMono.className}`}
+            variants={{
+              initial: { color: "rgb(161, 161, 170)" }, // zinc-400
+              hover: { color: "rgb(228, 228, 231)" }, // zinc-200
+            }}
+          >
             {exam.date}
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
 
         {/* DESCRIPTION BAR */}
-        <div
-          className={`absolute inset-x-0 bottom-0 h-[125px] px-4 py-3 text-white bg-zinc-900/80 border-t border-zinc-800
-          transition-transform duration-300 transform translate-y-[125px]
-          group-hover:translate-y-0
-          `}
+        <motion.div
+          className="absolute inset-x-0 bottom-0 h-[130px] px-4 py-3 text-white"
+          variants={{
+            initial: {
+              y: 130,
+              borderTop: "1px solid rgb(24, 24, 27)",
+              backgroundColor: "rgba(24, 24, 27)",
+              transition: {
+                duration: 0.3,
+                ease: "easeInOut",
+                borderTop: {
+                  duration: 0.2,
+                  ease: "easeInOut",
+                },
+                backgroundColor: {
+                  duration: 0.2,
+                  ease: "easeInOut",
+                },
+              },
+            },
+            hover: {
+              y: 0,
+              borderTop: "1px solid rgb(39, 39, 42)", // zinc-800
+              backgroundColor: "rgba(24, 24, 27, 0.8)", // zinc-900/80
+              transition: {
+                duration: 0.3,
+                ease: "easeInOut",
+                borderTop: {
+                  duration: 0.2,
+                  ease: "easeInOut",
+                },
+                backgroundColor: {
+                  duration: 0.2,
+                  ease: "easeInOut",
+                },
+              },
+            },
+          }}
         >
           <p className="text-sm break-words line-clamp-5">{exam.description}</p>
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </Link>
   );
 }
