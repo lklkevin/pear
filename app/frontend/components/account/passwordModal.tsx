@@ -18,6 +18,7 @@ export default function PasswordModal({
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  const [status, setStatus] = useState<"idle" | "loading">("idle");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -31,6 +32,8 @@ export default function PasswordModal({
       return;
     }
 
+    setStatus("loading");
+
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/password`,
@@ -41,7 +44,7 @@ export default function PasswordModal({
             Authorization: `Bearer ${session?.accessToken}`,
           },
           body: JSON.stringify({
-            oldPassword: oldPassword,
+            oldPassword,
             password: newPassword,
           }),
         }
@@ -55,6 +58,8 @@ export default function PasswordModal({
       }
     } catch (error) {
       setError((error as any).message || "Failed to update password.");
+    } finally {
+      setStatus("idle");
     }
   };
 
@@ -62,11 +67,11 @@ export default function PasswordModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm"
       onClick={(e) => e.target === e.currentTarget && closeModal()}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-zinc-900 p-6 shadow-xl relative animate-in fade-in zoom-in-95"
+        className="w-full max-w-md rounded-2xl bg-zinc-900 p-6 shadow-xl relative animate-in fade-in zoom-in-95 border border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
@@ -82,27 +87,34 @@ export default function PasswordModal({
           Change Password
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <PasswordField
-            label="Old Password"
-            value={oldPassword}
-            onChange={(e) => setOldPassword(e.target.value)}
-          />
-          <PasswordField
-            label="New Password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-          />
-          <PasswordField
-            label="Confirm New Password"
-            value={confirmNewPassword}
-            onChange={(e) => setConfirmNewPassword(e.target.value)}
-          />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-zinc-800/50 p-4 rounded-lg">
+            <PasswordField
+              label="Old Password"
+              value={oldPassword}
+              onChange={(e) => setOldPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="bg-zinc-800/50 p-4 rounded-lg space-y-4">
+            <PasswordField
+              label="New Password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <PasswordField
+              label="Confirm New Password"
+              value={confirmNewPassword}
+              onChange={(e) => setConfirmNewPassword(e.target.value)}
+            />
+          </div>
+
           <button
             type="submit"
-            className="!mt-8 w-full bg-emerald-900 border border-emerald-400 text-white py-2 rounded-md font-medium hover:bg-emerald-800 transition-colors"
+            disabled={status === "loading"}
+            className="w-full flex items-center justify-center rounded-md bg-emerald-900 border border-emerald-400 text-white hover:bg-emerald-800 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Update Password
+            {status === "loading" ? "Updating..." : "Update Password"}
           </button>
         </form>
       </div>
