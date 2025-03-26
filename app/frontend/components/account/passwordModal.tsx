@@ -72,69 +72,73 @@ export default function PasswordModal({
 
   return createPortal(
     <div
-      className={`p-4 sm:p-0 fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm ${dmSans.className}`}
+      className={`h-screen justify-center sm:h-auto fixed inset-0 z-[100] flex flex-col items-center bg-zinc-950/50 backdrop-blur-sm ${dmSans.className}`}
       onClick={(e) => e.target === e.currentTarget && closeModal()}
     >
       <div
-        className="w-full max-w-md rounded-lg sm:rounded-xl bg-zinc-900 p-4 sm:p-6 shadow-xl relative animate-in fade-in zoom-in-95 border border-zinc-800"
+        className="justify-center pt-8 sm:pt-0 w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button
-          onClick={closeModal}
-          className="absolute top-[15px] sm:top-[23px] right-4 sm:right-6 text-white hover:text-zinc-300 transition"
-        >
-          <span className="text-2xl material-icons">close</span>
-        </button>
-
-        {/* Title */}
-        <h2 className="text-xl font-semibold text-white text-center mb-6">
-          Change Password
-        </h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          <div className="bg-zinc-800/50 p-4 rounded-md sm:rounded-lg">
-          <label className="pl-0.5 font-medium text-zinc-400 block mb-0.5">
-              Old Password
-            </label>
-            <PasswordField
-              label=""
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="bg-zinc-800/50 p-4 rounded-md sm:rounded-lg space-y-4 sm:space-y-6">
-            <div className="flex flex-col gap-0.5">
-              <label className="pl-0.5 font-medium text-zinc-400 block">
-                New Password
-              </label>
-              <PasswordField
-                label=""
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="pl-0.5 font-medium text-zinc-400 block">
-                Confirm New Password
-              </label>
-              <PasswordField
-                label=""
-                value={confirmNewPassword}
-                onChange={(e) => setConfirmNewPassword(e.target.value)}
-              />
-            </div>
-          </div>
-
+        {/* Header */}
+        <div className="max-w-[480px] w-full mx-auto sm:border-b border-zinc-800 relative flex items-center sm:bg-zinc-800/35 sm:p-4 h-20">
+          <h2 className="w-full flex pl-8 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold">
+            Change Password
+          </h2>
           <button
-            type="submit"
-            disabled={status === "loading"}
-            className="w-full flex items-center justify-center rounded-md bg-emerald-900 border border-emerald-400 text-white hover:bg-emerald-800 py-2 font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={closeModal}
+            className="select-none absolute right-8 sm:right-10 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200 transition"
           >
-            {status === "loading" ? "Updating..." : "Update Password"}
+            <span className="material-icons">close</span>
           </button>
-        </form>
+        </div>
+
+        <div className="px-8 sm:px-10 pt-8 pb-7 max-w-[480px] w-full mx-auto space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label className="font-medium text-zinc-300 block">
+                Old Password
+              </label>
+              <PasswordField
+                label=""
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-5">
+              <div>
+                <label className="font-medium text-zinc-300 block">
+                  New Password
+                </label>
+                <PasswordField
+                  label=""
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="font-medium text-zinc-300 block">
+                  Confirm New Password
+                </label>
+                <PasswordField
+                  label=""
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center py-3">
+              <button
+                type="submit"
+                disabled={status === "loading"}
+                className="w-full flex items-center justify-center rounded-md bg-emerald-900 border border-emerald-400 text-white hover:bg-emerald-800 py-2 font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {status === "loading" ? "Updating..." : "Update Password"}
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>,
     document.body

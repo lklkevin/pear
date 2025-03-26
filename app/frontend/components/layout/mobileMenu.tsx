@@ -3,17 +3,26 @@ import Link from "next/link";
 import signOutWithBackend from "@/utils/signOut";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
+import AccountModal from "../account/accountModal";
+import { useState } from "react";
 
 export default function MobileMenu({
+  username,
+  email,
   mobileMenuOpen,
   setMobileMenuOpen,
-}: {
+  setUsername,
+}: {    
+  username: string;
+  email: string;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
+  setUsername: (username: string) => void;
 }) {
   const { data: session } = useSession();
   const router = useRouter();
   const callbackUrl = encodeURIComponent(router.asPath); // Preserve current URL
+  const [showAccountModal, setShowAccountModal] = useState(false);
 
   // Menu item animation variants
   const containerVariants = {
@@ -96,9 +105,11 @@ export default function MobileMenu({
         {session ? (
           <>
             <motion.div variants={itemVariants}>
-              <Link
-                href="/account"
+              <button
                 className="block text-lg w-screen px-4 py-1"
+                onClick={() => {
+                  setShowAccountModal(true);
+                }}
               >
                 <div
                   className={`font-medium py-2 rounded-md hover:bg-zinc-800 ${
@@ -109,8 +120,15 @@ export default function MobileMenu({
                 >
                   Account
                 </div>
-              </Link>
+              </button>
             </motion.div>
+            <AccountModal
+              email={email}
+              username={username}
+              show={showAccountModal}
+              closeModal={() => setShowAccountModal(false)}
+              onUsernameUpdated={setUsername}
+            />
             <motion.div variants={itemVariants}>
               <button
                 className="block text-lg font-medium w-screen px-4 py-1"

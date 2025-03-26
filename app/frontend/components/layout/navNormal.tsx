@@ -194,8 +194,11 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
       <AnimatePresence mode="wait" initial={false}>
         {mobileMenuOpen && (
           <MobileMenu
+            username={username}
+            email={session?.user?.email || ""}
             mobileMenuOpen={mobileMenuOpen}
             setMobileMenuOpen={closeMobileMenu}
+            setUsername={setUsername}
           />
         )}
       </AnimatePresence>

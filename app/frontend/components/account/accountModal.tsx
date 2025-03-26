@@ -13,7 +13,6 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "700"],
 });
 
-
 interface AccountModalProps {
   email: string;
   username: string;
@@ -119,149 +118,159 @@ export default function AccountModal({
   if (!show) return null;
 
   return createPortal(
-    <>
-      <div
-        className={`p-4 sm:p-0 fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${dmSans.className}`}
-        onClick={(e) =>
-          !deleting && e.target === e.currentTarget && closeModal()
-        }
-      >
+    showChangePasswordModal ? (
+      <PasswordModal
+        show={showChangePasswordModal}
+        closeModal={() => {
+          setShowChangePasswordModal(false);
+        }}
+      />
+    ) : (
+      <>
         <div
-          className="w-full max-w-md rounded-lg sm:rounded-xl bg-zinc-900 p-4 sm:p-6 shadow-xl relative border border-zinc-800"
-          onClick={(e) => e.stopPropagation()}
+          className={`h-screen justify-center sm:h-auto fixed inset-0 z-50 flex flex-col items-center bg-zinc-950/50 backdrop-blur-sm ${dmSans.className}`}
+          onClick={(e) =>
+            !deleting && e.target === e.currentTarget && closeModal()
+          }
         >
-          {deleting && (
-            <div className="absolute inset-0 bg-black/70 z-10 flex flex-col items-center justify-center rounded-2xl text-center p-6">
-              <div className="flex items-center gap-2 text-white mb-4">
-                <Loader2 className="animate-spin h-5 w-5" />
-                <span>Deleting your account...</span>
-              </div>
-              <p className="text-sm text-zinc-300">
-                Please do not refresh or close this window.
-              </p>
-            </div>
-          )}
-
-          {/* Close Button */}
-          <button
-            onClick={!deleting ? closeModal : undefined}
-            disabled={deleting}
-            className="absolute top-3.5 right-4 sm:right-6 sm:top-[22px] text-white hover:text-zinc-300 transition"
+          <div
+            className="justify-center pt-8 sm:pt-0 w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
+            onClick={(e) => e.stopPropagation()}
           >
-            <span className="text-2xl material-icons">close</span>
-          </button>
-
-          <h2 className="text-xl font-semibold text-white text-center mb-4">
-            My Profile
-          </h2>
-
-          <div className="space-y-4 sm:space-y-6">
-            {/* Email Display */}
-            <div className="bg-zinc-800/50 p-4 rounded-md sm:rounded-lg">
-              <label className="pl-0.5 font-medium text-zinc-400 mb-0.5 block">
-                Email
-              </label>
-              <p className="pl-0.5 text-zinc-100 break-words">{email}</p>
-            </div>
-
-            {/* Username Field */}
-            <div className="bg-zinc-800/50 p-4 rounded-md sm:rounded-lg">
-              <label className="pl-0.5 font-medium text-zinc-400 mb-1 block">
-                Username
-              </label>
-              <InputField
-                value={newUsername}
-                onChange={(e) => setNewUsername(e.target.value)}
-              />
-              {status === "success" && (
-                <div className="mt-1 text-green-400 flex items-center space-x-1 text-sm">
-                  <Check className="h-4 w-4" />
-                  <span>Username updated</span>
+            {deleting && (
+              <div className="absolute inset-0 bg-black/70 z-10 flex flex-col items-center justify-center rounded-2xl text-center p-6">
+                <div className="flex items-center gap-2 text-white mb-4">
+                  <Loader2 className="animate-spin h-5 w-5" />
+                  <span>Deleting your account...</span>
                 </div>
-              )}
+                <p className="text-sm text-zinc-300">
+                  Please do not refresh or close this window.
+                </p>
+              </div>
+            )}
+
+            {/* Header */}
+            <div className="max-w-[480px] w-full mx-auto sm:border-b border-zinc-800 relative flex items-center sm:bg-zinc-800/35 sm:p-4 h-20">
+              <h2 className="w-full flex pl-8 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold">
+                My Profile
+              </h2>
+              <button
+                onClick={!deleting ? closeModal : undefined}
+                disabled={deleting}
+                className="select-none absolute right-8 sm:right-10 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200 transition"
+              >
+                <span className="material-icons">close</span>
+              </button>
             </div>
 
-            {/* Save Button */}
-            <button
-              onClick={handleUsernameChange}
-              disabled={
-                newUsername === username ||
-                status === "loading" ||
-                !newUsername.trim()
-              }
-              className="w-full flex items-center justify-center rounded-md bg-emerald-900 border border-emerald-400 text-white hover:bg-emerald-800 py-2 font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {status === "loading" ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                "Save Changes"
-              )}
-            </button>
+            <div className="px-8 sm:px-10 pt-8 pb-6 max-w-[480px] w-full mx-auto space-y-5">
+              {/* Email Display */}
+              <div>
+                <label className="font-medium text-zinc-300 mb-1 block">
+                  Email
+                </label>
+                <div className="select-none bg-zinc-800/35 rounded-md border border-zinc-800 p-2.5 text-zinc-100">
+                  {email}
+                </div>
+              </div>
 
-            {/* Divider */}
-            <hr className="border-zinc-700 my-2" />
-
-            {/* Password Change and Delete */}
-            <div className="space-y-4 sm:space-y-6">
-              {session?.auth_provider === "local" && (
-                <button
-                  onClick={() => setShowChangePasswordModal(true)}
-                  className="w-full flex items-center justify-center rounded-md bg-zinc-800 hover:bg-zinc-700/80 border border-zinc-700 text-white py-2 font-medium transition"
-                >
-                  <KeyRound className="mr-2 h-4 w-4" />
-                  Change Password
-                </button>
-              )}
-              {!confirmingDelete ? (
-                <button
-                  onClick={() => setConfirmingDelete(true)}
-                  className="w-full flex items-center justify-center rounded-md bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-white py-2 font-medium transition"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Account
-                </button>
-              ) : (
-                <div className="bg-zinc-800/70 p-4 rounded-lg text-base text-zinc-300 space-y-4">
-                  <p className="text-center">
-                    Are you sure you want to permanently delete your account?
-
-                  </p>
-                  <div className="flex gap-4 justify-center">
-                    <button
-                      onClick={() => setConfirmingDelete(false)}
-                      disabled={deleting}
-                      className="font-medium flex-1 px-4 py-2 text-base rounded-md bg-zinc-700/70 hover:bg-zinc-600/70 text-white transition border border-zinc-600"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={async () => {
-                        setDeleting(true);
-                        await handleDeleteAccount();
-                        setDeleting(false);
-                      }}
-                      className="font-medium flex-1 px-4 py-2 text-base rounded-md bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-white transition"
-                    >
-                      {deleting ? "Deleting..." : "Yes, Delete"}
-                    </button>
+              {/* Username Field */}
+              <div>
+                <label className="font-medium text-zinc-300 mb-1 block">
+                  Username
+                </label>
+                <InputField
+                  value={newUsername}
+                  auth={true}
+                  onChange={(e) => setNewUsername(e.target.value)}
+                />
+                {status === "success" && (
+                  <div className="mt-1 text-green-400 flex items-center space-x-1 text-sm">
+                    <Check className="h-4 w-4" />
+                    <span>Username updated</span>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+
+              {/* Save Button */}
+              <div className="flex items-center py-2">
+                <button
+                  onClick={handleUsernameChange}
+                  disabled={
+                    newUsername === username ||
+                    status === "loading" ||
+                    !newUsername.trim()
+                  }
+                  className="w-full flex items-center justify-center rounded-md bg-emerald-900 border border-emerald-400 text-white hover:bg-emerald-800 py-2 font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {status === "loading" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Changes"
+                  )}
+                </button>
+              </div>
+
+              <div className="flex items-center my-4">
+                <hr className="flex-grow border-zinc-700" />
+              </div>
+
+              {/* Password Change and Delete */}
+              <div className="space-y-7 pt-2 pb-3">
+                {session?.auth_provider === "local" && (
+                  <button
+                    onClick={() => {
+                      setShowChangePasswordModal(true);
+                    }}
+                    className="w-full flex items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700"
+                  >
+                    <KeyRound className="mr-2 h-4 w-4" />
+                    Change Password
+                  </button>
+                )}
+                {!confirmingDelete ? (
+                  <button
+                    onClick={() => setConfirmingDelete(true)}
+                    className="w-full flex items-center justify-center rounded-md bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-white py-2 font-medium transition"
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Account
+                  </button>
+                ) : (
+                  <div className="bg-zinc-800/70 p-4 rounded-md text-base text-zinc-300 space-y-4">
+                    <p className="text-center">
+                      Are you sure you want to permanently delete your account?
+                    </p>
+                    <div className="flex gap-4 justify-center">
+                      <button
+                        onClick={() => setConfirmingDelete(false)}
+                        disabled={deleting}
+                        className="font-medium flex-1 px-4 py-2 text-base rounded bg-zinc-800 hover:bg-zinc-700 text-white transition border border-zinc-700"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={async () => {
+                          setDeleting(true);
+                          await handleDeleteAccount();
+                          setDeleting(false);
+                        }}
+                        className="font-medium flex-1 px-4 py-2 text-base rounded bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-white transition"
+                      >
+                        {deleting ? "Deleting..." : "Yes, Delete"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-
-      {showChangePasswordModal && (
-        <PasswordModal
-          show={showChangePasswordModal}
-          closeModal={() => setShowChangePasswordModal(false)}
-        />
-      )}
-    </>,
+      </>
+    ),
     document.body
   );
 }
