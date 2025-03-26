@@ -29,6 +29,8 @@ export default function AccountModal({
   >("idle");
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const { setError } = useErrorStore();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (show) {
@@ -84,11 +86,6 @@ export default function AccountModal({
   const handleDeleteAccount = async () => {
     if (!session?.accessToken) return;
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete your account? This action cannot be undone."
-    );
-    if (!confirmed) return;
-
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/account`,
@@ -116,11 +113,11 @@ export default function AccountModal({
   return createPortal(
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
         onClick={(e) => e.target === e.currentTarget && closeModal()}
       >
         <div
-          className="w-full max-w-md rounded-2xl bg-zinc-900 p-6 shadow-xl relative"
+          className="w-full max-w-md rounded-2xl bg-zinc-900 p-6 shadow-xl relative border border-zinc-800"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close Button */}
@@ -131,12 +128,10 @@ export default function AccountModal({
             <X size={20} />
           </button>
 
-          {/* Title */}
           <h2 className="text-xl font-semibold text-white text-center mb-6">
             My Profile
           </h2>
 
-          {/* Content */}
           <div className="space-y-6">
             {/* Email Display */}
             <div className="bg-zinc-800/50 p-4 rounded-lg">
@@ -184,24 +179,51 @@ export default function AccountModal({
             {/* Divider */}
             <hr className="border-zinc-700 my-2" />
 
-            {/* Danger Zone */}
+            {/* Password Change and Delete */}
             <div className="space-y-3 pt-1">
               {session?.auth_provider === "local" && (
                 <button
                   onClick={() => setShowChangePasswordModal(true)}
-                  className="w-full flex items-center justify-center rounded-md bg-zinc-800 hover:bg-zinc-700 text-zinc-100 py-2.5 text-sm font-medium transition"
+                  className="w-full flex items-center justify-center rounded-md bg-zinc-800 hover:bg-zinc-700/80 border border-zinc-700 text-zinc-100 py-2.5 text-sm font-medium transition"
                 >
                   <KeyRound className="mr-2 h-4 w-4" />
                   Change Password
                 </button>
               )}
-              <button
-                onClick={handleDeleteAccount}
-                className="w-full flex items-center justify-center rounded-md bg-red-900/50 hover:bg-red-800/70 text-red-100 py-2.5 text-sm font-medium transition"
-              >
-                <Trash2 className="mr-2 h-4 w-4" />
-                Delete Account
-              </button>
+              {!confirmingDelete ? (
+                <button
+                  onClick={() => setConfirmingDelete(true)}
+                  className="w-full flex items-center justify-center rounded-md bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-red-100 py-2.5 text-sm font-medium transition"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Account
+                </button>
+              ) : (
+                <div className="bg-zinc-800/70 p-4 rounded-lg text-sm text-zinc-300 space-y-4">
+                  <p className="text-center">
+                    Are you sure you want to permanently delete your account?
+                  </p>
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      onClick={() => setConfirmingDelete(false)}
+                      disabled={deleting}
+                      className="flex-1 px-4 py-2 rounded-md bg-zinc-700/70 hover:bg-zinc-600/70 text-zinc-200 transition text-s border border-zinc-600"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={async () => {
+                        setDeleting(true);
+                        await handleDeleteAccount();
+                        setDeleting(false);
+                      }}
+                      className="flex-1 px-4 py-2 rounded-md bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-red-100 transition text-sm"
+                    >
+                      {deleting ? "Deleting..." : "Yes, Delete"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

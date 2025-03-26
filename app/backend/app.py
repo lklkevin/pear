@@ -343,12 +343,13 @@ def update_password(current_user):
         return jsonify({'message': 'Old and new password are required.'}), 400
 
     try:
-        # Get the current hashed password from the DB
-        user = db.get_user_by_id(user_id)  # Must return a dict with a 'password' field
+        user = db.get_user(user_id=user_id)
         if not user:
             return jsonify({'message': 'User not found.'}), 404
 
-        if not check_password_hash(user['password'], old_password):
+        stored_password = user[3]  # Assuming password is at index 3
+
+        if not check_password_hash(stored_password, old_password):
             return jsonify({'message': 'Old password is incorrect.'}), 401
 
         hashed_password = generate_password_hash(new_password, method='pbkdf2:sha256')
