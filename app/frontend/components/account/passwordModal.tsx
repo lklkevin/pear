@@ -1,9 +1,14 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
+import { DM_Sans } from "next/font/google";
 import { useSession } from "next-auth/react";
 import { useErrorStore } from "../../store/store";
 import PasswordField from "../form/passwordField";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+});
 
 export default function PasswordModal({
   show,
@@ -67,19 +72,19 @@ export default function PasswordModal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm"
+      className={`p-4 sm:p-0 fixed inset-0 z-[100] flex items-center justify-center bg-black/20 backdrop-blur-sm ${dmSans.className}`}
       onClick={(e) => e.target === e.currentTarget && closeModal()}
     >
       <div
-        className="w-full max-w-md rounded-2xl bg-zinc-900 p-6 shadow-xl relative animate-in fade-in zoom-in-95 border border-zinc-800"
+        className="w-full max-w-md rounded-lg sm:rounded-xl bg-zinc-900 p-4 sm:p-6 shadow-xl relative animate-in fade-in zoom-in-95 border border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={closeModal}
-          className="absolute top-7 right-8 text-white hover:text-zinc-300 transition"
+          className="absolute top-[15px] sm:top-[23px] right-4 sm:right-6 text-white hover:text-zinc-300 transition"
         >
-          <X size={20} />
+          <span className="text-2xl material-icons">close</span>
         </button>
 
         {/* Title */}
@@ -87,32 +92,45 @@ export default function PasswordModal({
           Change Password
         </h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="bg-zinc-800/50 p-4 rounded-lg">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="bg-zinc-800/50 p-4 rounded-md sm:rounded-lg">
+          <label className="pl-0.5 font-medium text-zinc-400 block mb-0.5">
+              Old Password
+            </label>
             <PasswordField
-              label="Old Password"
+              label=""
               value={oldPassword}
               onChange={(e) => setOldPassword(e.target.value)}
             />
           </div>
 
-          <div className="bg-zinc-800/50 p-4 rounded-lg space-y-4">
-            <PasswordField
-              label="New Password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <PasswordField
-              label="Confirm New Password"
-              value={confirmNewPassword}
-              onChange={(e) => setConfirmNewPassword(e.target.value)}
-            />
+          <div className="bg-zinc-800/50 p-4 rounded-md sm:rounded-lg space-y-4 sm:space-y-6">
+            <div className="flex flex-col gap-0.5">
+              <label className="pl-0.5 font-medium text-zinc-400 block">
+                New Password
+              </label>
+              <PasswordField
+                label=""
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <label className="pl-0.5 font-medium text-zinc-400 block">
+                Confirm New Password
+              </label>
+              <PasswordField
+                label=""
+                value={confirmNewPassword}
+                onChange={(e) => setConfirmNewPassword(e.target.value)}
+              />
+            </div>
           </div>
 
           <button
             type="submit"
             disabled={status === "loading"}
-            className="w-full flex items-center justify-center rounded-md bg-emerald-900 border border-emerald-400 text-white hover:bg-emerald-800 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full flex items-center justify-center rounded-md bg-emerald-900 border border-emerald-400 text-white hover:bg-emerald-800 py-2 font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
           >
             {status === "loading" ? "Updating..." : "Update Password"}
           </button>

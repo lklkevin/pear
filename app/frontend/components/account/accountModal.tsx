@@ -1,11 +1,18 @@
 import { useSession } from "next-auth/react";
 import { createPortal } from "react-dom";
 import { useState, useEffect } from "react";
-import { Check, Loader2, X, KeyRound, Trash2 } from "lucide-react";
+import { Check, Loader2, KeyRound, Trash2 } from "lucide-react";
 import PasswordModal from "./passwordModal";
 import signOutWithBackend from "@/utils/signOut";
 import { useErrorStore } from "../../store/store";
 import InputField from "../form/inputField";
+import { DM_Sans } from "next/font/google";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+});
+
 
 interface AccountModalProps {
   email: string;
@@ -114,13 +121,13 @@ export default function AccountModal({
   return createPortal(
     <>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+        className={`p-4 sm:p-0 fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm ${dmSans.className}`}
         onClick={(e) =>
           !deleting && e.target === e.currentTarget && closeModal()
         }
       >
         <div
-          className="w-full max-w-md rounded-2xl bg-zinc-900 p-6 shadow-xl relative border border-zinc-800"
+          className="w-full max-w-md rounded-lg sm:rounded-xl bg-zinc-900 p-4 sm:p-6 shadow-xl relative border border-zinc-800"
           onClick={(e) => e.stopPropagation()}
         >
           {deleting && (
@@ -139,28 +146,30 @@ export default function AccountModal({
           <button
             onClick={!deleting ? closeModal : undefined}
             disabled={deleting}
-            className="absolute top-7 right-8 text-white hover:text-zinc-300 transition"
+            className="absolute top-3.5 right-4 sm:right-6 sm:top-[22px] text-white hover:text-zinc-300 transition"
           >
-            <X size={20} />
+            <span className="text-2xl material-icons">close</span>
           </button>
 
-          <h2 className="text-xl font-semibold text-white text-center mb-6">
+          <h2 className="text-xl font-semibold text-white text-center mb-4">
             My Profile
           </h2>
 
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             {/* Email Display */}
-            <div className="bg-zinc-800/50 p-4 rounded-lg">
-              <label className="text-sm font-medium text-zinc-400 mb-1 block">
+            <div className="bg-zinc-800/50 p-4 rounded-md sm:rounded-lg">
+              <label className="pl-0.5 font-medium text-zinc-400 mb-0.5 block">
                 Email
               </label>
-              <p className="text-zinc-100 break-words">{email}</p>
+              <p className="pl-0.5 text-zinc-100 break-words">{email}</p>
             </div>
 
             {/* Username Field */}
-            <div className="bg-zinc-800/50 p-4 rounded-lg">
+            <div className="bg-zinc-800/50 p-4 rounded-md sm:rounded-lg">
+              <label className="pl-0.5 font-medium text-zinc-400 mb-1 block">
+                Username
+              </label>
               <InputField
-                label="Username"
                 value={newUsername}
                 onChange={(e) => setNewUsername(e.target.value)}
               />
@@ -180,7 +189,7 @@ export default function AccountModal({
                 status === "loading" ||
                 !newUsername.trim()
               }
-              className="w-full flex items-center justify-center rounded-md bg-emerald-900 border border-emerald-400 text-white hover:bg-emerald-800 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full flex items-center justify-center rounded-md bg-emerald-900 border border-emerald-400 text-white hover:bg-emerald-800 py-2 font-medium transition disabled:cursor-not-allowed disabled:opacity-50"
             >
               {status === "loading" ? (
                 <>
@@ -196,11 +205,11 @@ export default function AccountModal({
             <hr className="border-zinc-700 my-2" />
 
             {/* Password Change and Delete */}
-            <div className="space-y-3 pt-1">
+            <div className="space-y-4 sm:space-y-6">
               {session?.auth_provider === "local" && (
                 <button
                   onClick={() => setShowChangePasswordModal(true)}
-                  className="w-full flex items-center justify-center rounded-md bg-zinc-800 hover:bg-zinc-700/80 border border-zinc-700 text-zinc-100 py-2.5 text-sm font-medium transition"
+                  className="w-full flex items-center justify-center rounded-md bg-zinc-800 hover:bg-zinc-700/80 border border-zinc-700 text-white py-2 font-medium transition"
                 >
                   <KeyRound className="mr-2 h-4 w-4" />
                   Change Password
@@ -209,21 +218,22 @@ export default function AccountModal({
               {!confirmingDelete ? (
                 <button
                   onClick={() => setConfirmingDelete(true)}
-                  className="w-full flex items-center justify-center rounded-md bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-red-100 py-2.5 text-sm font-medium transition"
+                  className="w-full flex items-center justify-center rounded-md bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-white py-2 font-medium transition"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete Account
                 </button>
               ) : (
-                <div className="bg-zinc-800/70 p-4 rounded-lg text-sm text-zinc-300 space-y-4">
+                <div className="bg-zinc-800/70 p-4 rounded-lg text-base text-zinc-300 space-y-4">
                   <p className="text-center">
                     Are you sure you want to permanently delete your account?
+
                   </p>
-                  <div className="flex gap-3 justify-center">
+                  <div className="flex gap-4 justify-center">
                     <button
                       onClick={() => setConfirmingDelete(false)}
                       disabled={deleting}
-                      className="flex-1 px-4 py-2 rounded-md bg-zinc-700/70 hover:bg-zinc-600/70 text-zinc-200 transition text-s border border-zinc-600"
+                      className="font-medium flex-1 px-4 py-2 text-base rounded-md bg-zinc-700/70 hover:bg-zinc-600/70 text-white transition border border-zinc-600"
                     >
                       Cancel
                     </button>
@@ -233,7 +243,7 @@ export default function AccountModal({
                         await handleDeleteAccount();
                         setDeleting(false);
                       }}
-                      className="flex-1 px-4 py-2 rounded-md bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-red-100 transition text-sm"
+                      className="font-medium flex-1 px-4 py-2 text-base rounded-md bg-red-800/80 hover:bg-red-700/80 border border-red-600 text-white transition"
                     >
                       {deleting ? "Deleting..." : "Yes, Delete"}
                     </button>

@@ -86,7 +86,7 @@ export default function ExamCard({
 
         {/* BOTTOM BAR (Title + Date) */}
         <motion.div
-          className="absolute inset-x-0 bottom-0 py-3 px-4 text-white border-t border-zinc-800"
+          className="absolute inset-x-0 bottom-0 py-3 px-4 text-white"
           variants={bottomBarVariants}
         >
           <motion.h3
@@ -102,7 +102,7 @@ export default function ExamCard({
             className={`text-xs ${dmMono.className}`}
             variants={{
               initial: { color: "rgb(161, 161, 170)" }, // zinc-400
-              hover: { color: "rgb(228, 228, 231)" }, // zinc-200
+              hover: { color: "rgb(244, 244, 245)" }, // zinc-200
             }}
           >
             {exam.date}
