@@ -84,6 +84,7 @@ export default function AccountModal({
   };
 
   const handleDeleteAccount = async () => {
+    setDeleting(true);
     if (!session?.accessToken) return;
 
     try {
@@ -114,15 +115,30 @@ export default function AccountModal({
     <>
       <div
         className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-        onClick={(e) => e.target === e.currentTarget && closeModal()}
+        onClick={(e) =>
+          !deleting && e.target === e.currentTarget && closeModal()
+        }
       >
         <div
           className="w-full max-w-md rounded-2xl bg-zinc-900 p-6 shadow-xl relative border border-zinc-800"
           onClick={(e) => e.stopPropagation()}
         >
+          {deleting && (
+            <div className="absolute inset-0 bg-black/70 z-10 flex flex-col items-center justify-center rounded-2xl text-center p-6">
+              <div className="flex items-center gap-2 text-white mb-4">
+                <Loader2 className="animate-spin h-5 w-5" />
+                <span>Deleting your account...</span>
+              </div>
+              <p className="text-sm text-zinc-300">
+                Please do not refresh or close this window.
+              </p>
+            </div>
+          )}
+
           {/* Close Button */}
           <button
-            onClick={closeModal}
+            onClick={!deleting ? closeModal : undefined}
+            disabled={deleting}
             className="absolute top-7 right-8 text-white hover:text-zinc-300 transition"
           >
             <X size={20} />
