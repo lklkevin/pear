@@ -66,7 +66,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
       }
     }
     fetchProfile();
-  }, [session, setUsername]);
+  }, []);
 
   useEffect(() => {
     if (showPwdModal || showModal) {
