@@ -10,21 +10,31 @@ export const useErrorStore = create<ErrorState>((set) => ({
   setError: (message) => set({ errorMessage: message }),
 }));
 
+interface SuccessState {
+  successMessage: string | null;
+  setSuccess: (message: string | null) => void;
+}
+
+export const useSuccStore = create<SuccessState>((set) => ({
+  successMessage: null,
+  setSuccess: (message) => set({ successMessage: message }),
+}));
+
 interface LoadingState {
   loading: boolean;
   loadingMessage: string | null;
-  progressPercentage: number; 
+  progressPercentage: number;
   setLoading: (loading: boolean) => void;
   setLoadingMessage: (message: string | null) => void;
-  setProgress: (progress: number) => void; 
+  setProgress: (progress: number) => void;
 }
 
 export const useLoadingStore = create<LoadingState>((set) => ({
   loading: false,
   loadingMessage: null,
-  progressPercentage: 0, 
+  progressPercentage: 0,
   setLoading: (loading: boolean) => set({ loading }),
-  setLoadingMessage: (message: string | null) => set({ loadingMessage: message }),
+  setLoadingMessage: (message: string | null) =>
+    set({ loadingMessage: message }),
   setProgress: (progress: number) => set({ progressPercentage: progress }),
 }));
-

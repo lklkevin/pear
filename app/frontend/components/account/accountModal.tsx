@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Check, Loader2, KeyRound, Trash2 } from "lucide-react";
 import PasswordModal from "./passwordModal";
 import signOutWithBackend from "@/utils/signOut";
-import { useErrorStore } from "../../store/store";
+import { useErrorStore, useSuccStore } from "../../store/store";
 import InputField from "../form/inputField";
 import { DM_Sans } from "next/font/google";
 
@@ -38,6 +38,7 @@ export default function AccountModal({
     "idle" | "loading" | "success" | "error"
   >("idle");
   const { setError } = useErrorStore();
+  const { setSuccess } = useSuccStore();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -51,6 +52,8 @@ export default function AccountModal({
   const handleUsernameChange = async () => {
     if (!session?.accessToken) return;
     setStatus("loading");
+    setError("");
+    setSuccess("");
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/username`,
@@ -82,6 +85,8 @@ export default function AccountModal({
         } else {
           onUsernameUpdated(data.username);
         }
+
+        setSuccess(data.message || "Successfully updated username");
       } else {
         setStatus("error");
         setError(data.message || "Failed to update username.");
@@ -94,6 +99,7 @@ export default function AccountModal({
 
   const handleDeleteAccount = async () => {
     setDeleting(true);
+    setError("");
     if (!session?.accessToken) return;
 
     try {
@@ -198,12 +204,6 @@ export default function AccountModal({
                   auth={true}
                   onChange={(e) => setNewUsername(e.target.value)}
                 />
-                {status === "success" && (
-                  <div className="mt-1 text-green-400 flex items-center space-x-1 text-sm">
-                    <Check className="h-4 w-4" />
-                    <span>Username updated</span>
-                  </div>
-                )}
               </div>
 
               {/* Save Button */}

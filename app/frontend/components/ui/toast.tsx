@@ -1,30 +1,32 @@
 import { useEffect, useState } from "react";
-import { useErrorStore } from "../../store/store";
+import { useErrorStore, useSuccStore } from "../../store/store";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Toast() {
   const { errorMessage, setError } = useErrorStore();
   const [visible, setVisible] = useState(false);
+  const { successMessage, setSuccess } = useSuccStore();
 
   useEffect(() => {
-    if (errorMessage) {
+    if (errorMessage || successMessage) {
       setVisible(true);
       const timer = setTimeout(() => {
         setVisible(false);
-      }, 8000); // Hide toast after 8s
+      }, 5000); // Hide toast after 8s
 
       return () => clearTimeout(timer);
     }
-  }, [errorMessage]);
+  }, [errorMessage, successMessage]);
 
   // Handle complete exit animation
   const handleAnimationComplete = () => {
     if (!visible) {
       setError(null);
+      setSuccess(null);
     }
   };
 
-  if (!errorMessage) return null;
+  if (!errorMessage && !successMessage) return null;
 
   return (
     <AnimatePresence mode="wait" onExitComplete={handleAnimationComplete}>
@@ -41,7 +43,9 @@ export default function Toast() {
             <div className="absolute inset-0 bg-zinc-950"></div>
 
             <div className="relative flex items-center gap-3 px-5 py-4 text-white w-full">
-              <div className="flex-1">{errorMessage}</div>
+              <div className="flex-1">
+                {errorMessage ? errorMessage : successMessage}
+              </div>
               <button
                 onClick={() => setVisible(false)}
                 className="text-white/70 hover:text-white transition-colors"
@@ -57,11 +61,13 @@ export default function Toast() {
             </div>
 
             <motion.div
-              className="absolute bottom-0 left-0 h-1 bg-red-500"
+              className={`absolute bottom-0 left-0 h-1 ${
+                errorMessage ? "bg-red-500" : "bg-emerald-500"
+              }`}
               initial={{ width: "100%" }}
               animate={{ width: "0%" }}
               transition={{
-                duration: 8,
+                duration: 5,
                 ease: "linear",
               }}
             />

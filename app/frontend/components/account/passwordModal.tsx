@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { DM_Sans } from "next/font/google";
 import { useSession } from "next-auth/react";
-import { useErrorStore } from "../../store/store";
+import { useErrorStore, useSuccStore } from "../../store/store";
 import PasswordField from "../form/passwordField";
 
 const dmSans = DM_Sans({
@@ -19,6 +19,7 @@ export default function PasswordModal({
 }) {
   const { data: session } = useSession();
   const { setError } = useErrorStore();
+  const { setSuccess } = useSuccStore();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -26,6 +27,8 @@ export default function PasswordModal({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
+    setSuccess("");
 
     if (!newPassword) {
       setError("New password cannot be empty.");
@@ -58,6 +61,7 @@ export default function PasswordModal({
       if (!response.ok) {
         setError(data.message || "Failed to update password.");
       } else {
+        setSuccess(data.message || "Successfully updated password.");
         closeModal();
       }
     } catch (error) {

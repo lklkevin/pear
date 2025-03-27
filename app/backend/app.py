@@ -322,7 +322,7 @@ def update_username(current_user):
     try:
         db.update_username(user_id, new_username)
         return jsonify({
-            'message': 'Username updated successfully!!!.',
+            'message': 'Username updated successfully.',
             'username': new_username
         }), 200
     except Exception as e:
