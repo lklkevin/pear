@@ -19,6 +19,8 @@ interface AccountModalProps {
   show: boolean;
   closeModal: () => void;
   onUsernameUpdated: (newUsername: string) => void;
+  setShowPwdModal: (show: boolean) => void;
+  showPwdModal: boolean;
 }
 
 export default function AccountModal({
@@ -27,13 +29,14 @@ export default function AccountModal({
   show,
   closeModal,
   onUsernameUpdated,
+  setShowPwdModal,
+  showPwdModal,
 }: AccountModalProps) {
   const { data: session } = useSession();
   const [newUsername, setNewUsername] = useState(username);
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const { setError } = useErrorStore();
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -44,18 +47,6 @@ export default function AccountModal({
       setNewUsername(username);
     }
   }, [show, username]);
-
-  useEffect(() => {
-    if (show) {
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      if (!show && !showChangePasswordModal) {
-        document.body.style.overflow = "unset";
-      }
-    };
-  }, [show, showChangePasswordModal]);
 
   const handleUsernameChange = async () => {
     if (!session?.accessToken) return;
@@ -130,11 +121,11 @@ export default function AccountModal({
   if (!show) return null;
 
   return createPortal(
-    showChangePasswordModal ? (
+    showPwdModal ? (
       <PasswordModal
-        show={showChangePasswordModal}
+        show={showPwdModal}
         closeModal={() => {
-          setShowChangePasswordModal(false);
+          setShowPwdModal(false);
         }}
       />
     ) : (
@@ -246,7 +237,7 @@ export default function AccountModal({
                 {session?.auth_provider === "local" && (
                   <button
                     onClick={() => {
-                      setShowChangePasswordModal(true);
+                      setShowPwdModal(true);
                     }}
                     className="w-full flex items-center justify-center bg-zinc-800 py-2 rounded-md hover:bg-zinc-700 transition border border-zinc-700"
                   >

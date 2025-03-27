@@ -32,6 +32,9 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  const [showModal, setShowModal] = useState(false);
+  const [showPwdModal, setShowPwdModal] = useState(false);
+
   const closeMenu = () => toggleMenu(0);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
@@ -64,6 +67,20 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     }
     fetchProfile();
   }, [session, setUsername]);
+
+  useEffect(() => {
+    if (showPwdModal || showModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      if (!showPwdModal && !showModal) {
+        document.body.style.overflow = "unset";
+      }
+    };
+  }, [showPwdModal, showModal]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -199,6 +216,10 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
             mobileMenuOpen={mobileMenuOpen}
             setMobileMenuOpen={closeMobileMenu}
             setUsername={setUsername}
+            setShowPwdModal={setShowPwdModal}
+            showPwdModal={showPwdModal}
+            setShowModal={setShowModal}
+            showModal={showModal}
           />
         )}
       </AnimatePresence>
@@ -210,6 +231,10 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
             email={session.user?.email || ""}
             setUsername={setUsername}
             closeMenu={closeMenu}
+            setShowPwdModal={setShowPwdModal}
+            showPwdModal={showPwdModal}
+            setShowModal={setShowModal}
+            showModal={showModal}
           />
         </div>
       )}

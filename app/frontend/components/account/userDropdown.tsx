@@ -8,6 +8,10 @@ interface UserDropdownProps {
   email: string;
   setUsername: (name: string) => void;
   closeMenu: () => void;
+  setShowPwdModal: (show: boolean) => void;
+  showPwdModal: boolean;
+  setShowModal: (show: boolean) => void;
+  showModal: boolean;
 }
 
 export default function UserDropdown({
@@ -15,10 +19,12 @@ export default function UserDropdown({
   email,
   setUsername,
   closeMenu,
+  setShowPwdModal,
+  showPwdModal,
+  setShowModal,
+  showModal,
 }: UserDropdownProps) {
   const { data: session } = useSession();
-
-  const [showModal, setShowModal] = useState(false);
 
   return (
     <div
@@ -50,6 +56,8 @@ export default function UserDropdown({
             closeMenu();
           }}
           onUsernameUpdated={setUsername}
+          setShowPwdModal={setShowPwdModal}
+          showPwdModal={showPwdModal}
         />
       </div>
 
