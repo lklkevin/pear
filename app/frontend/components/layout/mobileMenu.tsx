@@ -5,6 +5,7 @@ import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import AccountModal from "../account/accountModal";
 import { useState } from "react";
+import { Skeleton } from "../ui/skeleton";
 
 export default function MobileMenu({
   username,
@@ -12,14 +13,14 @@ export default function MobileMenu({
   mobileMenuOpen,
   setMobileMenuOpen,
   setUsername,
-}: {    
+}: {
   username: string;
   email: string;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
   setUsername: (username: string) => void;
 }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const callbackUrl = encodeURIComponent(router.asPath); // Preserve current URL
   const [showAccountModal, setShowAccountModal] = useState(false);
@@ -102,65 +103,71 @@ export default function MobileMenu({
             </div>
           </Link>
         </motion.div>
-        {session ? (
-          <>
+        {status !== "loading" ? (
+          session ? (
+            <>
+              <motion.div variants={itemVariants}>
+                <button
+                  className="block text-lg w-screen px-4 py-1"
+                  onClick={() => {
+                    setShowAccountModal(true);
+                  }}
+                >
+                  <div
+                    className={`font-medium py-2 rounded-md hover:bg-zinc-800 ${
+                      router.pathname === "/account"
+                        ? "text-emerald-400"
+                        : "text-zinc-200 hover:text-white"
+                    }`}
+                  >
+                    Account
+                  </div>
+                </button>
+              </motion.div>
+              <AccountModal
+                email={email}
+                username={username}
+                show={showAccountModal}
+                closeModal={() => setShowAccountModal(false)}
+                onUsernameUpdated={setUsername}
+              />
+              <motion.div variants={itemVariants}>
+                <button
+                  className="block text-lg font-medium w-screen px-4 py-1"
+                  onClick={() => {
+                    signOutWithBackend(session?.refreshToken);
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  <div className="text-zinc-200 hover:text-white font-medium py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 flex justify-center items-center gap-2">
+                    <span className="material-icons">logout</span>
+                    Logout
+                  </div>
+                </button>
+              </motion.div>
+            </>
+          ) : (
             <motion.div variants={itemVariants}>
-              <button
+              <Link
+                href={`/login?callbackUrl=${callbackUrl}`}
                 className="block text-lg w-screen px-4 py-1"
-                onClick={() => {
-                  setShowAccountModal(true);
-                }}
               >
                 <div
-                  className={`font-medium py-2 rounded-md hover:bg-zinc-800 ${
-                    router.pathname === "/account"
+                  className={`font-medium py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 ${
+                    router.pathname === "/login"
                       ? "text-emerald-400"
                       : "text-zinc-200 hover:text-white"
                   }`}
                 >
-                  Account
+                  Login
                 </div>
-              </button>
+              </Link>
             </motion.div>
-            <AccountModal
-              email={email}
-              username={username}
-              show={showAccountModal}
-              closeModal={() => setShowAccountModal(false)}
-              onUsernameUpdated={setUsername}
-            />
-            <motion.div variants={itemVariants}>
-              <button
-                className="block text-lg font-medium w-screen px-4 py-1"
-                onClick={() => {
-                  signOutWithBackend(session?.refreshToken);
-                  setMobileMenuOpen(false);
-                }}
-              >
-                <div className="text-zinc-200 hover:text-white font-medium py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 flex justify-center items-center gap-2">
-                  <span className="material-icons">logout</span>
-                  Logout
-                </div>
-              </button>
-            </motion.div>
-          </>
+          )
         ) : (
-          <motion.div variants={itemVariants}>
-            <Link
-              href={`/login?callbackUrl=${callbackUrl}`}
-              className="block text-lg w-screen px-4 py-1"
-            >
-              <div
-                className={`font-medium py-2 rounded-md bg-zinc-900 hover:bg-zinc-800 ${
-                  router.pathname === "/login"
-                    ? "text-emerald-400"
-                    : "text-zinc-200 hover:text-white"
-                }`}
-              >
-                Login
-              </div>
-            </Link>
-          </motion.div>
+          <div className="px-4 py-1 w-full">
+            <Skeleton className="h-[44px]"></Skeleton>
+          </div>
         )}
       </motion.nav>
     </motion.div>

@@ -140,7 +140,7 @@ export default function AccountModal({
     ) : (
       <>
         <div
-          className={`h-screen justify-center sm:h-auto fixed inset-0 z-50 flex flex-col items-center bg-zinc-950/50 backdrop-blur-sm ${dmSans.className}`}
+          className={`text-white h-screen justify-center sm:h-auto fixed inset-0 z-50 flex flex-col items-center bg-zinc-950/50 backdrop-blur-sm ${dmSans.className}`}
           onClick={(e) =>
             !deleting && e.target === e.currentTarget && closeModal()
           }
