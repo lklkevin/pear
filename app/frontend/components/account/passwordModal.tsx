@@ -109,6 +109,7 @@ export default function PasswordModal({
                 Old Password
               </label>
               <PasswordField
+                id="old-password"
                 label=""
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
@@ -121,6 +122,7 @@ export default function PasswordModal({
                   New Password
                 </label>
                 <PasswordField
+                  id="new-password"
                   label=""
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -131,6 +133,7 @@ export default function PasswordModal({
                   Confirm New Password
                 </label>
                 <PasswordField
+                  id="confirm-new-password"
                   label=""
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}

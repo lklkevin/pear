@@ -169,19 +169,25 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
                 <Skeleton className="h-9 w-9 rounded-full bg-zinc-800" />
               </div>
             ) : session ? (
-              <div className="relative">
-                <button
-                  className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${
-                    getColorFromName(username || "User").class
-                  } transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleMenu();
-                  }}
-                >
-                  {username.charAt(0).toUpperCase() || "U"}
-                </button>
-              </div>
+              username ? (
+                <div className="relative">
+                  <button
+                    className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${
+                      getColorFromName(username).class
+                    } transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMenu();
+                    }}
+                  >
+                    {username.charAt(0).toUpperCase()}
+                  </button>
+                </div>
+              ) : (
+                <div className="relative hidden sm:flex flex-row items-center justify-center">
+                  <Skeleton className="h-9 w-9 rounded-full bg-zinc-800" />
+                </div>
+              )
             ) : (
               <>
                 <div className="hidden sm:block">
