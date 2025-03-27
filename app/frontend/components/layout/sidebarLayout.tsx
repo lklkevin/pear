@@ -156,6 +156,18 @@ export default function BaseLayout({
     return "blur(0px)";
   };
 
+  useEffect(() => {
+    if (!isCollapsed && !isLargeScreen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isCollapsed, isLargeScreen]);
+
   return (
     <div className="min-h-screen flex flex-col bg-zinc-950">
       <Navbar />

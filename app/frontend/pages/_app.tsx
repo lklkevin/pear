@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import Toast from "../components/ui/toast";
 import { useLoadingStore } from "@/store/store";
 import { DM_Sans } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -30,9 +31,10 @@ function AuthWatcher() {
 export default function App({ Component, pageProps }: AppProps) {
   const { loading } = useLoadingStore();
   return (
-    <main className={`${dmSans.className} bg-zinc-950 text-white`}>
-      <SessionProvider session={pageProps.session} refetchInterval={5 * 60}>
-        <AuthWatcher />
+    <>
+      <main className={`${dmSans.className} bg-zinc-950 text-white`}>
+        <SessionProvider session={pageProps.session} refetchInterval={5 * 60}>
+          <AuthWatcher />
         <Toast />
         <Component {...pageProps} />
       </SessionProvider>
@@ -44,8 +46,10 @@ export default function App({ Component, pageProps }: AppProps) {
               <p className="sm:block hidden">. Made with &lt;3 by Group 27</p>
             </div>
           </div>
-        </footer>
-      )}
-    </main>
+          </footer>
+        )}
+      </main>
+      <Analytics />
+    </>
   );
 }

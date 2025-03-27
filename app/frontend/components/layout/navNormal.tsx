@@ -148,7 +148,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
             }`}
           >
             {status === "loading" ? (
-              <div className="relative flex flex-row items-center justify-center">
+              <div className="relative hidden sm:flex flex-row items-center justify-center">
                 <Skeleton className="h-9 w-9 rounded-full bg-zinc-800" />
               </div>
             ) : session ? (

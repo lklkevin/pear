@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { DM_Sans } from "next/font/google";
 import { useSession } from "next-auth/react";
@@ -19,6 +19,18 @@ export default function PasswordModal({
 }) {
   const { data: session } = useSession();
   const { setError } = useErrorStore();
+
+  useEffect(() => {
+    if (show) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      if (!show) {
+        document.body.style.overflow = "unset";
+      }
+    };
+  }, [show]);
 
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -76,23 +88,34 @@ export default function PasswordModal({
       onClick={(e) => e.target === e.currentTarget && closeModal()}
     >
       <div
-        className="justify-center pt-8 sm:pt-0 w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
+        className="overflow-hidden justify-center w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="max-w-[480px] w-full mx-auto sm:border-b border-zinc-800 relative flex items-center sm:bg-zinc-800/35 sm:p-4 h-20">
-          <h2 className="w-full flex pl-8 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold">
+        <div className=" sm:max-w-[480px] w-full mx-auto border-b border-zinc-800 relative flex items-center bg-zinc-800/35 sm:p-4 h-[72px]">
+          <h2 className="mt-0.5 sm:-mt-0 w-full flex pl-5 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold text-white">
             Change Password
           </h2>
           <button
             onClick={closeModal}
-            className="select-none absolute right-8 sm:right-10 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200 transition"
+            className="select-none absolute right-4 sm:right-10 top-1 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200 transition"
           >
-            <span className="material-icons">close</span>
+            <svg
+              width="23"
+              height="23"
+              viewBox="0 0 23 23"
+              fill="transparent"
+              strokeWidth="2"
+              stroke="white"
+              strokeLinecap="round"
+            >
+              <path d="M 3 2.5 L 17 16.346" />
+              <path d="M 3 16.346 L 17 2.5" />
+            </svg>
           </button>
         </div>
 
-        <div className="px-8 sm:px-10 pt-8 pb-7 max-w-[480px] w-full mx-auto space-y-5">
+       <div className="px-4 sm:px-10 pt-6 sm:pt-8 pb-8 max-w-[480px] w-full mx-auto space-y-5">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="font-medium text-zinc-300 block">
@@ -128,7 +151,7 @@ export default function PasswordModal({
               </div>
             </div>
 
-            <div className="flex items-center py-3">
+            <div className="flex items-center py-2">
               <button
                 type="submit"
                 disabled={status === "loading"}
