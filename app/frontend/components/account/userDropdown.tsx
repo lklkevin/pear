@@ -1,7 +1,6 @@
 import signOutWithBackend from "@/utils/signOut";
 import { useSession } from "next-auth/react";
 import AccountModal from "./accountModal";
-import { useState } from "react";
 
 interface UserDropdownProps {
   username: string;

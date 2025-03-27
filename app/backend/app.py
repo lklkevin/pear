@@ -320,8 +320,6 @@ def update_username(current_user):
         return jsonify({'message': 'New username is required.'}), 400
 
     try:
-        # Placeholder: Replace with actual DB update function
-        print(f"Updating username for user_id {user_id} to {new_username}")
         db.update_username(user_id, new_username)
         return jsonify({
             'message': 'Username updated successfully!!!.',
@@ -367,8 +365,6 @@ def delete_account(current_user):
     user_id = current_user[0]
 
     try:
-        # Placeholder: Replace with actual DB delete function
-        print(f"Deleting account for user_id {user_id}")
         db.delete_user_account(user_id)
         return jsonify({'message': 'Account deleted successfully.'}), 200
     except Exception as e:
