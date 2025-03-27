@@ -1,4 +1,5 @@
 import { signOut } from "next-auth/react";
+import { useUserStore } from "../store/user";
 
 export default async function signOutWithBackend(refreshToken?: string) {
   if (refreshToken) {
@@ -10,6 +11,8 @@ export default async function signOutWithBackend(refreshToken?: string) {
       });
     } catch (error) {}
   }
+
+  useUserStore.getState().reset();
 
   signOut();
 }
