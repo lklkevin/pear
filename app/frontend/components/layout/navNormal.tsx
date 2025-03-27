@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import ButtonG from "../ui/buttonGreen";
 import Button from "../ui/buttonGray";
-import { useSession } from "next-auth/react";
+import { useSession, getSession } from "next-auth/react";
 import UserDropdown from "../account/userDropdown";
 import { useState, useEffect } from "react";
 import MobileMenu from "./mobileMenu";
@@ -46,23 +46,23 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
 
   useEffect(() => {
     async function fetchProfile() {
-      if (session?.accessToken) {
-        try {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`,
-            {
-              headers: {
-                Authorization: `Bearer ${session.accessToken}`,
-              },
-            }
-          );
-          if (res.ok) {
-            const profileData = await res.json();
-            setUsername(profileData.username);
+      try {
+        const session = await getSession();
+        if (!session?.accessToken) return;
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${session?.accessToken}`,
+            },
           }
-        } catch (error) {
-          console.error("Failed to fetch user profile", error);
+        );
+        if (res.ok) {
+          const profileData = await res.json();
+          setUsername(profileData.username);
         }
+      } catch (error) {
+        console.error("Failed to fetch user profile", error);
       }
     }
     fetchProfile();
