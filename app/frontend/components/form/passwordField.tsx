@@ -39,7 +39,7 @@ export default function PasswordField({
       <div className="relative">
         <input
           type={showPassword ? "text" : "password"}
-          className="w-full p-2 mt-1 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500 pr-10" // Add padding-right for button space
+          className="text-white w-full p-2 mt-1 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500 pr-10" // Add padding-right for button space
           value={value}
           onChange={onChange}
           required
