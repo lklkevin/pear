@@ -2,6 +2,7 @@ import { useState } from "react";
 import InputField from "./inputField";
 
 interface PasswordFieldProps {
+  id?: string;
   label: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -10,6 +11,7 @@ interface PasswordFieldProps {
 }
 
 export default function PasswordField({
+  id = "password-" + Math.random().toString(36).slice(2), // Generate random id
   label,
   value,
   onChange,
@@ -21,7 +23,7 @@ export default function PasswordField({
   return (
     <div className="relative">
       <label
-        htmlFor="password"
+        htmlFor={id}
         className="flex justify-between font-medium text-zinc-300"
       >
         {label}
@@ -38,7 +40,7 @@ export default function PasswordField({
 
       <div className="relative">
         <input
-          id="password"
+          id={id}
           type={showPassword ? "text" : "password"}
           className="text-white w-full p-2 mt-1 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500 pr-10" // Add padding-right for button space
           value={value}

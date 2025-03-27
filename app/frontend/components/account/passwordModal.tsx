@@ -19,19 +19,6 @@ export default function PasswordModal({
 }) {
   const { data: session } = useSession();
   const { setError } = useErrorStore();
-
-  useEffect(() => {
-    if (show) {
-      document.body.style.overflow = "hidden";
-    }
-
-    return () => {
-      if (!show) {
-        document.body.style.overflow = "unset";
-      }
-    };
-  }, [show]);
-
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
@@ -115,13 +102,14 @@ export default function PasswordModal({
           </button>
         </div>
 
-       <div className="px-4 sm:px-10 pt-6 sm:pt-8 pb-8 max-w-[480px] w-full mx-auto space-y-5">
+        <div className="px-4 sm:px-10 pt-6 sm:pt-8 pb-8 max-w-[480px] w-full mx-auto space-y-5">
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="font-medium text-zinc-300 block">
                 Old Password
               </label>
               <PasswordField
+                id="old-password"
                 label=""
                 value={oldPassword}
                 onChange={(e) => setOldPassword(e.target.value)}
@@ -134,6 +122,7 @@ export default function PasswordModal({
                   New Password
                 </label>
                 <PasswordField
+                  id="new-password"
                   label=""
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
@@ -144,6 +133,7 @@ export default function PasswordModal({
                   Confirm New Password
                 </label>
                 <PasswordField
+                  id="confirm-new-password"
                   label=""
                   value={confirmNewPassword}
                   onChange={(e) => setConfirmNewPassword(e.target.value)}

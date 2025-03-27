@@ -13,17 +13,24 @@ export default function MobileMenu({
   mobileMenuOpen,
   setMobileMenuOpen,
   setUsername,
+  setShowPwdModal,
+  showPwdModal,
+  setShowModal,
+  showModal,
 }: {
   username: string;
   email: string;
   mobileMenuOpen: boolean;
   setMobileMenuOpen: (open: boolean) => void;
   setUsername: (username: string) => void;
+  setShowPwdModal: (show: boolean) => void;
+  showPwdModal: boolean;
+  setShowModal: (show: boolean) => void;
+  showModal: boolean;
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const callbackUrl = encodeURIComponent(router.asPath); // Preserve current URL
-  const [showAccountModal, setShowAccountModal] = useState(false);
 
   // Menu item animation variants
   const containerVariants = {
@@ -110,7 +117,7 @@ export default function MobileMenu({
                 <button
                   className="block text-lg w-screen px-4 py-1"
                   onClick={() => {
-                    setShowAccountModal(true);
+                    setShowModal(true);
                   }}
                 >
                   <div
@@ -127,10 +134,12 @@ export default function MobileMenu({
               <AccountModal
                 email={email}
                 username={username}
-                show={showAccountModal}
-                closeModal={() => setShowAccountModal(false)}
+                show={showModal}
+                closeModal={() => setShowModal(false)}
                 onUsernameUpdated={setUsername}
-              />
+                setShowPwdModal={setShowPwdModal}
+              showPwdModal={showPwdModal}
+            />
               <motion.div variants={itemVariants}>
                 <button
                   className="block text-lg font-medium w-screen px-4 py-1"

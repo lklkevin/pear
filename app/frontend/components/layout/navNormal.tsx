@@ -32,6 +32,9 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
+  const [showModal, setShowModal] = useState(false);
+  const [showPwdModal, setShowPwdModal] = useState(false);
+
   const closeMenu = () => toggleMenu(0);
   const closeMobileMenu = () => setMobileMenuOpen(false);
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
@@ -64,6 +67,20 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     }
     fetchProfile();
   }, [session, setUsername]);
+
+  useEffect(() => {
+    if (showPwdModal || showModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      if (!showPwdModal && !showModal) {
+        document.body.style.overflow = "unset";
+      }
+    };
+  }, [showPwdModal, showModal]);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -152,19 +169,25 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
                 <Skeleton className="h-9 w-9 rounded-full bg-zinc-800" />
               </div>
             ) : session ? (
-              <div className="relative">
-                <button
-                  className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${
-                    getColorFromName(username || "User").class
-                  } transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleMenu();
-                  }}
-                >
-                  {username.charAt(0).toUpperCase() || "U"}
-                </button>
-              </div>
+              username ? (
+                <div className="relative">
+                  <button
+                    className={`pt-[1px] font-semibold text-center text-lg h-9 w-9 rounded-full text-white ${
+                      getColorFromName(username).class
+                    } transition-all duration-200 hover:ring-4 hover:ring-zinc-800 hover:ring-opacity-50 hidden sm:block`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleMenu();
+                    }}
+                  >
+                    {username.charAt(0).toUpperCase()}
+                  </button>
+                </div>
+              ) : (
+                <div className="relative hidden sm:flex flex-row items-center justify-center">
+                  <Skeleton className="h-9 w-9 rounded-full bg-zinc-800" />
+                </div>
+              )
             ) : (
               <>
                 <div className="hidden sm:block">
@@ -199,6 +222,10 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
             mobileMenuOpen={mobileMenuOpen}
             setMobileMenuOpen={closeMobileMenu}
             setUsername={setUsername}
+            setShowPwdModal={setShowPwdModal}
+            showPwdModal={showPwdModal}
+            setShowModal={setShowModal}
+            showModal={showModal}
           />
         )}
       </AnimatePresence>
@@ -210,6 +237,10 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
             email={session.user?.email || ""}
             setUsername={setUsername}
             closeMenu={closeMenu}
+            setShowPwdModal={setShowPwdModal}
+            showPwdModal={showPwdModal}
+            setShowModal={setShowModal}
+            showModal={showModal}
           />
         </div>
       )}
