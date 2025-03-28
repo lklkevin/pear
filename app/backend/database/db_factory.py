@@ -14,7 +14,7 @@ def get_db_instance() -> DataAccessObject:
     Returns:
         DataAccessObject: An instance of the configured database implementation.
     """
-    db_mode = os.environ.get("DB_MODE", "sqlite").lower()
+    db_mode = os.environ.get("DB_MODE", "postgres").lower()
     
     if db_mode == "postgres":
         # Get the DATABASE_URL and pass it directly to PostgresDB

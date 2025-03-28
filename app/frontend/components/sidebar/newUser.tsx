@@ -10,7 +10,7 @@ import {
   Color,
   colors,
 } from "@/components/form/stylingOptions";
-import { useErrorStore, useLoadingStore } from "@/store/store";
+import { useErrorStore, useLoadingStore, useSuccStore } from "@/store/store";
 import { getSession, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
@@ -38,6 +38,7 @@ export default function Sidebar() {
 
   const handleSave = async () => {
     useLoadingStore.getState().setLoading(true);
+    useSuccStore.getState().setSuccess("");
 
     if (!sessionStorage.getItem("browserSessionId")) {
       useErrorStore.getState().setError("Cannot fetch exam");
@@ -109,6 +110,7 @@ export default function Sidebar() {
 
       sessionStorage.removeItem("browserSessionId");
       useLoadingStore.getState().setLoading(false);
+      useSuccStore.getState().setSuccess("Exam saved successfully!");
       router.push(`/exam/${saveResult.exam_id}`);
     } catch (error) {
       useErrorStore

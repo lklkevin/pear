@@ -20,7 +20,11 @@ celery = Celery(
     broker_use_ssl={"ssl_cert_reqs": "CERT_NONE"}  # Use CERT_NONE instead of "NONE"
 )
 
-celery.conf.update(result_expires=3600)
+celery.conf.update(
+    worker_disable_remote_control=True,
+    task_soft_time_limit=900,
+    result_expires=3600
+)
 
 # Shared async function that handles the core exam generation process
 async def _generate_exam_core(self, pdf_data_list, num_questions, title, description, max_parallel=5):

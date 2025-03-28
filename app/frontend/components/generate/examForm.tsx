@@ -34,7 +34,7 @@ export default function ExamForm() {
   ) => {
     useLoadingStore.getState().setProgress(0);
     const pollInterval = 5000; // Poll every 5 seconds
-    const maxPollTime = 6 * 60 * 1000; // 5 minutes max
+    const maxPollTime = 8 * 60 * 1000; // 8 minutes max
     const startTime = Date.now();
 
     const poll = async () => {
