@@ -83,8 +83,8 @@ export default function PasswordModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className=" sm:max-w-[480px] w-full mx-auto border-b border-zinc-800 relative flex items-center bg-zinc-800/35 sm:p-4 h-[72px]">
-          <h2 className="mt-0.5 sm:-mt-0 w-full flex pl-5 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold text-white">
+        <div className=" sm:max-w-[480px] w-full mx-auto border-b border-zinc-800 relative flex items-center sm:bg-zinc-800/35 sm:p-4 h-[72px]">
+          <h2 className="mt-0.5 sm:-mt-0 w-full flex pl-4 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold text-white">
             Change Password
           </h2>
           <button

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useId } from "react";
 import InputField from "./inputField";
 
 interface PasswordFieldProps {
@@ -11,19 +11,21 @@ interface PasswordFieldProps {
 }
 
 export default function PasswordField({
-  id = "password-" + Math.random().toString(36).slice(2), // Generate random id
+  id,
   label,
   value,
   onChange,
   showForgotPassword = false,
   onForgotPasswordClick,
 }: PasswordFieldProps) {
+  const autoId = useId();
+  const inputId = id || autoId
   const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="relative">
       <label
-        htmlFor={id}
+        htmlFor={inputId}
         className="flex justify-between font-medium text-zinc-300"
       >
         {label}
@@ -40,7 +42,7 @@ export default function PasswordField({
 
       <div className="relative">
         <input
-          id={id}
+          id={inputId}
           type={showPassword ? "text" : "password"}
           className="text-white w-full p-2 mt-1 bg-zinc-900 border border-zinc-800 rounded-md focus:outline-none focus:ring-1 focus:ring-zinc-500 pr-10" // Add padding-right for button space
           value={value}

@@ -2,6 +2,7 @@ from functools import wraps
 import datetime
 import secrets
 import re
+import ssl
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -38,7 +39,19 @@ match = re.search(pattern, redis_url)
 redis_host = match.group("B")
 redis_port = match.group("C")
 redis_password = match.group("A")
-redis_client = redis.Redis(host=redis_host, port=redis_port, password=redis_password, ssl=True)
+
+if os.environ.get("FLASK_ENV", "production") == "development":
+    ssl_cert_reqs = ssl.CERT_NONE
+else:
+    ssl_cert_reqs = ssl.CERT_REQUIRED
+
+redis_client = redis.Redis(
+    host=redis_host,
+    port=redis_port,
+    password=redis_password,
+    ssl=True,
+    ssl_cert_reqs=ssl_cert_reqs
+)
 
 # JWT configuration
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
@@ -313,6 +326,7 @@ def get_profile(current_user):
         'auth_provider': current_user[4]
     }), 200
 
+
 @app.route('/api/user/username', methods=['PATCH'])
 @token_required
 def update_username(current_user):
@@ -330,7 +344,7 @@ def update_username(current_user):
             'username': new_username
         }), 200
     except Exception as e:
-        return jsonify({'message': f'Failed to update username: {str(e)}'}), 500
+        return jsonify({'message': str(e)}), 500
 
 
 @app.route('/api/user/password', methods=['PATCH'])
@@ -360,7 +374,7 @@ def update_password(current_user):
         return jsonify({'message': 'Password updated successfully!'}), 200
 
     except Exception as e:
-        return jsonify({'message': f'Failed to update password: {str(e)}'}), 500
+        return jsonify({'message': str(e)}), 500
 
 
 @app.route('/api/user/account', methods=['DELETE'])
@@ -372,7 +386,8 @@ def delete_account(current_user):
         db.delete_user_account(user_id)
         return jsonify({'message': 'Account deleted successfully.'}), 200
     except Exception as e:
-        return jsonify({'message': f'Failed to delete account: {str(e)}'}), 500
+        return jsonify({'message': str(e)}), 500
+
 
 @app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
 def generate_exam():
@@ -718,3 +733,7 @@ def fav(current_user):
 def after_request(response):
     app.logger.debug(f"{request.method} {request.path} - {response.status}")
     return response
+
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port="5000", debug=True)

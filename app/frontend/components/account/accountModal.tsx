@@ -161,8 +161,8 @@ export default function AccountModal({
             )}
 
             {/* Header */}
-            <div className="sm:max-w-[480px] w-full mx-auto border-b border-zinc-800 relative flex items-center bg-zinc-800/35 sm:p-4 h-[72px]">
-              <h2 className="mt-0.5 sm:-mt-0 w-full flex pl-5 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold text-white">
+            <div className="sm:max-w-[480px] w-full mx-auto border-b border-zinc-800 relative flex items-center sm:bg-zinc-800/35 sm:p-4 h-[72px]">
+              <h2 className="mt-0.5 sm:-mt-0 w-full flex pl-4 sm:justify-center sm:pl-0 text-2xl sm:text-xl font-semibold text-white">
                 My Profile
               </h2>
               <button
@@ -191,7 +191,7 @@ export default function AccountModal({
                 <label className="font-medium text-zinc-300 mb-1 block">
                   Email
                 </label>
-                <div className="select-none bg-zinc-800/35 rounded-md border border-zinc-800 px-2.5 py-2 text-zinc-100">
+                <div className="select-none sm:bg-zinc-800/35 rounded-md border border-zinc-800 px-2.5 py-2 text-zinc-100">
                   {email}
                 </div>
               </div>
