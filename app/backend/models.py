@@ -40,7 +40,7 @@ class GeminiModel(ModelProvider):
     Gemini implementation of the ModelProvider, using Google's Gemini API.
     """
 
-    def __init__(self, model: str = "gemini-2.0-flash", max_retries: int = 5, timeout: float = 20.0):
+    def __init__(self, model: str = "gemini-2.0-flash", max_retries: int = 5, timeout: float = 30.0):
         """
         Initializes the Gemini model with an API key and model selection.
 

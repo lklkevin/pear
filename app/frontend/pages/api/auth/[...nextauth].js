@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
 
 export default NextAuth({
   providers: [
@@ -10,7 +11,7 @@ export default NextAuth({
       async profile(profile) {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/google`,
+            `${backendUrl}/api/auth/google`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -54,7 +55,7 @@ export default NextAuth({
       async authorize(credentials) {
         try {
           const res = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/login`,
+            `${backendUrl}/api/auth/login`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -128,7 +129,7 @@ export default NextAuth({
 async function refreshAccessToken(token) {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/auth/refresh`,
+      `${backendUrl}/api/auth/refresh`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -143,7 +144,7 @@ async function refreshAccessToken(token) {
 
     // Fetch the updated profile after refreshing the token.
     const profileResponse = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`,
+      `${backendUrl}/api/user/profile`,
       {
         headers: {
           Authorization: `Bearer ${responseData.access_token}`,
