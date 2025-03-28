@@ -313,6 +313,7 @@ def get_profile(current_user):
         'auth_provider': current_user[4]
     }), 200
 
+
 @app.route('/api/user/username', methods=['PATCH'])
 @token_required
 def update_username(current_user):
@@ -373,6 +374,7 @@ def delete_account(current_user):
         return jsonify({'message': 'Account deleted successfully.'}), 200
     except Exception as e:
         return jsonify({'message': f'Failed to delete account: {str(e)}'}), 500
+
 
 @app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
 def generate_exam():
@@ -718,3 +720,7 @@ def fav(current_user):
 def after_request(response):
     app.logger.debug(f"{request.method} {request.path} - {response.status}")
     return response
+
+
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port="5000", debug=True)

@@ -59,8 +59,8 @@ const Login: React.FC = () => {
 
   return (
     <div className=" flex h-full sm:h-auto flex-col">
-      <div className="sm:max-w-[480px] w-full mx-auto border-b border-zinc-800 relative flex items-center -my-6 bg-zinc-800/35 sm:p-4 mb-0 sm:mb-4 h-[72px]">
-        <h2 className="w-full flex pl-5 sm:pl-0 sm:justify-center text-2xl sm:text-xl font-semibold">
+      <div className="sm:max-w-[480px] w-full mx-auto border-b border-zinc-800 relative flex items-center -my-6 sm:bg-zinc-800/35 sm:p-4 mb-0 sm:mb-4 h-[72px]">
+        <h2 className="w-full flex pl-4 sm:pl-0 sm:justify-center text-2xl sm:text-xl font-semibold">
           Welcome Back
         </h2>
         <button
