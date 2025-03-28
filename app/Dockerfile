@@ -19,7 +19,6 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose the port that Flask runs on
 EXPOSE 5000
-EXPOSE 5555
 
 # Set environment variables
 ENV FLASK_APP=app.py

@@ -4,7 +4,7 @@ import GreenButton from "../ui/longButtonGreen";
 import { useState } from "react";
 import { useSession, getSession } from "next-auth/react";
 import Counter from "./counter";
-import { useErrorStore, useLoadingStore } from "@/store/store";
+import { useErrorStore, useLoadingStore, useSuccStore } from "@/store/store";
 import { useRouter } from "next/router";
 import { Skeleton } from "../ui/skeleton";
 import {
@@ -26,6 +26,7 @@ export default function ExamForm() {
   const { data: session, status } = useSession();
   const [visibility, setVisibility] = useState<Visibility>("private");
   const [selectedColor, setSelectedColor] = useState<Color>("teal");
+  const { setSuccess } = useSuccStore();
 
   // Polling function
   const pollTask = async (
@@ -123,6 +124,7 @@ export default function ExamForm() {
     );
     formData.append("num_questions", count.toString() || "3");
     useErrorStore.getState().setError(null);
+    setSuccess("");
 
     // Determine which endpoint to call
     let endpoint = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/exam/generate`;
@@ -187,6 +189,7 @@ export default function ExamForm() {
       // Pass a different success callback based on the endpoint used
       pollTask(taskId, (taskResult, taskId) => {
         useLoadingStore.getState().setProgress(100);
+        setSuccess("Exam generated successfully!");
         if (isGenerateSave) {
           router.push(`/exam/${taskResult.result.exam_id}`);
         } else {
@@ -330,7 +333,11 @@ export default function ExamForm() {
               />
             )}
           </div>
-          <div className="text-lg">
+          <div
+            className={`text-lg ${
+              session && visibility !== "unsaved" ? "" : "mt-2 sm:mt-0"
+            }`}
+          >
             <GreenButton text="Generate" onClick={handleGenerate} />
           </div>
         </div>

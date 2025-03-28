@@ -27,7 +27,7 @@ export default function AuthLayout({ children, text }: AuthLayoutProps) {
         />
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/75 to-zinc-950/75" />
-      <div className="h-screen justify-center sm:h-auto sm:flex flex-col z-[999] bg-zinc-950 sm:bg-zinc-900 text-white py-6 sm:rounded-xl shadow-lg shadow-zinc-950/25 w-full sm:max-w-[28rem] mx-auto sm:border overflow-hidden border-zinc-800">
+      <div className="h-screen justify-center sm:h-auto sm:flex flex-col z-[998] bg-zinc-950 sm:bg-zinc-900 text-white py-6 sm:rounded-xl shadow-lg shadow-zinc-950/25 w-full sm:max-w-[28rem] mx-auto sm:border overflow-hidden border-zinc-800">
         {children}
       </div>
     </div>
