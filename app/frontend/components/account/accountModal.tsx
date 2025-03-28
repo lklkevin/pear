@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { createPortal } from "react-dom";
 import { useState, useEffect } from "react";
-import { Check, Loader2, KeyRound, Trash2 } from "lucide-react";
+import { Loader2, KeyRound, Trash2 } from "lucide-react";
 import PasswordModal from "./passwordModal";
 import signOutWithBackend from "@/utils/signOut";
 import { useErrorStore, useSuccStore } from "../../store/store";
@@ -100,6 +100,7 @@ export default function AccountModal({
   const handleDeleteAccount = async () => {
     setDeleting(true);
     setError("");
+    setSuccess("");
     if (!session?.accessToken) return;
 
     try {
@@ -115,6 +116,7 @@ export default function AccountModal({
       );
       const data = await response.json();
       if (response.ok) {
+        setSuccess(data.message || "Successfully deleted account.");
         signOutWithBackend(session.refreshToken);
       } else {
         setError(data.message || "Failed to delete account.");
@@ -143,7 +145,7 @@ export default function AccountModal({
           }
         >
           <div
-            className="overflow-hidden justify-center w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
+            className="overflow-hidden justify-center w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-950 sm:bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
             onClick={(e) => e.stopPropagation()}
           >
             {deleting && (

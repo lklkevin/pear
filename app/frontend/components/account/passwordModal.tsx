@@ -79,7 +79,7 @@ export default function PasswordModal({
       onClick={(e) => e.target === e.currentTarget && closeModal()}
     >
       <div
-        className="overflow-hidden justify-center w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
+        className="overflow-hidden justify-center w-full h-full sm:h-auto sm:max-w-[480px] sm:rounded-xl bg-zinc-950 sm:bg-zinc-900 shadow-xl relative sm:border border-zinc-800"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

@@ -6,7 +6,7 @@ import PasswordField from "../form/passwordField";
 import SubmitButton from "../form/submitButton";
 import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
-import { useErrorStore } from "../../store/store";
+import { useErrorStore, useSuccStore } from "../../store/store";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +14,7 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
+  const { setSuccess } = useSuccStore();
 
   // Retrieve the last visited page from query params or default to "/"
   const callbackUrl = (router.query.callbackUrl as string) || "/";
@@ -28,6 +29,7 @@ const Login: React.FC = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setSuccess("");
     useErrorStore.getState().setError(null);
 
     try {
@@ -42,6 +44,7 @@ const Login: React.FC = () => {
       }
 
       // Redirect to last visited page or default to "/"
+      setSuccess(`Welcome back, ${email}`);
       router.push(callbackUrl);
     } catch (error) {
       if (error instanceof Error) {

@@ -1,6 +1,7 @@
 from functools import wraps
 import datetime
 import secrets
+import re
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
@@ -30,16 +31,19 @@ CORS(app, resources={
 
 load_dotenv()
 
-redis_host = os.environ.get("REDIS_HOST")
-redis_port = int(os.environ.get("REDIS_PORT"))
-redis_password = os.environ.get("REDIS_PASSWORD")
+redis_url = os.environ.get("REDIS_URL")
+pattern = r"rediss://default:(?P<A>[^@]+)@(?P<B>[^:]+):(?P<C>[^/]+)/"
+match = re.search(pattern, redis_url)
+
+redis_host = match.group("B")
+redis_port = match.group("C")
+redis_password = match.group("A")
 redis_client = redis.Redis(host=redis_host, port=redis_port, password=redis_password, ssl=True)
 
 # JWT configuration
 app.config['JWT_ACCESS_TOKEN_EXPIRES'] = datetime.timedelta(minutes=15)
 app.config['JWT_REFRESH_TOKEN_EXPIRES'] = datetime.timedelta(days=7)
 db = db_factory.get_db_instance()
-
 
 # Token generation functions
 def generate_access_token(user_id):

@@ -6,7 +6,7 @@ import PasswordField from "../form/passwordField";
 import SubmitButton from "../form/submitButton";
 import Link from "next/link";
 import { signIn, getSession } from "next-auth/react";
-import { useErrorStore } from "../../store/store";
+import { useErrorStore, useSuccStore } from "../../store/store";
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -14,13 +14,15 @@ const Signup: React.FC = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { setSuccess } = useSuccStore();
 
   // Preserve last visited page
   const callbackUrl = (router.query.callbackUrl as string) || "/";
 
   const handleGoogle = async () => {
     const session = await getSession();
-
+    setSuccess("");
+    useErrorStore.getState().setError("");
     if (session) {
       useErrorStore.getState().setError("You are already signed in!");
     } else {
@@ -32,6 +34,7 @@ const Signup: React.FC = () => {
     e.preventDefault();
     setLoading(true);
     useErrorStore.getState().setError(null);
+    setSuccess("");
 
     try {
       // Send signup request to Flask backend
@@ -61,6 +64,7 @@ const Signup: React.FC = () => {
       }
 
       // Redirect to last visited page
+      setSuccess("Account created and signed in successfully.");
       router.push(callbackUrl);
     } catch (error) {
       if (error instanceof Error) {
