@@ -191,7 +191,7 @@ export default function AccountModal({
                 <label className="font-medium text-zinc-300 mb-1 block">
                   Email
                 </label>
-                <div className="select-none bg-zinc-800/35 rounded-md border border-zinc-800 px-2.5 py-2 text-zinc-100">
+                <div className="select-none sm:bg-zinc-800/35 rounded-md border border-zinc-800 px-2.5 py-2 text-zinc-100">
                   {email}
                 </div>
               </div>
