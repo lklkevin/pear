@@ -1,5 +1,6 @@
 import asyncio
 import os
+import logging
 from dotenv import load_dotenv
 from typing import Callable, Optional
 
@@ -9,12 +10,16 @@ from google.genai.types import Part, GenerateContentConfig
 
 load_dotenv()
 
+# Configure logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.WARNING)
 
 class ModelProvider:
 
-    def __init__(self, model: str, max_reties: int):
+    def __init__(self, model: str, max_reties: int, timeout: float):
         self.model = model
         self.max_retries = max_reties
+        self.timeout = timeout
         self.default_preamble = "You are a helpful assistant"
 
     async def call_model(self, prompt: str, preamble: Optional[str], pdf_path: Optional[str], accept_func: Callable, **kwargs) -> str:
@@ -35,15 +40,16 @@ class GeminiModel(ModelProvider):
     Gemini implementation of the ModelProvider, using Google's Gemini API.
     """
 
-    def __init__(self, model: str = "gemini-2.0-flash", max_retries: int = 5):
+    def __init__(self, model: str = "gemini-2.0-flash", max_retries: int = 5, timeout: float = 20.0):
         """
         Initializes the Gemini model with an API key and model selection.
 
         Args:
             api_key (str): The API key for Gemini API.
             model (str): The specific Gemini model to use.
+            timeout (float): Timeout in seconds for each API call attempt (default: 20s).
         """
-        super().__init__(model, max_retries)
+        super().__init__(model, max_retries, timeout)
         self.client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
     async def call_model(self,
@@ -86,23 +92,28 @@ class GeminiModel(ModelProvider):
 
         for _ in range(self.max_retries):
             try:
-                response = await self.client.aio.models.generate_content(
-                    model=self.model,
-                    config=GenerateContentConfig(
-                        system_instruction=preamble
+                response = await asyncio.wait_for(
+                    self.client.aio.models.generate_content(
+                        model=self.model,
+                        config=GenerateContentConfig(
+                            system_instruction=preamble
+                        ),
+                        **kwargs
                     ),
-                    **kwargs
+                    timeout=self.timeout
                 )
                 assert accept_func(response.text), "Model returned an unacceptable response according to the accept function"
                 return response.text.strip()
+            except asyncio.TimeoutError:
+                logger.warning(f"Gemini API call timed out after {self.timeout} seconds")
             except Exception as e:
                 print(e)
 
 
 class Cohere(ModelProvider):
 
-    def __init__(self, model: str = 'command-a-03-2025', max_retries: int = 5):
-        super().__init__(model, max_retries)
+    def __init__(self, model: str = 'command-a-03-2025', max_retries: int = 5, timeout: float = 10.0):
+        super().__init__(model, max_retries, timeout)
         self.client = cohere.AsyncClient(os.environ.get("COHERE_API_KEY"))
 
     async def call_model(self, prompt: str, preamble: Optional[str] = None, pdf_path: Optional[str] = None, accept_func: Callable = lambda x: True, **kwargs) -> str:
@@ -114,14 +125,19 @@ class Cohere(ModelProvider):
 
         for _ in range(self.max_retries):
             try:
-                response = await self.client.chat(
-                    model=self.model, 
-                    message=prompt, 
-                    preamble=preamble,
-                    **kwargs
+                response = await asyncio.wait_for(
+                    self.client.chat(
+                        model=self.model, 
+                        message=prompt, 
+                        preamble=preamble,
+                        **kwargs
+                    ),
+                    timeout=self.timeout
                 )
                 assert accept_func(response.text), "Model returned an unacceptable response according to the accept function"
                 return response.text.strip()
+            except asyncio.TimeoutError:
+                logger.warning(f"Cohere API call timed out after {self.timeout} seconds")
             except Exception as e:
                 print(e)
 
