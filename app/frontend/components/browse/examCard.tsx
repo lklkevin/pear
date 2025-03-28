@@ -48,6 +48,27 @@ export default function ExamCard({
 }) {
   const darkerColor = darkenColor(exam.color, 0.85);
   const { data: session } = useSession();
+  
+  // Convert UTC date string to local time
+  const formatLocalDate = (utcDateStr: string) => {
+    // Parse the UTC date string and explicitly treat it as UTC
+    // Format: "2025-03-20 00:19"
+    const [datePart, timePart] = utcDateStr.split(' ');
+    const [year, month, day] = datePart.split('-').map(Number);
+    const [hours, minutes] = timePart.split(':').map(Number);
+    
+    // Create a UTC Date object and then get local time components
+    const utcDate = new Date(Date.UTC(year, month - 1, day, hours, minutes));
+    
+    // Get local components
+    const localYear = utcDate.getFullYear();
+    const localMonth = String(utcDate.getMonth() + 1).padStart(2, '0');
+    const localDay = String(utcDate.getDate()).padStart(2, '0');
+    const localHours = String(utcDate.getHours()).padStart(2, '0');
+    const localMinutes = String(utcDate.getMinutes()).padStart(2, '0');
+    
+    return `${localYear}-${localMonth}-${localDay} ${localHours}:${localMinutes}`;
+  };
 
   // Animation variants
   const bottomBarVariants = {
@@ -107,7 +128,7 @@ export default function ExamCard({
               hover: { color: "rgb(244, 244, 245)" }, // zinc-200
             }}
           >
-            {exam.date}
+            {formatLocalDate(exam.date)}
           </motion.p>
         </motion.div>
 
