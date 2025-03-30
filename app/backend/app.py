@@ -60,6 +60,18 @@ db = db_factory.get_db_instance()
 
 # Token generation functions
 def generate_access_token(user_id):
+    """
+    Generate a short-lived JWT access token for a given user.
+
+    The token includes the user ID, issued-at time, expiration time, and a type field.
+    It is signed using the HS256 algorithm and a secret key from the environment.
+
+    Args:
+        user_id: The ID of the user for whom the token is generated.
+
+    Returns:
+        A JWT access token as a string.
+    """
     return jwt.encode({
         'user_id': user_id,
         'exp': datetime.datetime.now(datetime.timezone.utc) + app.config['JWT_ACCESS_TOKEN_EXPIRES'],
@@ -69,6 +81,18 @@ def generate_access_token(user_id):
 
 
 def generate_refresh_token(user_id: int) -> str:
+    """
+    Generate a long-lived refresh token for a given user and store it in the database.
+
+    This function creates a secure hex token, sets its expiration time, and attempts
+    to persist it to the database. If storing fails, the error is printed but the token is still returned.
+
+    Args:
+        user_id: The ID of the user for whom the refresh token is generated.
+
+    Returns:
+        A secure 128-character hex refresh token as a string.
+    """
     token_value = secrets.token_hex(64)
     
     # Set expiration
@@ -86,6 +110,18 @@ def generate_refresh_token(user_id: int) -> str:
 
 # Token verification decorator
 def token_required(f):
+    """
+        Decorator to enforce JWT access token authentication on protected routes.
+
+        - Extracts the token from the Authorization header (Bearer scheme).
+        - Verifies the token's signature and expiration.
+        - Ensures the token is of type "access".
+        - Fetches the corresponding user from the database and passes it to the route handler.
+
+        Returns:
+            A decorated function that rejects unauthorized requests with appropriate error messages,
+            or calls the wrapped route handler with the current user as the first argument.
+        """
     @wraps(f)
     def decorated(*args, **kwargs):
         # Skip token validation for OPTIONS requests (CORS preflight)
@@ -133,6 +169,17 @@ def token_required(f):
 # Routes
 @app.route('/api/auth/signup', methods=['POST'])
 def signup():
+    """
+    Registers a new user with a username, email, and password.
+
+    Validates input and ensures the user doesn't already exist.
+    Hashes the password and stores the user in the database.
+    Returns access and refresh tokens on success.
+
+    Returns:
+        JSON response with user details and tokens, or error message with appropriate status code.
+    """
+
     data = request.get_json()
     
     # Validate required fields: username, email, and password are now all required
@@ -171,6 +218,15 @@ def signup():
 
 @app.route('/api/auth/login', methods=['POST'])
 def login():
+    """
+    Authenticates a user using email and password.
+
+    Checks credentials against the database, updates the user's last login,
+    and returns a new access and refresh token pair.
+
+    Returns:
+        JSON response with user details and tokens, or error message if authentication fails.
+    """
     data = request.get_json()
     
     # Find the user
@@ -208,6 +264,16 @@ def login():
 
 @app.route('/api/auth/google', methods=['POST'])
 def google_auth():
+    """
+    Handles user login or registration via Google OAuth.
+
+    If the user exists, it updates the OAuth ID if missing.
+    If the user doesn't exist, it creates a new one using the email and OAuth ID.
+    Generates access and refresh tokens on success.
+
+    Returns:
+        JSON response with user details and tokens, or error message on failure.
+    """
     data = request.get_json()
     
     # Validate required fields for Google authentication
@@ -257,6 +323,15 @@ def google_auth():
 
 @app.route('/api/auth/refresh', methods=['POST'])
 def refresh():
+    """
+    Rotates JWT tokens using a valid, non-expired refresh token.
+
+    Validates the refresh token and issues a new access and refresh token.
+    Revokes the old refresh token if it is expired.
+
+    Returns:
+        JSON response with new tokens, or error message if token is invalid or expired.
+    """
     data = request.get_json()
     
     if not data.get('refresh_token'):
@@ -297,6 +372,14 @@ def refresh():
 
 @app.route('/api/auth/logout', methods=['POST'])
 def logout():
+    """
+    Logs out the user by revoking the provided refresh token.
+
+    Marks the refresh token as revoked in the database to prevent future use.
+
+    Returns:
+        JSON response confirming logout or error message if token is invalid.
+    """
     data = request.get_json()
     
     if not data.get('refresh_token'):
@@ -319,6 +402,12 @@ def logout():
 @app.route('/api/user/profile', methods=['GET'])
 @token_required
 def get_profile(current_user):
+    """
+    Get the authenticated user's profile information.
+
+    Returns:
+        JSON response containing the user's ID, email, username, and auth provider.
+    """
     return jsonify({
         'id': current_user[0],
         'email': current_user[2],
@@ -330,6 +419,15 @@ def get_profile(current_user):
 @app.route('/api/user/username', methods=['PATCH'])
 @token_required
 def update_username(current_user):
+    """
+    Update the authenticated user's username.
+
+    Expects:
+        JSON body with a new 'username' value.
+
+    Returns:
+        JSON message confirming update or an error message.
+    """
     user_id = current_user[0]
     data = request.get_json()
     new_username = data.get('username')
@@ -350,6 +448,15 @@ def update_username(current_user):
 @app.route('/api/user/password', methods=['PATCH'])
 @token_required
 def update_password(current_user):
+    """
+    Update the user's password after verifying the old one.
+
+    Expects:
+        JSON body with 'oldPassword' and new 'password'.
+
+    Returns:
+        JSON message confirming success or explaining the failure.
+    """
     user_id = current_user[0]
     data = request.get_json()
     old_password = data.get('oldPassword')
@@ -380,6 +487,12 @@ def update_password(current_user):
 @app.route('/api/user/account', methods=['DELETE'])
 @token_required
 def delete_account(current_user):
+    """
+    Deletes the authenticated user's account from the database.
+
+    Returns:
+        JSON response confirming deletion or detailing an error.
+    """
     user_id = current_user[0]
 
     try:
@@ -391,6 +504,19 @@ def delete_account(current_user):
 
 @app.route('/api/exam/generate', methods=['POST', 'OPTIONS'])
 def generate_exam():
+    """
+    Generate an exam based on uploaded PDF(s) without saving it.
+
+    Expects:
+        Multipart form-data including:
+            - 'files': list of PDFs
+            - 'title': title of the exam
+            - 'description': short description
+            - 'num_questions': number of questions to generate
+
+    Returns:
+        Task ID for checking the async generation status.
+    """
     # Handle preflight CORS requests
     if request.method == 'OPTIONS':
         response = jsonify({'status': 'success'})
@@ -433,6 +559,15 @@ def generate_exam():
 
 @app.route('/api/task/<task_id>', methods=['GET'])
 def get_task_status(task_id):
+    """
+    Check the status of an asynchronous exam generation task.
+
+    Args:
+        task_id: ID of the Celery task
+
+    Returns:
+        JSON response with task state and result or error.
+    """
     from backend.task import celery  # Import the Celery instance
     task = celery.AsyncResult(task_id)
     if task.state == 'PENDING':
@@ -452,6 +587,17 @@ def get_task_status(task_id):
 @app.route('/api/exam/generate/save', methods=['POST', 'OPTIONS'])
 @token_required
 def generate_and_save_exam(current_user):
+    """
+    Generate and save an exam for a logged-in user.
+
+    Expects:
+        Multipart form-data including:
+            - 'files': list of PDFs
+            - 'title', 'description', 'color', 'privacy', 'num_questions'
+
+    Returns:
+        Task ID for checking progress of generation and save.
+    """
     # Handle preflight request for CORS
     if request.method == 'OPTIONS':
         response = jsonify({'status': 'success'})
@@ -511,6 +657,17 @@ def generate_and_save_exam(current_user):
 @app.route('/api/exam/generate/save-after', methods=['POST'])
 @token_required
 def save_exam_after_generate(current_user):
+    """
+    Save a pre-generated exam to the database manually.
+
+    Expects:
+        JSON body with:
+            - 'title', 'description', 'color', 'privacy'
+            - 'questions': list of questions and answers
+
+    Returns:
+        JSON response with the created exam ID.
+    """
     data = request.get_json()
 
     # Validate input fields
@@ -548,6 +705,13 @@ def save_exam_after_generate(current_user):
 
 @app.route('/api/exam/<int:exam_id>', methods=['GET'])
 def get_exam_endpoint(exam_id):
+    """
+    Get an exam by ID.
+
+    Returns:
+        JSON containing exam metadata and all questions + answers.
+        Handles privacy restrictions based on login/token validation.
+    """
     try:
         exam_data = db.get_exam(exam_id)
         if not exam_data:
@@ -607,6 +771,18 @@ def get_exam_endpoint(exam_id):
 
 @app.route("/api/browse", methods=["GET"])
 def get_exams_endpoint():
+    """
+    Retrieve a paginated list of public exams.
+
+    Query Params:
+        - 'sorting': popular/recent (default: popular)
+        - 'title': search filter for name
+        - 'limit': number per page (default: 10)
+        - 'page': page number (default: 1)
+
+    Returns:
+        JSON list of public exams with metadata.
+    """
     # Retrieve query parameters with default values
     sorting = request.args.get("sorting", "popular")
     title = request.args.get("title", "")
@@ -657,6 +833,19 @@ def get_exams_endpoint():
 @app.route("/api/browse/personal", methods=["GET"])
 @token_required
 def get_exams_personal(current_user):
+    """
+    Retrieve exams associated with the authenticated user.
+
+    Query Params:
+        - title (str): Filter exams by title.
+        - filter (str): Type of exam list to fetch. Options: 'favourites', 'mine', or 'N/A'.
+        - sorting (str): Sort order (e.g., 'recent', 'popular').
+        - limit (int): Max number of exams per page (default: 10).
+        - page (int): Page number to fetch (default: 1).
+
+    Returns:
+        JSON list of exams (personal or favourited), with optional caching.
+    """
     title = request.args.get("title", "")
     filter = request.args.get("filter", "N/A")
     sorting = request.args.get("sorting", "recent")
@@ -707,6 +896,17 @@ def get_exams_personal(current_user):
 @app.route("/api/favourite", methods=["POST"])
 @token_required
 def fav(current_user):
+    """
+    Mark or unmark an exam as a favourite for the authenticated user.
+
+    Expects:
+        JSON body with:
+            - exam_id (int): ID of the exam to favourite or unfavourite.
+            - action (str): Either 'fav' or 'unfav'.
+
+    Returns:
+        JSON response confirming the action or detailing an error.
+    """
     data = request.get_json()
     exam_id = data.get("exam_id")
     action = data.get("action")
@@ -731,6 +931,15 @@ def fav(current_user):
 
 @app.after_request
 def after_request(response):
+    """
+    Flask hook to log the method and path of every completed request.
+
+    Args:
+        response: The Flask response object.
+
+    Returns:
+        The unchanged response object.
+    """
     app.logger.debug(f"{request.method} {request.path} - {response.status}")
     return response
 

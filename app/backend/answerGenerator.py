@@ -61,6 +61,21 @@ async def majority_vote(prompt: str, n: int, model: ModelProvider) -> Dict[str, 
 
 
 async def generate_answers(question: str, n: int, model: ModelProvider) -> Dict[str, int | float]:
+    """
+    Generate multiple model responses for a given question and return normalized answer frequencies.
+
+    This function queries the model multiple times with a math question, aggregates responses,
+    and uses a comparator to group equivalent answers based on semantic and numerical similarity.
+
+    Args:
+        question: The math question to generate answers for.
+        n: The number of model calls to make.
+        model: An instance of a ModelProvider used to generate answers.
+
+    Returns:
+        Dictionary with representative answers as keys and their estimated confidence percentage as values.
+        If no answers are generated or an error occurs, returns a fallback dictionary.
+    """
     try:
         prompt = f"Solve this question:\n Question: {question}\n at the end of your reasoning give me the final answer " \
                  f"in the EXACTLY format 'Final answer: <answer>'. Do **NOT** output your answer " \
