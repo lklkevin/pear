@@ -99,14 +99,6 @@ In the case of inappropriate content, the extractor will flag any documents uplo
 
 Inside the `/examples` directory, you can find various example tests covering different subjects and question types, these range from high school level arithmetic and algebra to multivariate calculus and statistics. These are meant for you to try out the application's capabilities and understand how different types of math problems are handled.
 
-#### Available Example Tests
-- **Basic Arithmetic**: Simple addition, subtraction, multiplication, and division problems
-- **Algebra**: Linear equations, quadratic equations, and polynomial expressions
-- **Geometry**: Area, perimeter, and volume calculations
-- **Trigonometry**: Trigonometric functions, identities, and applications
-- **Calculus**: Derivatives, integrals, and limits in single variable and multivariable settings
-- **Statistics**: Probability, data analysis, and statistical measures
-
 #### How to Use Example Tests
 1. Navigate to the `/examples` directory
 2. Choose a test file that matches your area of interest
