@@ -317,11 +317,15 @@ We have automated test coverage across our entire pipeline to ensure functionali
 
 Our backend testing covers the following aspects:
 
-- Question Extractor (`test_extractor.py`)
-- Extracted Question Validator (`test_extractorvalidator.py`)
-- Question Generation (`test_questionGenerator.py`)
-- Answer Generation (`test_answerGenerator.py`)
-- Answer Validator (`test_validation.py`)
+- Question Extractor (`test_extractor.py`) - Tests PDF extraction functionality
+- Extracted Question Validator (`test_extractorvalidator.py`) - Tests validation of extracted content 
+- Question Generation (`test_questionGenerator.py`) - Tests LLM-based question generation
+- Answer Generation (`test_answerGenerator.py`) - Tests answer generation and verification
+- Answer Validator (`test_validation.py`) - Tests answer validation algorithms and confidence scoring
+- LLM Models (`test_models.py`) - Tests Cohere and Gemini API integrations with proper error handling
+- Exam Management (`test_exam.py`) - Tests exam data structure, question/answer storage, and confidence scoring
+
+The test suite uses example PDFs in the `tests/example_pdfs/` directory to simulate real-world usage scenarios and verify system components work correctly both individually and together.
 
 #### Database Tests
 - Database tests are located in `app/backend/tests/database/`
@@ -357,6 +361,23 @@ To stop the deployment:
 ```sh
 docker compose down
 ```
+
+### Common Issues
+
+#### Port Conflicts
+- **localhost:5000 isn't available on macOS**: This is due to AirPlay Receiver using the same port. You can either:
+  - Turn off AirPlay Receiver in System Preferences → Sharing
+  - Change the backend port in `docker-compose.yml` and update the corresponding environment variables
+
+#### Authentication Issues
+- **Auth features don't work in local development**: Try unsetting the following environment variables:
+  ```sh
+  unset NEXT_PUBLIC_BACKEND_URL
+  unset NEXT_PUBLIC_URL
+  unset NEXTAUTH_URL_INTERNAL
+  unset BACKEND_URL
+  ```
+  Then restart your development servers.
 
 ### CI/CD
 1. We are using various pre-commit hooks to ensure consistent coding conventions and formatting such as ```black```.
