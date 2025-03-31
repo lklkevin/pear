@@ -47,8 +47,9 @@ Students often face a shortage of practice material, especially when preparing f
 - Users can favourite an exam and view it later under a favourite tab.
 
 ### **8. Account creation**
-- Users can sign up for an account using a username or password or externally using Google.
-- Logining in will provide users with more options for their exam creation (see 5.)
+- Users can sign up for an account using a username and password or externally using Google.
+- Logging in will provide users with more options for their exam creation (see 5.).
+- You can edit or delete your account later.
 
 ## **Instructions for Use**
 
@@ -61,13 +62,13 @@ To use the application, follow these steps, check [here](https://drive.google.co
 
 ### **Using the Application**
 1. **Upload a Sample Exam**  
-   - Select a PDF document to extract questions from. Currently, we only support Math problems up to high school level, for examples download the example file [here](https://github.com/csc301-2025-s/project-27-the-avengers/blob/main/app/frontend/public/math_12.pdf)
+   - Select a PDF document to extract questions from. Currently, we support math problems up to university-level calculus, for examples check the `/examples` directory.
    - Choose how many questions you would like to generate (between 1-5).
    - Optionally, provide a **title** and **description** for the exam.
 
 2. **Generate Exam Questions**  
    - Click on the generate button and wait for the system to process the exam.
-   - Due to free-tier deployment constraints, you may get an error due to timeout, please try again after logging in if this occurs.
+   - You will get live updates during the exam generation process, do not refresh the tab.
    - Do not refresh the page, this process will take 1-2 minutes depending on the number of questions.
 
 3. **View Results**  
@@ -88,7 +89,12 @@ To use the application, follow these steps, check [here](https://drive.google.co
      - **Favourite** exams to easily access them later in the browse tab. 
      - Unlock **customization** options for better organization.
    - You can create an account using username, email, and password, or simply use your Google account.
-    
+
+7. **Account Management**
+   - Once logged in, you can modify your account details:
+     - Navigate to your **Profile** page by clicking on your username in the top-right corner, or in the drop-down menu on mobile.
+   - Account deletion is available through the "Delete Account" button at the bottom of the profile page.
+
 ### Content Guidelines
 
 Our application supports the uploading of unrelated PDFs instead of math exams during the generation process; doing so will include assorted questions on the theme of the document uploaded. However, blank documents will not be considered for generation.
@@ -533,7 +539,7 @@ This will:
 - Set up the network between services
 - Start all services and make them available at the configured URLs
 
-The application should be accessible at, you can configure this as required, ensure the environment variables are consistent:
+The application should be accessible at the following URLs (ensure the environment variables are consistent):
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
 
