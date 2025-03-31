@@ -139,6 +139,9 @@ project-27-the-avengers/
 │   │   ├── app.py            # Main Flask application and API endpoints
 │   │   ├── task.py           # Celery tasks for background processing
 │   │   ├── database/         # Database schemas and migrations
+│   │   ├── tests/            # Backend test files
+│   │   │   ├── database/     # Database-specific tests
+│   │   │   └── example_pdfs/ # Test PDF files
 │   │   └── PdfScanner/       # PDF processing and text extraction
 │   ├── frontend/             # Frontend Next.js application
 │   │   ├── components/       # Reusable React components
@@ -149,14 +152,11 @@ project-27-the-avengers/
 │   │   └── .env.local       # Frontend environment variables
 │   ├── requirements.txt     # Python dependencies for pip installation
 │   ├── pyproject.toml       # Poetry project configuration
-│   ├── poetry.lock         # Poetry dependency lock file
 │   ├── Dockerfile          # Docker configuration
 │   └── supervisord.conf    # Supervisor configuration
 ├── docker-compose.yml      # Docker compose configuration
 ├── examples/                # Example math problems for testing
 ├── deliverables/           # Project deliverables
-├── team/                   # Team documentation
-├── .pre-commit-config.yaml # Pre-commit hooks configuration
 ├── .gitignore             # Git ignore rules
 └── README.md
 ```
@@ -180,6 +180,7 @@ project-27-the-avengers/
   - `app.py`: Main application file with API routes and core logic
   - `task.py`: Background task definitions for question generation
   - `database/`: Contains database schemas and migration scripts
+  - `tests/`: Contains backend test files
   - `PdfScanner/`: PDF processing and text extraction module
 
 - **frontend/**
@@ -263,7 +264,7 @@ DB_MODE=postgres                         # Use 'sqlite' for SQLite database, def
 FLASK_ENV=development                    # May resolve SSL issues in development environment
 ```
 - You can create a trial Cohere API key (for free) [here](https://dashboard.cohere.com/api-keys).
-- You need to create a Gemini API key on the Google cloud console.
+- You need to create a Gemini API key on the Google Cloud Console.
 - You will need to set up a Redis service and fill in the Redis URL.
 - You will need to set up a Postgres database with the schema defined in `app/backend/database/postgres_schema.sql`.
 - Generate a secure secret key for password hashing.
@@ -362,6 +363,22 @@ To stop the deployment:
 docker compose down
 ```
 
+#### Production Deployment
+For production deployment, you need to ensure that environment variables are properly set on the respective platforms:
+
+1. **DigitalOcean** (Backend): 
+   - All environment variables from the `.env` file must be configured in your DigitalOcean App Platform settings
+   - This includes `COHERE_API_KEY`, `GEMINI_API_KEY`, `SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`
+   - DigitalOcean automatically sets environment variables for services it manages (like database connections)
+
+2. **Vercel** (Frontend):
+   - All environment variables from the `.env.local` file must be configured in your Vercel project settings
+   - This includes `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXT_PUBLIC_BACKEND_URL`
+   - Make sure `NEXT_PUBLIC_BACKEND_URL` points to your production backend on DigitalOcean
+   - Set `NEXTAUTH_URL` and `NEXT_PUBLIC_URL` to your Vercel deployment URL
+
+When properly configured, the CircleCI pipeline will automatically deploy changes to both platforms when PRs are merged to the main branch.
+
 ### Common Issues
 
 #### Port Conflicts
@@ -380,8 +397,49 @@ docker compose down
   Then restart your development servers.
 
 ### CI/CD
-1. We are using various pre-commit hooks to ensure consistent coding conventions and formatting such as ```black```.
-2. We run automated testing when a PR is merged using ```GitHub Actions``` to ensure correct functionality.
+Our project uses CircleCI for continuous integration and deployment with three primary configuration files:
+
+0. **Pre-commit Hooks**: We use pre-commit hooks to ensure consistent coding conventions, with tools like `black` for Python code formatting.
+
+1. **Automated Testing** (`.circleci/tests.yml`):
+   - Frontend testing with Jest - Tests all React components and page functionality
+   - Backend testing with Pytest - Tests all core functionality: extraction, validation, generation, and database operations
+   - Tests run automatically when a PR is opened or updated
+
+2. **Backend Deployment** (`.circleci/backend.yml`):
+   - Builds Docker image for the backend
+   - Pushes to DigitalOcean Container Registry
+   - Tags images with commit SHA for versioning
+
+3. **Frontend Deployment** (`.circleci/frontend.yml`):
+   - Syncs frontend code to a production repository
+   - Excludes test files from the production build
+   - Triggers Vercel deployment through GitHub integration
+
+#### CircleCI Configuration
+To set up CircleCI for this project, you need to configure the following environment variables in the CircleCI project settings:
+
+1. **API Keys**:
+   - `COHERE_API_KEY` - API key for Cohere services
+   - `GEMINI_API_KEY` - API key for Google's Gemini AI
+
+2. **DigitalOcean Configuration**:
+   - `DIGITALOCEAN_API_TOKEN` - For authenticating with DigitalOcean services
+   - `DIGITALOCEAN_EMAIL` - Email associated with the DigitalOcean account
+   - `DIGITALOCEAN_REGISTRY_NAME` - Name of the container registry
+
+3. **GitHub Integration**:
+   - `FRONTEND_FORK_REPO` - Git URL for the frontend deployment repository
+   - `GITHUB_EMAIL` - Email for Git operations
+   - `GITHUB_USERNAME` - Username for Git operations
+
+4. **Testing**:
+   - `TEST_DATABASE_URL` - Database URL for running tests
+
+5. **SSH Keys**:
+   - Add an SSH key with access to the GitHub repositories in the CircleCI project settings
+
+These environment variables enable the CI/CD pipeline to authenticate with various services, run tests, and deploy the application automatically.
 
 ## GitHub Workflow
 
@@ -393,17 +451,22 @@ docker compose down
 
  **2. Pull Requests (PRs) and Code Reviews**
 - After completing a feature, the developer opens a Pull Request (PR) on GitHub.
-- Other team members review the code, suggest improvements, and request changes if needed.
+- A team member from the same subteam reviews the code, suggests improvements, and requests changes if needed.
+- Reviewers focus on code quality, test coverage, and alignment with requirements.
 
  **3. Automated Tests on PRs**
-- Continuous Integration (CI) runs automated tests on each PR.
-- If tests fail, the developer must fix issues before merging.
-- If tests pass, the PR can be approved and merged.
+- Every time a PR is opened or updated, CircleCI automatically runs all tests.
+- Tests **must pass** before the PR can be approved and merged.
+- In rare cases where tests are failing for valid reasons (e.g., known limitations in the test environment), the PR can be approved and merged at the reviewer's discretion.
+- Test results are visible directly in the PR interface.
 
  **4. Merging and Deployment**
 - After approval, the PR is merged into `main`.
-- A deployment pipeline automatically deploys the changes.
+- This triggers the deployment pipeline:
+  - Backend: Docker image is built and pushed to DigitalOcean, where it's automatically deployed on DigitalOcean
+  - Frontend: Code is synced to our production repository, triggering Vercel to build and deploy the frontend application
 - Developers then pull the latest changes to stay updated.
+- The entire process from merge to production deployment typically takes less than 5 minutes.
 
 ## **License: MIT**
 
