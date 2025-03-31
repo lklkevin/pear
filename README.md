@@ -343,7 +343,6 @@ docker compose up
 This will:
 - Build all necessary containers for the backend and frontend
 - Set up the network between services
-- Mount volumes for development
 - Start all services and make them available at the configured URLs
 
 The application should be accessible at, you can configure this as required, ensure the environment variables are consistent:
