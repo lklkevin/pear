@@ -171,7 +171,7 @@ project-27-the-avengers/
   - Contains the Flask API server and Celery worker
   - `app.py`: Main application file with API routes and core logic
   - `task.py`: Background task definitions for question generation
-  - `database/`: Contains database schemas and migration scripts
+  - `database/`: Contains the database interface, schemas and implementations
   - `tests/`: Contains backend test files
   - `PdfScanner/`: PDF processing and text extraction module
 
@@ -321,10 +321,13 @@ Our backend testing covers the following aspects:
 The test suite uses example PDFs in the `tests/example_pdfs/` directory to simulate real-world usage scenarios and verify system components work correctly both individually and together.
 
 #### Database Tests
-- Database tests are located in `app/backend/tests/database/`
-- Both SQLite and PostgreSQL implementations are tested (`test_sqlitedb.py` and `test_postgresdb.py`)
-- Database tests require the TEST_DATABASE_URL environment variable to be set for PostgreSQL tests
-- To run database tests specifically:
+Database tests are located in `app/backend/tests/database/`. Database tests cover the correctness of all database functions, and ensure data constraints are met when performing operations. No performance tests are provided.
+
+Tests are performed using the database interface without directly interacting with the underlying implementation to ensure that the interface functions correctly and to reduce repetition of tests per implementation. The concrete
+tests themselves are written in an abstract test suite `base_test_dao.py` using the database interface `DataAccessObject`. Abstract helper functions that interact with the database implementation without the interface are also provided. 
+These tests are then implemented by the database to be tested in their respective test suite (`test_sqlitedb.py` and `test_postgresdb.py`), which provide the actual tests to be run during testing. 
+
+For PostgreSQL tests, the TEST_DATABASE_URL environment variable must be set. To run database tests specifically:
   ```sh
   cd app
   pytest backend/tests/database/
