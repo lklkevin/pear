@@ -6,11 +6,25 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import ExamSkeleton from "./examSkeleton";
 
+/**
+ * Interface for a single exam question from the API
+ * @interface RawExamQuestion
+ * @property {string} question - The question text
+ * @property {Record<string, number>} answers - Map of answer options to their correctness scores
+ */
 interface RawExamQuestion {
   question: string;
   answers: Record<string, number>;
 }
 
+/**
+ * Interface for a complete exam from the API
+ * @interface RawExam
+ * @property {string} title - Exam title
+ * @property {string} description - Exam description
+ * @property {RawExamQuestion[]} questions - Array of exam questions
+ * @property {string} [privacy] - Privacy setting
+ */
 export interface RawExam {
   title: string;
   description: string;
@@ -18,6 +32,13 @@ export interface RawExam {
   privacy?: string;
 }
 
+/**
+ * Parses raw exam data from the API into the application's exam format
+ * Sorts answers by confidence and separates main and alternative answers
+ * 
+ * @param {RawExam} examJson - Raw exam data from the API
+ * @returns {Exam} Parsed exam in the application format
+ */
 export function parseExam(examJson: RawExam): Exam {
   return {
     title: examJson.title,
@@ -52,12 +73,25 @@ export function parseExam(examJson: RawExam): Exam {
   };
 }
 
+/**
+ * Non-authenticated user exam view component
+ * Fetches and displays generated exam for non-logged-in users
+ * Handles loading states and error cases
+ * Redirects to generate page if no exam is available
+ * 
+ * @returns {JSX.Element} Exam view with content or loading skeleton
+ */
 export default function Page() {
   const { loading } = useLoadingStore();
   const router = useRouter();
   const [exam, setExam] = useState<Exam>();
 
   useEffect(() => {
+    /**
+     * Fetches exam data from the backend
+     * Handles error cases and updates loading state
+     * Redirects to generate page if needed
+     */
     async function fetchData() {
       if (!sessionStorage.getItem("browserSessionId")) {
         useErrorStore

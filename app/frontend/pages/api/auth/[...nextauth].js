@@ -1,13 +1,35 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
+
+/**
+ * Backend URL configuration
+ * Falls back to public URL if backend URL is not set
+ */
 const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_BACKEND_URL;
 
+/**
+ * NextAuth configuration
+ * Features:
+ * - Google OAuth provider
+ * - Credentials provider (email/password)
+ * - JWT session handling
+ * - Token refresh mechanism
+ * - Custom sign-in page
+ */
 export default NextAuth({
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      /**
+       * Custom profile handler for Google authentication
+       * Syncs Google user data with backend
+       * 
+       * @param {Object} profile - Google profile data
+       * @returns {Promise<Object>} Processed user profile with tokens
+       * @throws {Error} If backend sync fails
+       */
       async profile(profile) {
         try {
           const res = await fetch(
@@ -52,6 +74,14 @@ export default NextAuth({
         email: { label: "Email", type: "email", required: true },
         password: { label: "Password", type: "password", required: true },
       },
+      /**
+       * Credentials authentication handler
+       * Validates credentials against backend
+       * 
+       * @param {Object} credentials - User credentials
+       * @returns {Promise<Object>} Authenticated user data with tokens
+       * @throws {Error} If authentication fails
+       */
       async authorize(credentials) {
         try {
           const res = await fetch(
@@ -88,8 +118,14 @@ export default NextAuth({
     }),
   ],
   callbacks: {
+    /**
+     * JWT callback
+     * Handles token creation and refresh
+     * 
+     * @param {Object} params - Callback parameters
+     * @returns {Promise<Object>} Updated token
+     */
     async jwt({ token, user }) {
-      // this callback is used whenever the session is checked, and after first login
       if (user) {
         return {
           ...token,
@@ -106,6 +142,13 @@ export default NextAuth({
 
       return await refreshAccessToken(token);
     },
+    /**
+     * Session callback
+     * Updates session with token data
+     * 
+     * @param {Object} params - Callback parameters
+     * @returns {Promise<Object>} Updated session
+     */
     async session({ session, token }) {
       session.accessToken = token.accessToken;
       session.refreshToken = token.refreshToken;
@@ -124,7 +167,13 @@ export default NextAuth({
 });
 
 /**
- * Function to refresh the access token using Flask API
+ * Refreshes the access token using the backend API
+ * - Attempts to refresh the token
+ * - Updates user profile if successful
+ * - Handles refresh failures
+ * 
+ * @param {Object} token - Current token object
+ * @returns {Promise<Object>} Updated token with new access token or error
  */
 async function refreshAccessToken(token) {
   try {

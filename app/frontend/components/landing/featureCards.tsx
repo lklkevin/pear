@@ -4,6 +4,15 @@ import GenerateButton from "./generateButton";
 import ReactCompareImage from "react-compare-image";
 import { useRef, useEffect } from "react";
 
+/**
+ * Feature cards section component
+ * Displays three interactive feature cards showcasing key product capabilities:
+ * - Drop and Generate: Interactive upload and customization flow
+ * - Relevant Questions: Before/after comparison of question generation
+ * - Confident Answers: Visual representation of answer validation system
+ * 
+ * @returns {JSX.Element} Grid of feature cards with interactive elements
+ */
 export default function FeatureCards() {
   const compareContainerRef = useRef<HTMLDivElement>(null);
 
@@ -11,6 +20,12 @@ export default function FeatureCards() {
     const container = compareContainerRef.current;
     if (!container) return;
 
+    /**
+     * Prevents default touch behavior on the compare image container
+     * Ensures smooth interaction with the image comparison slider
+     * 
+     * @param {TouchEvent} e - Touch event object
+     */
     const handleTouchStart = (e: TouchEvent) => {
       e.preventDefault();
     };

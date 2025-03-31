@@ -11,7 +11,14 @@ const dmMono = DM_Mono({
   weight: "400",
 });
 
-// Helper function to darken a hex color by a given percentage
+/**
+ * Helper function to darken a hex color by a given percentage
+ * Useful for creating gradients and hover effects
+ * 
+ * @param {string} hex - The hex color code to darken (with or without # prefix)
+ * @param {number} percent - The percentage to darken by (0-1)
+ * @returns {string} - The darkened hex color code
+ */
 function darkenColor(hex: string, percent: number): string {
   // Remove the hash if present
   hex = hex.replace(/^#/, "");
@@ -33,6 +40,20 @@ function darkenColor(hex: string, percent: number): string {
   return newColor;
 }
 
+/**
+ * Exam card component for displaying exam information in a grid
+ * Features animated hover effects and favorite button
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} props.exam - Exam data object
+ * @param {number} props.exam.exam_id - Unique identifier for the exam
+ * @param {string} props.exam.name - Title of the exam
+ * @param {string} props.exam.date - Date of the exam in UTC format (YYYY-MM-DD HH:MM)
+ * @param {string} props.exam.color - Hex color code for the exam card gradient
+ * @param {string} props.exam.description - Description text for the exam
+ * @param {boolean} props.exam.liked - Whether the exam is favorited by the current user
+ * @returns {JSX.Element} - Rendered exam card with animations
+ */
 export default function ExamCard({
   exam,
 }: {
@@ -49,7 +70,13 @@ export default function ExamCard({
   const darkerColor = darkenColor(exam.color, 0.85);
   const { data: session } = useSession();
   
-  // Convert UTC date string to local time
+  /**
+   * Converts a UTC date string to local time format
+   * Properly handles timezone differences
+   * 
+   * @param {string} utcDateStr - Date string in UTC format (YYYY-MM-DD HH:MM)
+   * @returns {string} - Formatted local date string
+   */
   const formatLocalDate = (utcDateStr: string) => {
     // Parse the UTC date string and explicitly treat it as UTC
     // Format: "2025-03-20 00:19"

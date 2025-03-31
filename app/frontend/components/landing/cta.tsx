@@ -1,6 +1,13 @@
 import Link from "next/link";
 import React from "react";
 
+/**
+ * Call-to-action button component
+ * Features a gradient background and hover animation
+ * Links to the exam generation page
+ * 
+ * @returns {JSX.Element} Animated CTA button with link
+ */
 const CTA = () => {
   return (
     <section className="text-center">

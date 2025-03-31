@@ -8,6 +8,13 @@ import Link from "next/link";
 import { signIn, getSession } from "next-auth/react";
 import { useErrorStore, useSuccStore } from "../../store/store";
 
+/**
+ * Signup form component that handles new user registration
+ * Supports email/password signup and Google OAuth
+ * Auto-logs in user after successful registration
+ * 
+ * @returns {JSX.Element} - Rendered signup form
+ */
 const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
   const [username, setUsername] = useState("");
@@ -19,6 +26,11 @@ const Signup: React.FC = () => {
   // Preserve last visited page
   const callbackUrl = (router.query.callbackUrl as string) || "/";
 
+  /**
+   * Initiates Google OAuth signup process
+   * Checks if user is already signed in before proceeding
+   * Redirects to callback URL after successful authentication
+   */
   const handleGoogle = async () => {
     const session = await getSession();
     setSuccess("");
@@ -30,6 +42,13 @@ const Signup: React.FC = () => {
     }
   };
 
+  /**
+   * Handles form submission for email/password signup
+   * Registers user via backend API and auto-logs them in
+   * Shows success/error messages and handles redirection
+   * 
+   * @param {React.FormEvent} e - Form submission event 
+   */
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

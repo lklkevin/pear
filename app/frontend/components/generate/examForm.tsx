@@ -17,6 +17,13 @@ import {
   colors,
 } from "@/components/form/stylingOptions";
 
+/**
+ * Exam generation form component
+ * Provides interface for uploading files, configuring exam properties,
+ * and generating new exams based on user inputs
+ * 
+ * @returns {JSX.Element} Complete exam generation form with file upload and configuration options
+ */
 export default function ExamForm() {
   const router = useRouter();
   const [files, setFiles] = useState<File[]>([]);
@@ -28,7 +35,13 @@ export default function ExamForm() {
   const [selectedColor, setSelectedColor] = useState<Color>("teal");
   const { setSuccess } = useSuccStore();
 
-  // Polling function
+  /**
+   * Polls a backend task until completion or timeout
+   * Updates loading state and progress during execution
+   * 
+   * @param {string} taskId - ID of the task to poll
+   * @param {Function} onSuccess - Callback function when task completes successfully
+   */
   const pollTask = async (
     taskId: string,
     onSuccess: (taskResult: any, taskId: string) => void
@@ -38,6 +51,10 @@ export default function ExamForm() {
     const maxPollTime = 8 * 60 * 1000; // 8 minutes max
     const startTime = Date.now();
 
+    /**
+     * Recursive polling function that checks task status
+     * Handles success, failure, and progress states
+     */
     const poll = async () => {
       try {
         const taskResponse = await fetch(
@@ -114,6 +131,11 @@ export default function ExamForm() {
     poll();
   };
 
+  /**
+   * Handles exam generation request
+   * Prepares form data, initiates API request, and manages loading state
+   * Different behavior based on user authentication status and visibility setting
+   */
   const handleGenerate = async () => {
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));

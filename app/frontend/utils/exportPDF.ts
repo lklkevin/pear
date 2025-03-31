@@ -1,6 +1,11 @@
 import * as pdfMake from "pdfmake/build/pdfmake";
 import { Exam } from "@/components/test_view/exam";
 
+/**
+ * Font configuration for PDF generation
+ * Uses DejaVu Sans font family for better Unicode support
+ * Includes normal, bold, italic, and bold-italic variants
+ */
 const fonts = {
   DejaVuSans: {
     normal: `${process.env.NEXT_PUBLIC_URL}/fonts/DejaVuSans.ttf`,
@@ -10,6 +15,20 @@ const fonts = {
   },
 };
 
+/**
+ * Generates and downloads a PDF version of an exam
+ * Features:
+ * - Exam title and description
+ * - Numbered questions
+ * - Optional answers with confidence scores
+ * - Alternative answers (up to 3)
+ * - Custom styling and formatting
+ * - Unicode font support
+ * 
+ * @param {Exam} exam - The exam data to convert to PDF
+ * @param {boolean} [answer=true] - Whether to include answers in the PDF
+ * @returns {void} Triggers PDF download in the browser
+ */
 export const handleDownload = (exam: Exam, answer: boolean = true): void => {
   const docDefinition: any = {
     content: [

@@ -13,6 +13,17 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "700"],
 });
 
+/**
+ * Props for the AccountModal component
+ * @interface AccountModalProps
+ * @property {string} email - User's email address
+ * @property {string} username - User's current username
+ * @property {boolean} show - Controls visibility of the modal
+ * @property {Function} closeModal - Callback function to close the modal
+ * @property {Function} onUsernameUpdated - Callback function to update username in parent components
+ * @property {Function} setShowPwdModal - Callback function to control password modal visibility
+ * @property {boolean} showPwdModal - Controls visibility of the password modal
+ */
 interface AccountModalProps {
   email: string;
   username: string;
@@ -23,6 +34,16 @@ interface AccountModalProps {
   showPwdModal: boolean;
 }
 
+/**
+ * Account management modal component that allows users to:
+ * - View their email
+ * - Update their username
+ * - Change their password (via PasswordModal)
+ * - Delete their account
+ * 
+ * @param {AccountModalProps} props - Component props
+ * @returns {JSX.Element | null} - Returns the modal UI or null if not shown
+ */
 export default function AccountModal({
   email,
   username,
@@ -33,15 +54,22 @@ export default function AccountModal({
   showPwdModal,
 }: AccountModalProps) {
   const { data: session } = useSession();
+  // State for tracking new username input
   const [newUsername, setNewUsername] = useState(username);
+  // Status tracking for API operations
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
   const { setError } = useErrorStore();
   const { setSuccess } = useSuccStore();
+  // Account deletion confirmation state
   const [confirmingDelete, setConfirmingDelete] = useState(false);
+  // Account deletion in progress state
   const [deleting, setDeleting] = useState(false);
 
+  /**
+   * Reset modal state when it becomes visible or username changes
+   */
   useEffect(() => {
     if (show) {
       setStatus("idle");
@@ -49,6 +77,10 @@ export default function AccountModal({
     }
   }, [show, username]);
 
+  /**
+   * Handles username update through API
+   * Updates local state and fetches updated profile data
+   */
   const handleUsernameChange = async () => {
     if (!session?.accessToken) return;
     setStatus("loading");
@@ -70,6 +102,7 @@ export default function AccountModal({
       if (response.ok && data.username) {
         setStatus("success");
 
+        // Fetch updated profile to ensure we have latest data
         const profileRes = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/profile`,
           {
@@ -97,6 +130,10 @@ export default function AccountModal({
     }
   };
 
+  /**
+   * Handles account deletion process
+   * Sends delete request to API and signs out user on success
+   */
   const handleDeleteAccount = async () => {
     setDeleting(true);
     setError("");

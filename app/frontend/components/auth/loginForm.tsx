@@ -8,6 +8,13 @@ import Link from "next/link";
 import { signIn, useSession } from "next-auth/react";
 import { useErrorStore, useSuccStore } from "../../store/store";
 
+/**
+ * Login form component that handles user authentication
+ * Supports email/password login and Google OAuth
+ * Redirects authenticated users to their requested destination
+ * 
+ * @returns {JSX.Element} - Rendered login form
+ */
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,6 +33,13 @@ const Login: React.FC = () => {
     }
   }, [session, router, callbackUrl]);
 
+  /**
+   * Handles form submission for email/password login
+   * Authenticates user via NextAuth credentials provider
+   * Shows success/error messages and handles redirection
+   * 
+   * @param {React.FormEvent} e - Form submission event
+   */
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);

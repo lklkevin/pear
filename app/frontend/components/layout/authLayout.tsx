@@ -1,11 +1,24 @@
 import { ReactNode } from "react";
 import Image from "next/image";
 
+/**
+ * Props for the AuthLayout component
+ * @interface AuthLayoutProps
+ * @property {ReactNode} children - Child components to render within the auth layout
+ * @property {string} text - Descriptive text for the auth page
+ */
 interface AuthLayoutProps {
   children: ReactNode;
   text: string;
 }
 
+/**
+ * Layout component for authentication pages
+ * Provides consistent styling and background for login, signup, and other auth screens
+ * 
+ * @param {AuthLayoutProps} props - Component props
+ * @returns {JSX.Element} - Rendered auth layout with background image and container
+ */
 export default function AuthLayout({ children, text }: AuthLayoutProps) {
   return (
     <div className="flex items-center justify-center min-h-screen bg-zinc-950 sm:px-8">

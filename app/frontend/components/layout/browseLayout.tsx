@@ -1,5 +1,13 @@
 import Nav from "./navNormal";
 
+/**
+ * Layout component for browse/collection pages
+ * Provides consistent structure with navigation and content area for browsing views
+ * 
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components to render within the layout
+ * @returns {JSX.Element} - Rendered browse page layout with navigation
+ */
 export default function BrowseLayout({
   children,
 }: {

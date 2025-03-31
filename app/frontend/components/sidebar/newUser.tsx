@@ -14,11 +14,26 @@ import { useErrorStore, useLoadingStore, useSuccStore } from "@/store/store";
 import { getSession, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 
+/**
+ * Interface for a single exam question
+ * @interface RawExamQuestion
+ * @property {string} question - The question text
+ * @property {Record<string, number>} answers - Map of answer options to their correctness scores
+ */
 interface RawExamQuestion {
   question: string;
   answers: Record<string, number>;
 }
 
+/**
+ * Interface for a complete exam
+ * @interface RawExam
+ * @property {string} title - Exam title
+ * @property {string} description - Exam description
+ * @property {RawExamQuestion[]} questions - Array of exam questions
+ * @property {string} [privacy] - Privacy setting (0 for private, 1 for public)
+ * @property {string} [color] - Theme color in hex format
+ */
 export interface RawExam {
   title: string;
   description: string;
@@ -27,6 +42,14 @@ export interface RawExam {
   color?: string;
 }
 
+/**
+ * Sidebar component for new users
+ * Provides options for saving generated exams
+ * Features visibility settings and styling options
+ * Handles authentication state and exam saving
+ * 
+ * @returns {JSX.Element} Sidebar with save options and authentication prompts
+ */
 export default function Sidebar() {
   // State for managing visibility setting (Private/Public)
   const [visibility, setVisibility] = useState<Visibility>("private");
@@ -36,6 +59,15 @@ export default function Sidebar() {
   const [selectedColor, setSelectedColor] = useState<Color>("teal");
   const router = useRouter();
 
+  /**
+   * Handles the exam saving process
+   * Fetches the generated exam from the backend
+   * Updates privacy and color settings
+   * Saves the exam for authenticated users
+   * 
+   * @async
+   * @throws {Error} If exam cannot be fetched or saved
+   */
   const handleSave = async () => {
     useLoadingStore.getState().setLoading(true);
     useSuccStore.getState().setSuccess("");

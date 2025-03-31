@@ -9,7 +9,10 @@ const dmMono = DM_Mono({
   weight: "300",
 });
 
-// Animation variants for the answer container
+/**
+ * Animation variants for the answer container
+ * Controls the height and opacity transitions
+ */
 const containerVariants = {
   hidden: { opacity: 0, height: 0 },
   visible: {
@@ -31,7 +34,10 @@ const containerVariants = {
   },
 };
 
-// Animation variants for the text appearing/disappearing
+/**
+ * Animation variants for text elements
+ * Controls the opacity transitions for text content
+ */
 const textVariants = {
   hidden: { opacity: 0 },
   visible: {
@@ -44,7 +50,15 @@ const textVariants = {
   },
 };
 
-// Define props for the AnswerSection component
+/**
+ * Props for the AnswerSection component
+ * @interface AnswerSectionProps
+ * @property {string} answer - The main answer text to display
+ * @property {number} confidence - Confidence score for the answer (0-1)
+ * @property {boolean} isRevealed - Whether the answer is currently visible
+ * @property {AlternativeAnswer[]} [alternativeAnswers] - Optional alternative answers to display
+ * @property {() => void} onToggleReveal - Callback function to toggle answer visibility
+ */
 interface AnswerSectionProps {
   answer: string;
   confidence: number;
@@ -53,6 +67,17 @@ interface AnswerSectionProps {
   onToggleReveal: () => void;
 }
 
+/**
+ * Answer section component for displaying exam answers
+ * Features:
+ * - Animated reveal/hide of main answer
+ * - Confidence score display
+ * - Optional alternative answers with animations
+ * - Responsive design for mobile and desktop
+ * 
+ * @param {AnswerSectionProps} props - Component props
+ * @returns {JSX.Element} Animated answer section with optional alternatives
+ */
 export default function AnswerSection({
   answer,
   confidence,

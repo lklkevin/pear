@@ -5,13 +5,23 @@ import { useLoadingStore } from "@/store/store";
 import ProgressBar from "../ui/loading";
 import BaseLayout from "./sidebarLayout";
 
+/**
+ * Layout component for exam generation pages
+ * Provides sidebar with step-by-step instructions and optional loading progress indicator
+ * 
+ * @param {Object} props - Component props
+ * @param {React.ReactNode} props.children - Child components to render within the main content area
+ * @returns {JSX.Element} - Rendered layout with instructional sidebar and loading indicator
+ */
 export default function GenerateLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Access loading state from global store
   const { loading, loadingMessage, progressPercentage } = useLoadingStore();
   
+  // Define sidebar content with step-by-step instructions
   const sidebarContent = (
     <div className="pr-4 sm:pr-8">
       <h2 className="ml-5 sm:ml-9 text-2xl sm:text-3xl font-semibold">
@@ -51,6 +61,7 @@ export default function GenerateLayout({
     </div>
   );
 
+  // Define conditional footer content with progress indicator when loading
   const footerContent = loading ? (
     <ProgressBar
       progressPercentage={progressPercentage}

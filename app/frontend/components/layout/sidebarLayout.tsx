@@ -7,7 +7,13 @@ import { motion } from "framer-motion";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-// Function to calculate scrollbar width
+/**
+ * Utility function to calculate the browser's scrollbar width
+ * Creates temporary DOM elements to measure the difference between 
+ * an element with and without scrollbars
+ * 
+ * @returns {number} - Width of the scrollbar in pixels
+ */
 export function getScrollbarWidth() {
   // Create a temporary div
   const outer = document.createElement("div");
@@ -28,12 +34,27 @@ export function getScrollbarWidth() {
   return scrollbarWidth;
 }
 
+/**
+ * Props for the BaseLayout component
+ * @interface BaseLayoutProps
+ * @property {ReactNode} children - Child components to render within the main content area
+ * @property {ReactNode} sidebarContent - Content to display within the collapsible sidebar
+ * @property {ReactNode} [otherContent] - Optional additional content (e.g., for progress indicators)
+ */
 interface BaseLayoutProps {
   children: ReactNode;
   sidebarContent: ReactNode;
   otherContent?: ReactNode;
 }
 
+/**
+ * Base layout component with collapsible sidebar
+ * Provides responsive layout with animated sidebar that can be toggled
+ * State is persisted in URL parameters
+ * 
+ * @param {BaseLayoutProps} props - Component props
+ * @returns {JSX.Element} - Rendered layout with sidebar and main content area
+ */
 export default function BaseLayout({
   children,
   sidebarContent,
@@ -72,7 +93,10 @@ export default function BaseLayout({
     return false;
   });
 
-  // Custom setIsCollapsed function that also updates URL
+  /**
+   * Updates sidebar collapsed state and synchronizes URL parameters
+   * @param {boolean} collapsed - Whether the sidebar should be collapsed
+   */
   const updateSidebarState = (collapsed: boolean) => {
     setIsCollapsed(collapsed);
 
@@ -137,7 +161,11 @@ export default function BaseLayout({
     return () => window.removeEventListener("resize", checkOverlap);
   }, [isCollapsed, expandedWidth, gapSize, scrollbarWidth]);
 
-  // Calculate the padding value based on current state
+  /**
+   * Calculates the proper padding value based on sidebar state and screen size
+   * @param {number} basePadding - Base padding value to start with
+   * @returns {number} - Calculated padding value
+   */
   const getPaddingValue = (basePadding: number) => {
     if (shouldPad && !isCollapsed) {
       return adjustedPadding > 0
@@ -148,7 +176,10 @@ export default function BaseLayout({
     return basePadding;
   };
 
-  // Calculate the blur value based on current state
+  /**
+   * Calculates the blur value based on sidebar state and screen size
+   * @returns {string} - CSS blur filter value
+   */
   const getBlurValue = () => {
     if (!isLargeScreen && !isCollapsed) {
       return "blur(8px)";
@@ -156,6 +187,7 @@ export default function BaseLayout({
     return "blur(0px)";
   };
 
+  // Disable body scrolling when sidebar is open on small screens
   useEffect(() => {
     if (!isCollapsed && !isLargeScreen) {
       document.body.style.overflow = "hidden";
