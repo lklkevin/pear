@@ -95,11 +95,116 @@ Our application supports the uploading of unrelated PDFs instead of math exams d
 
 In the case of inappropriate content, the extractor will flag any documents uploaded, preventing any questions from being extracted from the document.
 
+### Example Tests
+
+Inside the `/examples` directory, you can find various example tests covering different subjects and question types, these range from high school level arithmetic and algebra to multivariate calculus and statistics. These are meant for you to try out the application's capabilities and understand how different types of math problems are handled.
+
+#### Available Example Tests
+- **Basic Arithmetic**: Simple addition, subtraction, multiplication, and division problems
+- **Algebra**: Linear equations, quadratic equations, and polynomial expressions
+- **Geometry**: Area, perimeter, and volume calculations
+- **Trigonometry**: Trigonometric functions, identities, and applications
+- **Calculus**: Derivatives, integrals, and limits in single variable and multivariable settings
+- **Statistics**: Probability, data analysis, and statistical measures
+
+#### How to Use Example Tests
+1. Navigate to the `/examples` directory
+2. Choose a test file that matches your area of interest
+3. Upload the PDF to the application
+4. Generate new practice problems based on the example test
+5. Compare the generated questions with the original to understand the system's capabilities
+
+These example tests serve as both demonstration materials and templates for users to understand the types of content that work best with our system. They are particularly useful for:
+- Testing the system's question generation capabilities
+- Understanding the format of supported math problems
+- Verifying the accuracy of generated answers
+- Learning how to structure your own math problems for optimal results
+
 ## **Developer Instructions**
 ### **Setting Up the Project Locally**
 #### **Prerequisites**
 - **Node.js 18+** (for frontend development)
 - **Python 3.11+** (for backend API)
+
+#### **Repository Structure**
+```
+project-27-the-avengers/
+├── .circleci/                 # CircleCI configuration for CI/CD
+│   ├── backend.yml           # Backend CI configuration
+│   ├── frontend.yml          # Frontend CI configuration
+│   └── tests.yml             # Test CI configuration
+├── app/
+│   ├── .env                   # Backend environment variables
+│   ├── backend/               # Backend components
+│   │   ├── app.py            # Main Flask application and API endpoints
+│   │   ├── task.py           # Celery tasks for background processing
+│   │   ├── database/         # Database schemas and migrations
+│   │   └── PdfScanner/       # PDF processing and text extraction
+│   ├── frontend/             # Frontend Next.js application
+│   │   ├── components/       # Reusable React components
+│   │   ├── pages/           # Next.js pages and routing
+│   │   ├── store/           # State management (Zustand)
+│   │   ├── utils/           # Helper functions and utilities
+│   │   ├── public/          # Static assets and example files
+│   │   └── .env.local       # Frontend environment variables
+│   ├── requirements.txt     # Python dependencies for pip installation
+│   ├── pyproject.toml       # Poetry project configuration
+│   ├── poetry.lock         # Poetry dependency lock file
+│   ├── Dockerfile          # Docker configuration
+│   └── supervisord.conf    # Supervisor configuration
+├── docker-compose.yml      # Docker compose configuration
+├── examples/                # Example math problems for testing
+├── deliverables/           # Project deliverables
+├── team/                   # Team documentation
+├── .pre-commit-config.yaml # Pre-commit hooks configuration
+├── .gitignore             # Git ignore rules
+└── README.md
+```
+
+#### **Directory Details**
+- **.circleci/**
+  - Contains CircleCI configuration for continuous integration and deployment
+  - `backend.yml`: Backend-specific CI configuration
+  - `frontend.yml`: Frontend-specific CI configuration
+  - `tests.yml`: Test suite CI configuration
+
+- **app/**
+  - Main application directory containing both frontend and backend
+  - Contains Docker and deployment configurations
+  - `pyproject.toml` and `poetry.lock`: Poetry dependency management
+  - `Dockerfile`: Containerization setup
+  - `supervisord.conf`: Process management configuration
+
+- **backend/**
+  - Contains the Flask API server and Celery worker
+  - `app.py`: Main application file with API routes and core logic
+  - `task.py`: Background task definitions for question generation
+  - `database/`: Contains database schemas and migration scripts
+  - `PdfScanner/`: PDF processing and text extraction module
+
+- **frontend/**
+  - Next.js application with React components
+  - `components/`: Reusable UI components (buttons, forms, etc.)
+  - `pages/`: Next.js pages and API routes
+  - `store/`: State management for user data and application state
+  - `utils/`: Helper functions, API calls, and common utilities
+  - `public/`: Static assets including example math problems
+
+- **examples/**
+  - Sample math problems in PDF format
+  - Useful for testing the question generation system
+  - New developers should add their own examples here
+
+#### **Configuration Files**
+- `.env` (app/)
+  - Backend configuration including API keys and database settings
+  - Required for running the backend server
+  - See Environment Variables section for required values
+
+- `.env.local` (app/frontend/)
+  - Frontend configuration including authentication and API endpoints
+  - Required for running the frontend development server
+  - See Environment Variables section for required values
 
 #### **Installation Steps**
 1. **Clone the repository:**
@@ -107,78 +212,172 @@ In the case of inappropriate content, the extractor will flag any documents uplo
    git clone https://github.com/csc301-2025-s/project-27-the-avengers.git
    cd project-27-the-avengers
    ```
-2. Ensure you have `poetry` installed. If you do, proceed to the next step. If not:
-- Run `pip install --user poetry==1.8.3`.
-- Add the following to your `~/.zshrc` by running `nano ~/.zshrc` and then adding `export PATH="$HOME/.local/bin:$PATH"` to the file.
-- Run `source ~/.zshrc`.
 
-    
-2. **Install Backend Dependencies and start backend server:**
+2. **Backend Setup**
+   
+   Option 1 - Using Poetry (Recommended):
    ```sh
    cd app
+   # If poetry is not installed:
+   pip install --user poetry==1.8.3
+   # Add to ~/.zshrc: export PATH="$HOME/.local/bin:$PATH"
+   # Then run: source ~/.zshrc
+   
    poetry install
    poetry run python -m backend.app
    ```
 
-4. **Install Frontend Dependencies and start the frontend server:**
-   On a separate terminal at the root directory
+   Option 2 - Using pip:
+   ```sh
+   cd app
+   pip install -r requirements.txt
+   python3 -m backend.app
+   ```
+
+   To run Celery worker (for background tasks in exam generation):
+   ```sh
+   celery -A backend.task worker
+   ```
+
+3. **Frontend Setup**
    ```sh
    cd app/frontend
    npm install
    npm run dev
    ```
 
-
 ### **Environment Variables Configuration**
-Ensure to add a `.env` file in the root directory with the following variables:
+Ensure to add a `.env` file in the `app/` directory with the following variables:
 ```
+# Required
 COHERE_API_KEY=your_cohere_api_key
 GEMINI_API_KEY=your_gemini_key
-REDIS_HOST=
-REDIS_PORT=
-REDIS_PASSWORD=
-SECRET_KEY=
-DATABASE_URL=
-DB_MODE=postgres
+SECRET_KEY=your_secret_key
+DATABASE_URL=your_postgres_database_url
+REDIS_URL=your_redis_url
+
+# Optional
+TEST_DATABASE_URL=your_test_database_url  # Only if running database tests locally
+LOG_LEVEL=WARNING                         # For debug logging, defaults to DEBUG if not set
+DB_MODE=postgres                         # Use 'sqlite' for SQLite database, defaults to 'postgres'
+FLASK_ENV=development                    # May resolve SSL issues in development environment
 ```
 - You can create a trial Cohere API key (for free) [here](https://dashboard.cohere.com/api-keys).
-- You will need to set up a serverless Redis service and fill in the Redis related environment variables.
+- You need to create a Gemini API key on the Google cloud console.
+- You will need to set up a Redis service and fill in the Redis URL.
 - You will need to set up a Postgres database with the schema defined in `app/backend/database/postgres_schema.sql`.
-- You need to define a secret key used for hashing the password.
+- Generate a secure secret key for password hashing.
   
-Additionally, you will need a `.env.local` file in the app/frontend directory with the following variables:
+Additionally, you will need a `.env.local` file in the `app/frontend/` directory with the following variables:
 ```
-NEXTAUTH_URL=localhost:3000
+# Required
+NEXTAUTH_URL=http://localhost:3000        # Must match NEXT_PUBLIC_URL
 NEXTAUTH_SECRET=your_secret
-GOOGLE_CLIENT_ID=
-GOOGLE_CLIENT_SECRET=
-NEXT_PUBLIC_BACKEND_URL=
-NEXT_PUBLIC_OTHER_BACKEND_URL=
-REDIS_URL=
-```
-- The backend URLs should just be where you are running the backend server, typically this is `localhost:5000`.
-- Again, you will need to set up Redis like in the backend.
-- You need to set up OAuth 2.0 through Google, you can check [here](https://developers.google.com/identity/protocols/oauth2) for details.
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+NEXT_PUBLIC_BACKEND_URL=your_backend_url
+NEXT_PUBLIC_URL=http://localhost:3000     # Must match NEXTAUTH_URL
 
+# Optional (must only include for Docker Compose)
+# NEXTAUTH_URL_INTERNAL=http://frontend:3000
+# BACKEND_URL=http://backend:5000
+```
+- Set up OAuth 2.0 through Google, you can check [here](https://developers.google.com/identity/protocols/oauth2) for details.
+- The backend URL should point to your backend server (e.g., `https://your-backend-url/` for production or `http://localhost:5000` for local development).
+- For production deployment, update both `NEXTAUTH_URL` and `NEXT_PUBLIC_URL` to your deployed URL.
 
 ### Tests
-For frontend testing, we utilize the Jest framework, we can test components individually through unit tests, checking the expected behaviour of various UI features (e.g., expanding and collapsing the sidebar)
-Additionally, we have created some integration tests to ensure that the routing is correct. Our current test (line) coverage is 90%. To run the tests locally, following the installation steps and run:
+For frontend testing, we utilize the Jest framework. We test components individually through unit tests, checking the expected behavior of various UI features (e.g., expanding and collapsing the sidebar).
+Additionally, we have created integration tests to ensure that the routing is correct. Our current test coverage is 90%. 
+
+#### Frontend Tests
+- Test files are located in `__tests__` directories within component directories (e.g., `app/frontend/components/auth/__tests__/`)
+- Files follow the naming convention `*.test.tsx` 
+- To run frontend tests locally:
+  ```sh
+  cd app/frontend
+  npx jest
+  ```
+
+#### Backend Tests
+- Test files are located in the `app/backend/tests` directory
+- Files follow the naming convention `test_*.py`
+- To run backend tests locally:
+  ```sh
+  # Option 1: Using pytest directly (in app directory)
+  cd app
+  pytest
+  
+  # Option 2: Using Poetry
+  cd app
+  poetry run pytest
+  ```
+
+We have automated test coverage across our entire pipeline to ensure functionality after any changes. This includes the modules that rely on API calls to ensure stability.
+
+Our backend testing covers the following aspects:
+
+- Question Extractor (`test_extractor.py`) - Tests PDF extraction functionality
+- Extracted Question Validator (`test_extractorvalidator.py`) - Tests validation of extracted content 
+- Question Generation (`test_questionGenerator.py`) - Tests LLM-based question generation
+- Answer Generation (`test_answerGenerator.py`) - Tests answer generation and verification
+- Answer Validator (`test_validation.py`) - Tests answer validation algorithms and confidence scoring
+- LLM Models (`test_models.py`) - Tests Cohere and Gemini API integrations with proper error handling
+- Exam Management (`test_exam.py`) - Tests exam data structure, question/answer storage, and confidence scoring
+
+The test suite uses example PDFs in the `tests/example_pdfs/` directory to simulate real-world usage scenarios and verify system components work correctly both individually and together.
+
+#### Database Tests
+- Database tests are located in `app/backend/tests/database/`
+- Both SQLite and PostgreSQL implementations are tested (`test_sqlitedb.py` and `test_postgresdb.py`)
+- Database tests require the TEST_DATABASE_URL environment variable to be set for PostgreSQL tests
+- To run database tests specifically:
+  ```sh
+  cd app
+  pytest backend/tests/database/
+  ```
+
+### Deployment
+
+#### Local Deployment with Docker Compose
+After setting up the environment variables in both `.env` and `.env.local` files, you can deploy the entire application locally using Docker Compose:
+
 ```sh
-npx jest
+# From the root directory
+docker compose up
 ```
 
-We utilize the Pytest python framework for our automated testing in the backend. 
+This will:
+- Build all necessary containers for the backend and frontend
+- Set up the network between services
+- Mount volumes for development
+- Start all services and make them available at the configured URLs
 
-We have automated test coverage across our entire pipeline to ensure functionality after any changes. This includes the other modules that rely on API calls to ensure stability.
+The application should be accessible at, you can configure this as required, ensure the environment variables are consistent:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5000
 
-Our testing covers the following aspects:
+To stop the deployment:
+```sh
+docker compose down
+```
 
-- Question Extractor
-- Extracted Question Validator
-- Question Generation
-- Answer Generation
-- Answer Validator
+### Common Issues
+
+#### Port Conflicts
+- **localhost:5000 isn't available on macOS**: This is due to AirPlay Receiver using the same port. You can either:
+  - Turn off AirPlay Receiver in System Preferences → Sharing
+  - Change the backend port in `docker-compose.yml` and update the corresponding environment variables
+
+#### Authentication Issues
+- **Auth features don't work in local development**: Try unsetting the following environment variables:
+  ```sh
+  unset NEXT_PUBLIC_BACKEND_URL
+  unset NEXT_PUBLIC_URL
+  unset NEXTAUTH_URL_INTERNAL
+  unset BACKEND_URL
+  ```
+  Then restart your development servers.
 
 ### CI/CD
 1. We are using various pre-commit hooks to ensure consistent coding conventions and formatting such as ```black```.
