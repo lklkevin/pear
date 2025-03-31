@@ -239,6 +239,191 @@ project-27-the-avengers/
    npm run dev
    ```
 
+#### **Extending the System**
+The application is designed with extensibility in mind through well-defined interfaces:
+
+1. **Adding New Database Implementations**
+   - Implement the `DataAccessObject` interface from `app/backend/database/__init__.py`
+   - Follow the pattern in `app/backend/database/sqlitedb.py` or `app/backend/database/postgresdb.py`
+   - Register your implementation in `app/backend/database/db_factory.py`
+
+2. **Adding New LLM Providers**
+   - Extend the `ModelProvider` class in `app/backend/models.py`
+   - Implement the `call_model` method with your provider's API
+   - See examples in the existing `GeminiModel` and `Cohere` classes
+
+3. **PDF Processing Extensions**
+   - The `PDFObject` class in `app/backend/PdfScanner/pdfobject.py` defines the interface for PDF content
+   - You can extend extraction capabilities by modifying the scanner while maintaining this interface
+
+4. **API Routes and Endpoints**
+   - New API routes can be added to `app/backend/app.py` by following the existing patterns
+   - For authenticated routes, use the `@token_required` decorator to ensure proper authentication
+   - Group related endpoints together and maintain consistent error handling patterns:
+     ```python
+     @app.route('/api/your-feature', methods=['POST'])
+     @token_required  # If authentication middleware is required
+     def your_endpoint(current_user):  # current_user is injected by the decorator
+         # Extract data from request
+         data = request.get_json()
+         
+         # Validate required fields
+         if not all(field in data for field in ["required_field"]):
+             return jsonify({'message': 'Missing required fields'}), 400
+             
+         # Process the request using database or other services
+         # ...
+         
+         return jsonify({'result': 'success'}), 200
+     ```
+
+5. **Customizing LLM Models for Exam Generation**
+   - The exam generation pipeline in `app/backend/task.py` uses two model providers:
+     ```python
+     # To change models, modify these lines in _generate_exam_core
+     pdf_model = GeminiModel()  # Used for PDF processing
+     text_model = Cohere('command-a-03-2025')  # Used for text generation
+     ```
+   - To change the model providers or specific models:
+     - For PDF processing: Replace `GeminiModel()` with your custom implementation
+     - For text generation: Replace `Cohere('command-a-03-2025')` with another provider or model
+     - You can also adjust parameters like temperature or max tokens by passing them to the constructor
+   - For question and answer generation, modify the calls to:
+     ```python
+     # Example: Adding model parameters
+     generated_questions = await questionGenerator.generate_questions(
+         exam_questions,
+         num_questions_to_generate,
+         text_model,
+         temperature=0.7  # Add custom parameters
+     )
+     ```
+
+6. **Frontend Extensions and Customization**
+   - **Components Organization**:
+     - Add reusable UI components to `app/frontend/components/`
+     - Place layout components in `app/frontend/components/layout/` - these control the overall page structure
+     - Follow TypeScript best practices by declaring prop types for all components:
+       ```tsx
+       // Example component with type declarations
+       type ButtonProps = {
+         text: string;
+         onClick: () => void;
+         variant?: 'primary' | 'secondary';
+       };
+       
+       const Button: React.FC<ButtonProps> = ({ text, onClick, variant = 'primary' }) => {
+         return (
+           <button 
+             className={`btn ${variant === 'primary' ? 'btn-primary' : 'btn-secondary'}`}
+             onClick={onClick}
+           >
+             {text}
+           </button>
+         );
+       };
+       
+       export default Button;
+       ```
+
+   - **Creating New Pages/Routes**:
+     - Add new pages in the `app/frontend/pages/` directory - each file automatically becomes a route
+     - Use dynamic routes with file names like `[id].tsx` or `[slug].tsx` for parameter-based routing:
+       ```tsx
+       // pages/exam/[id].tsx - Creates a route like /exam/123
+       import { useRouter } from 'next/router';
+       
+       const ExamPage: React.FC = () => {
+         const router = useRouter();
+         const { id } = router.query; // Access the dynamic parameter
+         
+         return <div>Exam ID: {id}</div>;
+       };
+       
+       export default ExamPage;
+       ```
+     - Create API routes in `app/frontend/pages/api/` following the same file-based routing pattern
+
+   - **Utility Functions**:
+     - Add helper functions to `app/frontend/utils/` for code reuse across components
+     - Group related utilities in separate files (e.g., `formatting.ts`, `validation.ts`)
+     - Export named functions with type definitions:
+       ```typescript
+       // utils/formatting.ts
+       export const formatDate = (date: string | Date): string => {
+         const d = new Date(date);
+         return d.toLocaleDateString('en-US', { 
+           year: 'numeric', 
+           month: 'long', 
+           day: 'numeric' 
+         });
+       };
+       ```
+
+   - **State Management**:
+     - Global state is managed in `app/frontend/store/` using Zustand
+     - Use global state sparingly - prefer component state for UI-specific logic
+     - Create specialized stores for distinct features:
+       ```typescript
+       // store/examStore.ts
+       import create from 'zustand';
+       
+       type Exam = {
+         id: number;
+         title: string;
+         // other properties
+       };
+       
+       type ExamStore = {
+         exams: Exam[];
+         currentExam: Exam | null;
+         setCurrentExam: (exam: Exam) => void;
+         fetchExams: () => Promise<void>;
+       };
+       
+       export const useExamStore = create<ExamStore>((set) => ({
+         exams: [],
+         currentExam: null,
+         setCurrentExam: (exam) => set({ currentExam: exam }),
+         fetchExams: async () => {
+           // Fetch exams and update state
+           const response = await fetch('/api/exams');
+           const exams = await response.json();
+           set({ exams });
+         }
+       }));
+       ```
+
+   - **Authentication Customization**:
+     - The authentication system uses NextAuth.js configured in `app/frontend/pages/api/auth/[...nextauth].js`
+     - To customize authentication:
+       - Modify the providers array to add/remove authentication methods
+       - Adjust callbacks for custom session handling or JWT token management
+       - Example to add a new provider:
+         ```javascript
+         // pages/api/auth/[...nextauth].js
+         import NextAuth from 'next-auth';
+         import GoogleProvider from 'next-auth/providers/google';
+         import GithubProvider from 'next-auth/providers/github'; // Adding GitHub
+
+         export default NextAuth({
+           providers: [
+             GoogleProvider({
+               clientId: process.env.GOOGLE_CLIENT_ID,
+               clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+             }),
+             GithubProvider({
+               clientId: process.env.GITHUB_ID,
+               clientSecret: process.env.GITHUB_SECRET,
+             }),
+           ],
+           // Other configuration options
+         });
+         ```
+       - For custom backend integration, modify the callbacks section to handle token and session management
+
+Each interface is thoroughly documented with docstrings explaining the expected behavior and parameter requirements.
+
 ### **Environment Variables Configuration**
 Ensure to add a `.env` file in the `app/` directory with the following variables:
 ```
