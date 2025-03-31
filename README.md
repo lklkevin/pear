@@ -47,13 +47,14 @@ Students often face a shortage of practice material, especially when preparing f
 - Users can favourite an exam and view it later under a favourite tab.
 
 ### **8. Account creation**
-- Users can sign up for an account using a username or password or externally using Google.
-- Logining in will provide users with more options for their exam creation (see 5.)
+- Users can sign up for an account using a username and password or externally using Google.
+- Logging in will provide users with more options for their exam creation (see 5.).
+- You can edit or delete your account later.
 
 ## **Instructions for Use**
 
 ### **Accessing the Application**
-To use the application, follow these steps:
+To use the application, follow these steps, check [here](https://drive.google.com/file/d/1kbOCG3lf2pBAF-ax205SkVKt4xkynw1y/view?usp=drivesdk) for a quick video demo going over the core features:
 
 1. **Go to** [https://avgr.vercel.app/](https://avgr.vercel.app/)
 2. Click on the **"Try Now"** button.
@@ -61,13 +62,13 @@ To use the application, follow these steps:
 
 ### **Using the Application**
 1. **Upload a Sample Exam**  
-   - Select a PDF document to extract questions from. Currently, we only support Math problems up to high school level, for examples download the example file [here](https://github.com/csc301-2025-s/project-27-the-avengers/blob/main/app/frontend/public/math_12.pdf)
+   - Select a PDF document to extract questions from. Currently, we support math problems up to university-level calculus, for examples check the `/examples` directory.
    - Choose how many questions you would like to generate (between 1-5).
    - Optionally, provide a **title** and **description** for the exam.
 
 2. **Generate Exam Questions**  
    - Click on the generate button and wait for the system to process the exam.
-   - Due to free-tier deployment constraints, you may get an error due to timeout, please try again after logging in if this occurs.
+   - You will get live updates during the exam generation process, do not refresh the tab.
    - Do not refresh the page, this process will take 1-2 minutes depending on the number of questions.
 
 3. **View Results**  
@@ -88,7 +89,12 @@ To use the application, follow these steps:
      - **Favourite** exams to easily access them later in the browse tab. 
      - Unlock **customization** options for better organization.
    - You can create an account using username, email, and password, or simply use your Google account.
-    
+
+7. **Account Management**
+   - Once logged in, you can modify your account details such as your username and password (password modification not supported for Google accounts):
+     - Navigate to your **Profile** page by clicking on your username in the top-right corner, or in the drop-down menu on mobile.
+   - Account deletion is available through the "Delete Account" button at the bottom of the profile page.
+
 ### Content Guidelines
 
 Our application supports the uploading of unrelated PDFs instead of math exams during the generation process; doing so will include assorted questions on the theme of the document uploaded. However, blank documents will not be considered for generation.
@@ -98,14 +104,6 @@ In the case of inappropriate content, the extractor will flag any documents uplo
 ### Example Tests
 
 Inside the `/examples` directory, you can find various example tests covering different subjects and question types, these range from high school level arithmetic and algebra to multivariate calculus and statistics. These are meant for you to try out the application's capabilities and understand how different types of math problems are handled.
-
-#### Available Example Tests
-- **Basic Arithmetic**: Simple addition, subtraction, multiplication, and division problems
-- **Algebra**: Linear equations, quadratic equations, and polynomial expressions
-- **Geometry**: Area, perimeter, and volume calculations
-- **Trigonometry**: Trigonometric functions, identities, and applications
-- **Calculus**: Derivatives, integrals, and limits in single variable and multivariable settings
-- **Statistics**: Probability, data analysis, and statistical measures
 
 #### How to Use Example Tests
 1. Navigate to the `/examples` directory
@@ -179,7 +177,7 @@ project-27-the-avengers/
   - Contains the Flask API server and Celery worker
   - `app.py`: Main application file with API routes and core logic
   - `task.py`: Background task definitions for question generation
-  - `database/`: Contains database schemas and migration scripts
+  - `database/`: Contains the database interface, schemas and implementations
   - `tests/`: Contains backend test files
   - `PdfScanner/`: PDF processing and text extraction module
 
@@ -246,6 +244,191 @@ project-27-the-avengers/
    npm install
    npm run dev
    ```
+
+#### **Extending the System**
+The application is designed with extensibility in mind through well-defined interfaces:
+
+1. **Adding New Database Implementations**
+   - Implement the `DataAccessObject` interface from `app/backend/database/__init__.py`
+   - Follow the pattern in `app/backend/database/sqlitedb.py` or `app/backend/database/postgresdb.py`
+   - Register your implementation in `app/backend/database/db_factory.py`
+
+2. **Adding New LLM Providers**
+   - Extend the `ModelProvider` class in `app/backend/models.py`
+   - Implement the `call_model` method with your provider's API
+   - See examples in the existing `GeminiModel` and `Cohere` classes
+
+3. **PDF Processing Extensions**
+   - The `PDFObject` class in `app/backend/PdfScanner/pdfobject.py` defines the interface for PDF content
+   - You can extend extraction capabilities by modifying the scanner while maintaining this interface
+
+4. **API Routes and Endpoints**
+   - New API routes can be added to `app/backend/app.py` by following the existing patterns
+   - For authenticated routes, use the `@token_required` decorator to ensure proper authentication
+   - Group related endpoints together and maintain consistent error handling patterns:
+     ```python
+     @app.route('/api/your-feature', methods=['POST'])
+     @token_required  # If authentication middleware is required
+     def your_endpoint(current_user):  # current_user is injected by the decorator
+         # Extract data from request
+         data = request.get_json()
+         
+         # Validate required fields
+         if not all(field in data for field in ["required_field"]):
+             return jsonify({'message': 'Missing required fields'}), 400
+             
+         # Process the request using database or other services
+         # ...
+         
+         return jsonify({'result': 'success'}), 200
+     ```
+
+5. **Customizing LLM Models for Exam Generation**
+   - The exam generation pipeline in `app/backend/task.py` uses two model providers:
+     ```python
+     # To change models, modify these lines in _generate_exam_core
+     pdf_model = GeminiModel()  # Used for PDF processing
+     text_model = Cohere('command-a-03-2025')  # Used for text generation
+     ```
+   - To change the model providers or specific models:
+     - For PDF processing: Replace `GeminiModel()` with your custom implementation
+     - For text generation: Replace `Cohere('command-a-03-2025')` with another provider or model
+     - You can also adjust parameters like temperature or max tokens by passing them to the constructor
+   - For question and answer generation, modify the calls to:
+     ```python
+     # Example: Adding model parameters
+     generated_questions = await questionGenerator.generate_questions(
+         exam_questions,
+         num_questions_to_generate,
+         text_model,
+         temperature=0.7  # Add custom parameters
+     )
+     ```
+
+6. **Frontend Extensions and Customization**
+   - **Components Organization**:
+     - Add reusable UI components to `app/frontend/components/`
+     - Place layout components in `app/frontend/components/layout/` - these control the overall page structure
+     - Follow TypeScript best practices by declaring prop types for all components:
+       ```tsx
+       // Example component with type declarations
+       type ButtonProps = {
+         text: string;
+         onClick: () => void;
+         variant?: 'primary' | 'secondary';
+       };
+       
+       const Button: React.FC<ButtonProps> = ({ text, onClick, variant = 'primary' }) => {
+         return (
+           <button 
+             className={`btn ${variant === 'primary' ? 'btn-primary' : 'btn-secondary'}`}
+             onClick={onClick}
+           >
+             {text}
+           </button>
+         );
+       };
+       
+       export default Button;
+       ```
+
+   - **Creating New Pages/Routes**:
+     - Add new pages in the `app/frontend/pages/` directory - each file automatically becomes a route
+     - Use dynamic routes with file names like `[id].tsx` or `[slug].tsx` for parameter-based routing:
+       ```tsx
+       // pages/exam/[id].tsx - Creates a route like /exam/123
+       import { useRouter } from 'next/router';
+       
+       const ExamPage: React.FC = () => {
+         const router = useRouter();
+         const { id } = router.query; // Access the dynamic parameter
+         
+         return <div>Exam ID: {id}</div>;
+       };
+       
+       export default ExamPage;
+       ```
+     - Create API routes in `app/frontend/pages/api/` following the same file-based routing pattern
+
+   - **Utility Functions**:
+     - Add helper functions to `app/frontend/utils/` for code reuse across components
+     - Group related utilities in separate files (e.g., `formatting.ts`, `validation.ts`)
+     - Export named functions with type definitions:
+       ```typescript
+       // utils/formatting.ts
+       export const formatDate = (date: string | Date): string => {
+         const d = new Date(date);
+         return d.toLocaleDateString('en-US', { 
+           year: 'numeric', 
+           month: 'long', 
+           day: 'numeric' 
+         });
+       };
+       ```
+
+   - **State Management**:
+     - Global state is managed in `app/frontend/store/` using Zustand
+     - Use global state sparingly - prefer component state for UI-specific logic
+     - Create specialized stores for distinct features:
+       ```typescript
+       // store/examStore.ts
+       import create from 'zustand';
+       
+       type Exam = {
+         id: number;
+         title: string;
+         // other properties
+       };
+       
+       type ExamStore = {
+         exams: Exam[];
+         currentExam: Exam | null;
+         setCurrentExam: (exam: Exam) => void;
+         fetchExams: () => Promise<void>;
+       };
+       
+       export const useExamStore = create<ExamStore>((set) => ({
+         exams: [],
+         currentExam: null,
+         setCurrentExam: (exam) => set({ currentExam: exam }),
+         fetchExams: async () => {
+           // Fetch exams and update state
+           const response = await fetch('/api/exams');
+           const exams = await response.json();
+           set({ exams });
+         }
+       }));
+       ```
+
+   - **Authentication Customization**:
+     - The authentication system uses NextAuth.js configured in `app/frontend/pages/api/auth/[...nextauth].js`
+     - To customize authentication:
+       - Modify the providers array to add/remove authentication methods
+       - Adjust callbacks for custom session handling or JWT token management
+       - Example to add a new provider:
+         ```javascript
+         // pages/api/auth/[...nextauth].js
+         import NextAuth from 'next-auth';
+         import GoogleProvider from 'next-auth/providers/google';
+         import GithubProvider from 'next-auth/providers/github'; // Adding GitHub
+
+         export default NextAuth({
+           providers: [
+             GoogleProvider({
+               clientId: process.env.GOOGLE_CLIENT_ID,
+               clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+             }),
+             GithubProvider({
+               clientId: process.env.GITHUB_ID,
+               clientSecret: process.env.GITHUB_SECRET,
+             }),
+           ],
+           // Other configuration options
+         });
+         ```
+       - For custom backend integration, modify the callbacks section to handle token and session management
+
+Each interface is thoroughly documented with docstrings explaining the expected behavior and parameter requirements.
 
 ### **Environment Variables Configuration**
 Ensure to add a `.env` file in the `app/` directory with the following variables:
@@ -329,10 +512,13 @@ Our backend testing covers the following aspects:
 The test suite uses example PDFs in the `tests/example_pdfs/` directory to simulate real-world usage scenarios and verify system components work correctly both individually and together.
 
 #### Database Tests
-- Database tests are located in `app/backend/tests/database/`
-- Both SQLite and PostgreSQL implementations are tested (`test_sqlitedb.py` and `test_postgresdb.py`)
-- Database tests require the TEST_DATABASE_URL environment variable to be set for PostgreSQL tests
-- To run database tests specifically:
+Database tests are located in `app/backend/tests/database/`. Database tests cover the correctness of all database functions, and ensure data constraints are met when performing operations. No performance tests are provided.
+
+Tests are performed using the database interface without directly interacting with the underlying implementation to ensure that the interface functions correctly and to reduce repetition of tests per implementation. The concrete
+tests themselves are written in an abstract test suite `base_test_dao.py` using the database interface `DataAccessObject`. Abstract helper functions that interact with the database implementation without the interface are also provided. 
+These tests are then implemented by the database to be tested in their respective test suite (`test_sqlitedb.py` and `test_postgresdb.py`), which provide the actual tests to be run during testing. 
+
+For PostgreSQL tests, the TEST_DATABASE_URL environment variable must be set. To run database tests specifically:
   ```sh
   cd app
   pytest backend/tests/database/
@@ -351,10 +537,9 @@ docker compose up
 This will:
 - Build all necessary containers for the backend and frontend
 - Set up the network between services
-- Mount volumes for development
 - Start all services and make them available at the configured URLs
 
-The application should be accessible at, you can configure this as required, ensure the environment variables are consistent:
+The application should be accessible at the following URLs (ensure the environment variables are consistent):
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:5000
 
