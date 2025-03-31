@@ -91,7 +91,7 @@ To use the application, follow these steps, check [here](https://drive.google.co
    - You can create an account using username, email, and password, or simply use your Google account.
 
 7. **Account Management**
-   - Once logged in, you can modify your account details:
+   - Once logged in, you can modify your account details such as your username and password (password modification not supported for Google accounts):
      - Navigate to your **Profile** page by clicking on your username in the top-right corner, or in the drop-down menu on mobile.
    - Account deletion is available through the "Delete Account" button at the bottom of the profile page.
 
