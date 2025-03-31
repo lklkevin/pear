@@ -2,6 +2,15 @@ import { useState, useCallback } from "react";
 import { useErrorStore } from "@/store/store";
 import { motion, AnimatePresence } from "framer-motion";
 
+/**
+ * Props for the FileUpload component
+ * @interface FileUploadProps
+ * @property {File[]} [files=[]] - Array of currently uploaded files
+ * @property {Function} [setFiles] - Callback function to update files in parent component
+ * @property {string[]} [acceptedFormats=[".pdf"]] - Array of accepted file extensions
+ * @property {number} [maxFileSize=10*1024*1024] - Maximum file size in bytes (default: 10MB)
+ * @property {number} [maxFiles=3] - Maximum number of files allowed
+ */
 interface FileUploadProps {
   files?: File[];
   setFiles?: (files: File[]) => void;
@@ -10,6 +19,13 @@ interface FileUploadProps {
   maxFiles?: number;
 }
 
+/**
+ * File upload component with drag and drop functionality
+ * Supports multiple file uploads, file type validation, and size limitations
+ * 
+ * @param {FileUploadProps} props - Component props
+ * @returns {JSX.Element} - Rendered file upload area with file list
+ */
 export default function FileUpload({
   files = [],
   setFiles,
@@ -17,10 +33,18 @@ export default function FileUpload({
   maxFileSize = 10 * 1024 * 1024,
   maxFiles = 3,
 }: FileUploadProps) {
+  // Internal state for files when no external state management is provided
   const [internalFiles, setInternalFiles] = useState<File[]>(files);
 
   const acceptString = acceptedFormats.join(",");
 
+  /**
+   * Validates and processes new files
+   * Checks file type, size, and maximum number constraints
+   * Updates both internal state and parent component state if provided
+   * 
+   * @param {File[]} newFiles - Array of files to process
+   */
   const handleFiles = useCallback(
     (newFiles: File[]) => {
       // Clear previous global error
@@ -64,6 +88,12 @@ export default function FileUpload({
     [internalFiles, setFiles, acceptedFormats, maxFileSize, maxFiles]
   );
 
+  /**
+   * Handles file input change event
+   * Processes files selected via the file input
+   * 
+   * @param {React.ChangeEvent<HTMLInputElement>} event - File input change event
+   */
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files) {
       const newFiles = Array.from(event.target.files);
@@ -73,21 +103,36 @@ export default function FileUpload({
     event.target.value = "";
   };
 
+  /**
+   * Handles drag enter event for the dropzone
+   */
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
+  /**
+   * Handles drag leave event for the dropzone
+   */
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
+  /**
+   * Handles drag over event for the dropzone
+   */
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
+  /**
+   * Handles file drop event
+   * Processes files dropped into the dropzone
+   * 
+   * @param {React.DragEvent<HTMLDivElement>} e - Drop event
+   */
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -99,6 +144,11 @@ export default function FileUpload({
     }
   };
 
+  /**
+   * Removes a file from the uploaded files list
+   * 
+   * @param {number} indexToRemove - Index of the file to remove
+   */
   const removeFile = (indexToRemove: number) => {
     const updatedFiles = internalFiles.filter(
       (_, index) => index !== indexToRemove

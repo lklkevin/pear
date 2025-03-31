@@ -2,6 +2,14 @@ import useEmblaCarousel from "embla-carousel-react";
 import type { EmblaOptionsType } from "embla-carousel";
 import FeatureCards from "./featureCards";
 
+/**
+ * Features section component for the landing page
+ * Displays a carousel of feature cards on mobile/tablet and a static grid on desktop
+ * Includes a title and description of the product's key benefits
+ * Uses Embla Carousel for smooth mobile scrolling
+ * 
+ * @returns {JSX.Element} Features section with responsive layout
+ */
 export default function FeaturesSection() {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",

@@ -10,18 +10,46 @@ const dmMono = DM_Mono({
   weight: "300",
 });
 
-export default function ExamContent({ exam }: { exam: Exam }) {
+/**
+ * Props for the ExamContent component
+ * @interface ExamContentProps
+ * @property {Exam} exam - The exam data to display
+ */
+interface ExamContentProps {
+  exam: Exam;
+}
+
+/**
+ * Main exam content display component
+ * Features:
+ * - Exam title and description
+ * - Privacy badge
+ * - Question list with answers
+ * - Global reveal/hide controls
+ * - PDF download option
+ * - Responsive design
+ * 
+ * @param {ExamContentProps} props - Component props
+ * @returns {JSX.Element} Complete exam view with questions and answers
+ */
+export default function ExamContent({ exam }: ExamContentProps) {
   // State to track which answers are revealed
   const [revealedAnswers, setRevealedAnswers] = useState<boolean[]>(
     new Array(exam.questions.length).fill(false)
   );
 
-  // Toggle all answers at once
+  /**
+   * Toggles visibility of all answers at once
+   * @param {boolean} reveal - Whether to reveal or hide all answers
+   */
   const toggleAllAnswers = (reveal: boolean) => {
     setRevealedAnswers(new Array(exam.questions.length).fill(reveal));
   };
 
-  // Toggle a single answer by index
+  /**
+   * Toggles visibility of a single answer
+   * @param {number} index - Index of the answer to toggle
+   */
   const toggleAnswer = (index: number) => {
     setRevealedAnswers((prev) => {
       const newState = [...prev];

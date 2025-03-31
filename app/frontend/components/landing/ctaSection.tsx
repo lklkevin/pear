@@ -1,5 +1,12 @@
 import Link from "next/link";
 
+/**
+ * Call-to-action section component for the landing page
+ * Displays a final call-to-action with sign up and try now buttons
+ * Features responsive text and button sizing
+ * 
+ * @returns {JSX.Element} CTA section with sign up and try now buttons
+ */
 export default function CtaSection() {
   return (
     <section className="bg-gradient-to-b from-zinc-900 to-zinc-950 mb-2 sm:mb-0">

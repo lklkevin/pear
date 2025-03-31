@@ -3,6 +3,14 @@ import CTA from "@/components/landing/cta";
 import Graphic from "@/components/landing/graphic";
 import Image from "next/image";
 
+/**
+ * Hero section component for the landing page
+ * Displays the main headline, subheading, and call-to-action button
+ * Features a background image with custom filters and gradient overlays
+ * Includes a decorative graphic at the bottom
+ * 
+ * @returns {JSX.Element} Hero section with responsive layout and visual effects
+ */
 const HeroSection = () => {
   return (
     <section className="min-h-[700px] sm:min-h-[810px] md:min-h-[850px] lg:min-h-[900px] h-[calc(100vh-72px)] w-full bg-zinc-950">

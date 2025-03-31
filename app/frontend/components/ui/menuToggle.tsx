@@ -1,6 +1,13 @@
 import * as React from "react";
 import { motion } from "framer-motion";
 
+/**
+ * SVG path component for menu toggle animation
+ * Renders an animated path with consistent styling
+ * 
+ * @param {any} props - SVG path properties
+ * @returns {JSX.Element} Animated SVG path
+ */
 const Path = (props: any) => (
   <motion.path
     fill="transparent"
@@ -11,18 +18,37 @@ const Path = (props: any) => (
   />
 );
 
-// Spring transition for smoother animation
+/**
+ * Spring animation configuration for menu toggle
+ * Provides smooth, natural-feeling transitions
+ */
 const pathTransition = {
   type: "spring",
   stiffness: 260,
   damping: 20,
 };
 
-export const MenuToggle = ({
-  toggle,
-}: {
+/**
+ * Props for the MenuToggle component
+ * @interface MenuToggleProps
+ * @property {() => void} toggle - Function to toggle menu state
+ */
+interface MenuToggleProps {
   toggle: () => void;
-}) => (
+}
+
+/**
+ * Animated hamburger menu toggle component
+ * Features:
+ * - Smooth path morphing animation
+ * - Spring-based transitions
+ * - Accessible button with aria-label
+ * - SVG-based design
+ * 
+ * @param {MenuToggleProps} props - Component props
+ * @returns {JSX.Element} Animated menu toggle button
+ */
+export const MenuToggle = ({ toggle }: MenuToggleProps) => (
   <button
     onClick={(e) => {
       e.stopPropagation();

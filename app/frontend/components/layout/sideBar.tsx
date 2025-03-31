@@ -1,6 +1,16 @@
 import { ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
+/**
+ * Collapsible sidebar component with animation
+ * Provides a toggle button to expand/collapse and animated transitions
+ * 
+ * @param {Object} props - Component props
+ * @param {boolean} props.isCollapsed - Current collapsed state of the sidebar
+ * @param {Function} props.setIsCollapsed - Callback function to update collapsed state
+ * @param {ReactNode} props.children - Content to display within the sidebar when expanded
+ * @returns {JSX.Element} - Rendered sidebar with animation
+ */
 export default function Sidebar({
   isCollapsed,
   setIsCollapsed,

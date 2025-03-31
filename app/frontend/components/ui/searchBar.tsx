@@ -1,5 +1,13 @@
 import React from "react";
 
+/**
+ * Props for the SearchBar component
+ * @interface SearchBarProps
+ * @property {string} placeholder - Placeholder text for the input
+ * @property {string} value - Current input value
+ * @property {React.ChangeEventHandler<HTMLInputElement>} onChange - Handler for input changes
+ * @property {() => void} onSearch - Handler for search action (click or Enter key)
+ */
 interface SearchBarProps {
   placeholder: string;
   value: string;
@@ -7,6 +15,18 @@ interface SearchBarProps {
   onSearch: () => void;
 }
 
+/**
+ * Search input component with icon
+ * Features:
+ * - Search icon button
+ * - Enter key support
+ * - Character limit (100)
+ * - Focus states
+ * - Responsive design
+ * 
+ * @param {SearchBarProps} props - Component props
+ * @returns {JSX.Element} Search input with icon
+ */
 export default function SearchBar({ placeholder, value, onChange, onSearch }: SearchBarProps) {
   return (
     <div className="relative">

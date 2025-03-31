@@ -10,6 +10,12 @@ const dmSans = DM_Sans({
   weight: ["400", "500", "700"],
 });
 
+/**
+ * Props for the PasswordModal component
+ * @interface PasswordModalProps
+ * @property {boolean} show - Controls visibility of the modal
+ * @property {Function} closeModal - Callback function to close the modal
+ */
 export default function PasswordModal({
   show,
   closeModal,
@@ -20,16 +26,27 @@ export default function PasswordModal({
   const { data: session } = useSession();
   const { setError } = useErrorStore();
   const { setSuccess } = useSuccStore();
+  // Tracks user input for current password
   const [oldPassword, setOldPassword] = useState("");
+  // Tracks user input for new password
   const [newPassword, setNewPassword] = useState("");
+  // Tracks user input for confirming new password
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
+  // Tracks API request status
   const [status, setStatus] = useState<"idle" | "loading">("idle");
 
+  /**
+   * Handles form submission to update user password
+   * Performs validation and sends password update request to API
+   * 
+   * @param {React.FormEvent<HTMLFormElement>} e - Form submission event
+   */
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess("");
 
+    // Validate password inputs
     if (!newPassword) {
       setError("New password cannot be empty.");
       return;
@@ -42,6 +59,7 @@ export default function PasswordModal({
     setStatus("loading");
 
     try {
+      // Send password update request to API
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/user/password`,
         {

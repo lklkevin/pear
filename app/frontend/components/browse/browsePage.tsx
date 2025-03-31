@@ -14,6 +14,13 @@ const dmMono = DM_Mono({
   weight: "500",
 });
 
+/**
+ * Main browse page component for displaying and searching exams
+ * Features tabs for different views, search functionality, and pagination
+ * Adapts available tabs based on user authentication status
+ * 
+ * @returns {JSX.Element} - Rendered browse page with tabs, search, and exam grid
+ */
 export default function BrowsePage() {
   const router = useRouter();
   const { data: session, status } = useSession();
@@ -45,7 +52,15 @@ export default function BrowsePage() {
       ? router.query.search
       : DEFAULT_SEARCH;
 
-  // Helper to update URL parameters.
+  /**
+   * Updates URL parameters without full page reload
+   * Maintains state of tab, page, and search parameters
+   * 
+   * @param {Object} params - Parameters to update
+   * @param {string} [params.tab] - Tab to select
+   * @param {number} [params.page] - Page number
+   * @param {string} [params.search] - Search query
+   */
   const updateUrlParams = useCallback(
     (params: { tab?: string; page?: number; search?: string }) => {
       const newQuery = { ...router.query };
@@ -74,7 +89,13 @@ export default function BrowsePage() {
     [router]
   );
 
-  // Handle tab changes
+  /**
+   * Handles tab selection changes
+   * Validates tab selection and updates URL parameters
+   * Resets to page 1 and clears search when changing tabs
+   * 
+   * @param {React.SetStateAction<string>} value - New tab value or function to compute it
+   */
   const handleTabChange = useCallback(
     (value: React.SetStateAction<string>) => {
       // If the value is a function, call it with the current activeTab; otherwise, use it directly.
@@ -89,7 +110,12 @@ export default function BrowsePage() {
     [availableTabs, activeTab, updateUrlParams]
   );
 
-  // Handle page changes.
+  /**
+   * Handles pagination changes
+   * Updates URL with new page number while preserving other parameters
+   * 
+   * @param {number} newPage - Page number to navigate to
+   */
   const handlePageChange = useCallback(
     (newPage: number) => {
       updateUrlParams({ tab: activeTab, page: newPage });
@@ -97,7 +123,13 @@ export default function BrowsePage() {
     [activeTab, updateUrlParams]
   );
 
-  // Build the fetch URL and options.
+  /**
+   * Builds fetch URL and options based on current state
+   * Constructs appropriate API endpoint and parameters for the current view
+   * Adds authentication headers when user is logged in
+   * 
+   * @returns {Object} - URL and fetch options for the API request
+   */
   const buildFetchParams = useCallback(() => {
     const baseUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
     let endpoint = "";
@@ -144,7 +176,11 @@ export default function BrowsePage() {
     return { url, fetchOptions };
   }, [activeTab, page, searchQuery, status]);
 
-  // Fetch exams from the backend.
+  /**
+   * Fetches exam data from the backend API
+   * Updates results state and hasMore flag for pagination
+   * Handles errors and loading state
+   */
   const fetchExams = useCallback(async () => {
     setIsLoading(true);
     try {

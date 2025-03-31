@@ -1,6 +1,15 @@
 import { motion } from "framer-motion";
 import { cn } from "@/utils/utils";
 
+/**
+ * Props for the DraggableIcon component
+ * @interface DraggableIconProps
+ * @property {string} icon - Material icon name to display
+ * @property {string} [bgColor="bg-zinc-800"] - Background color class
+ * @property {string} [borderColor="border-zinc-700"] - Border color class
+ * @property {string} [textColor="text-white"] - Text color class
+ * @property {string} [rounded="rounded-lg sm:rounded-xl"] - Border radius classes
+ */
 interface DraggableIconProps {
   icon: string;
   bgColor?: string;
@@ -9,6 +18,14 @@ interface DraggableIconProps {
   rounded?: string;
 }
 
+/**
+ * Interactive draggable icon component
+ * Features elastic drag behavior with constraints
+ * Customizable styling through props
+ * 
+ * @param {DraggableIconProps} props - Component props
+ * @returns {JSX.Element} Draggable icon with material design icon
+ */
 export default function DraggableIcon({ 
   icon, 
   bgColor = "bg-zinc-800",

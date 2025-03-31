@@ -1,7 +1,20 @@
 import React from "react";
 
+/**
+ * Type defining the available visibility options for content
+ * @typedef {"private" | "public" | "unsaved"} Visibility
+ */
 export type Visibility = "private" | "public" | "unsaved";
 
+/**
+ * Props for the VisibilityOption component
+ * @interface VisibilityOptionProps
+ * @property {Visibility} option - The visibility option value
+ * @property {boolean} selected - Whether this option is currently selected
+ * @property {string} label - Main text label for the option
+ * @property {string} subText - Secondary descriptive text for the option
+ * @property {Function} onChange - Callback function when the option is selected
+ */
 interface VisibilityOptionProps {
   option: Visibility;
   selected: boolean;
@@ -10,12 +23,20 @@ interface VisibilityOptionProps {
   onChange: () => void;
 }
 
+/**
+ * Radio button component for selecting content visibility options
+ * Provides styled radio inputs with labels and descriptions
+ * 
+ * @param {VisibilityOptionProps} props - Component props
+ * @returns {JSX.Element} - Rendered radio option with label and styling
+ */
 export function VisibilityOption({
   selected,
   label,
   subText,
   onChange,
 }: VisibilityOptionProps) {
+  // Apply different border styling based on selection state
   const borderClass = selected
     ? "border border-emerald-500"
     : "border border-zinc-800";

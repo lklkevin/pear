@@ -4,9 +4,24 @@ import signOutWithBackend from "@/utils/signOut";
 import { useRouter } from "next/router";
 import { motion } from "framer-motion";
 import AccountModal from "../account/accountModal";
-import { useState } from "react";
 import { Skeleton } from "../ui/skeleton";
 
+/**
+ * Mobile navigation menu component that slides in from the top
+ * Provides mobile-friendly navigation links and account options
+ * 
+ * @param {Object} props - Component props
+ * @param {string} props.username - User's current username
+ * @param {string} props.email - User's email address
+ * @param {boolean} props.mobileMenuOpen - Whether the mobile menu is currently open
+ * @param {Function} props.setMobileMenuOpen - Function to set the mobile menu open state
+ * @param {Function} props.setUsername - Function to update the username in parent components
+ * @param {Function} props.setShowPwdModal - Function to control password modal visibility
+ * @param {boolean} props.showPwdModal - Whether the password modal is visible
+ * @param {Function} props.setShowModal - Function to control account modal visibility
+ * @param {boolean} props.showModal - Whether the account modal is visible
+ * @returns {JSX.Element} - Rendered mobile menu with animations
+ */
 export default function MobileMenu({
   username,
   email,

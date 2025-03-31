@@ -1,5 +1,15 @@
 import { Skeleton } from "../ui/skeleton";
 
+/**
+ * Loading skeleton component for exam view
+ * Displays placeholder shapes for:
+ * - Exam title and description
+ * - Action buttons
+ * - Multiple question cards
+ * Responsive design with different sizes for mobile and desktop
+ * 
+ * @returns {JSX.Element} Loading skeleton layout for exam content
+ */
 export default function ExamSkeleton() {
   return (
     <div className="w-full max-w-7xl mx-auto">

@@ -1,5 +1,12 @@
 import { motion } from "framer-motion";
 
+/**
+ * Array of rectangle configurations for the skewed stack graphic
+ * Each rectangle has a unique ID, background color, and border color
+ * Used to create a layered, animated visual effect
+ * 
+ * @type {Array<{id: number, color: string, border: string}>}
+ */
 const rectangles = [
   { id: 1, color: "bg-white/75", border: "border-white" },
   { id: 2, color: "bg-emerald-900/50", border: "border-emerald-300" },
@@ -7,6 +14,13 @@ const rectangles = [
   { id: 4, color: "bg-emerald-900/50", border: "border-emerald-300" },
 ];
 
+/**
+ * Skewed stack graphic component for the landing page
+ * Creates an animated stack of rectangles with different layouts for mobile and desktop
+ * Features hover animations and blur effects
+ * 
+ * @returns {JSX.Element} Responsive graphic with animated rectangles
+ */
 export default function SkewedStack() {
   return (
     <div className="relative my-10 md:my-20">

@@ -1,6 +1,13 @@
 import GenerateLayout from "../layout/generateLayout";
 import ExamForm from "./examForm";
 
+/**
+ * Main page component for exam generation
+ * Provides a form for users to upload past exams and generate new ones
+ * Includes descriptive text and wrapped in the GenerateLayout with sidebar instructions
+ * 
+ * @returns {JSX.Element} - Rendered generation page with form
+ */
 export default function GeneratePage() {
   return (
     <GenerateLayout>
