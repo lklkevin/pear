@@ -26,6 +26,12 @@ class ValidationObject:
         self.status = Equality.FAILED
 
     def _populate_info(self, idx: int, stage: str):
+        """
+        Populate the state list with reasons for previous stages being unequal or failed.
+        
+        :param idx: Index up to which stages should be populated.
+        :param stage: Current stage name.
+        """
         for i in range(idx):
             reason = "not equal" if i == 0 else "failed"
             self.state.append(
@@ -33,6 +39,12 @@ class ValidationObject:
             )
 
     def _add_stage(self, stage: str, msg: str):
+        """
+        Add a new comparison stage and corresponding message to the state.
+        
+        :param stage: Name of the stage.
+        :param msg: Message describing the result of the comparison.
+        """
         assert (
             stage in ValidationObject.stages
         ), f"Value Error: stage {stage} does not exist"
@@ -42,11 +54,23 @@ class ValidationObject:
         self.state.append({"type": f"{self.stages[idx]} comparison", "reason": msg})
 
     def add_equal(self, stage: str, info: str = ""):
+        """
+        Mark a specific comparison stage as equal.
+
+        :param stage: The stage at which equality was determined (e.g., "math", "symbolic").
+        :param info: Optional message or context to include in the state log.
+        """
         info = f" {info}" if info else info
         self._add_stage(stage, f"success{info}")
         self.status = Equality.EQUAL
 
     def add_unequal(self, stage: str, info: str = ""):
+        """
+        Mark a specific comparison stage as unequal.
+
+        :param stage: The stage at which inequality was determined.
+        :param info: Optional message or context to include in the state log.
+        """
         info = f" {info}" if info else info
         self._add_stage(stage, f"not equal{info}")
         self.status = Equality.UNEQUAL
@@ -77,7 +101,12 @@ class LLMAnswerComparator:
         self.tolerance = tolerance
 
     def _fix_fracs(self, string: str) -> str:
-        # Replace extra spaces in \frac commands.
+        """
+        Corrects malformed LaTeX \\frac formatting.
+
+        :param string: LaTeX input string.
+        :return: Fixed LaTeX string with correctly formatted \\frac.
+        """
         while "\\frac " in string:
             string = string.replace("\\frac ", "\\frac")
         substrs = string.split("\\frac")
@@ -106,6 +135,12 @@ class LLMAnswerComparator:
         return new_str
 
     def _str_is_int(self, x: str) -> bool:
+        """
+        Checks if a string represents an integer.
+
+        :param x: String to check.
+        :return: True if it's an integer, False otherwise.
+        """
         try:
             x = self._strip_properly_formatted_commas(x)
             x = float(x)
@@ -114,6 +149,12 @@ class LLMAnswerComparator:
             return False
 
     def _str_to_int(self, x: str) -> int:
+        """
+        Converts a numeric string to integer, ignoring comma or base notation.
+
+        :param x: String representation of number.
+        :return: Integer value.
+        """
         x = x.replace(",", "")
         if "_" in x:
             x = x.split("_")[0]  # due to base notation
@@ -121,7 +162,10 @@ class LLMAnswerComparator:
 
     def _inject_implicit_mixed_number(self, step: str) -> str:
         """
-        Convert mixed numbers like '7 3/4' to '7+3/4'
+        Converts mixed numbers like '7 3/4' into '7+3/4'.
+
+        :param step: Input string.
+        :return: Modified string.
         """
         p1 = re.compile(r"([0-9]) +([0-9])")
         return p1.sub(r"\1+\2", step)
@@ -136,7 +180,12 @@ class LLMAnswerComparator:
         return next_expr
 
     def _remove_right_units(self, expr: str) -> str:
-        # Remove any trailing text units introduced via \text{ ... } or \mbox{...}
+        """
+        Removes trailing units or LaTeX text from a math expression.
+
+        :param expr: Input expression.
+        :return: Cleaned expression.
+        """
         if "\\text" in expr:
             splits = re.split(r"\\text\s*{\s*", expr)
             if len(splits) == 2 and splits[0] not in ("", "("):
@@ -150,6 +199,12 @@ class LLMAnswerComparator:
         return expr
 
     def _process_and_or_inside_text(self, string: str) -> str:
+        """
+        Replaces \\text{or} and \\text{and} with commas.
+
+        :param string: Input LaTeX string.
+        :return: Cleaned string.
+        """
         string = re.sub(r"\s*\\text{\s*(or|and)\s*}\s*", ",", string)
         return re.sub(r",\s*,", ",", string)
 
@@ -157,16 +212,31 @@ class LLMAnswerComparator:
         return re.sub(r"\\left|\\right", "", expr)
 
     def _fix_sqrt(self, string: str) -> str:
+        """
+        Ensures square root expressions are properly bracketed.
+
+        :param string: Input LaTeX expression.
+        :return: Fixed expression.
+        """
         return re.sub(r"\\sqrt(\s*\w+)", r"\\sqrt{\1}", string)
 
     def _fix_interval(self, expr: str) -> str:
+        """
+        Strips interval notation like '\\in (a, b)' to just '(a, b)'.
+
+        :param expr: Input expression.
+        :return: Cleaned interval string.
+        """
         if "\\in " in expr:
             return expr.split("\\in ")[1].strip()
         return expr
 
     def _inject_implicit_mixed_fraction(self, step: str) -> str:
         """
-        Convert mixed numbers like '7 \\frac{3}{4}' to '7+3/4'
+        Converts expressions like '7 \\frac{3}{4}' into '7+3/4'.
+
+        :param step: Input LaTeX expression.
+        :return: Modified expression.
         """
         p1 = re.compile(r"(\d+)\s*\\frac{(\d+)}{(\d+)}")
 
@@ -282,7 +352,11 @@ class LLMAnswerComparator:
 
     def _compare_bracketed_expressions(self, a: str, b: str) -> bool:
         """
-        Compare expressions enclosed in brackets (e.g. [x,y] vs (x,y))".
+        Compares two bracketed expressions, handling different delimiters.
+
+        :param a: First expression.
+        :param b: Second expression.
+        :return: True if they are equivalent, False otherwise.
         """
 
         def strip_enclosing(s: str) -> str:
@@ -305,7 +379,12 @@ class LLMAnswerComparator:
         return a_stripped == b_stripped
 
     def _try_parse_sympy(self, s: str):
-        """Attempt to parse string s using parse_expr and parse_latex."""
+        """
+        Attempts to parse a string with sympy using both parse_expr and parse_latex.
+
+        :param s: Input expression.
+        :return: Parsed sympy object or None.
+        """
         for parse_fn in (parse_expr, parse_latex):
             try:
                 return parse_fn(s)
@@ -358,7 +437,10 @@ class LLMAnswerComparator:
 
     def _parse_matrix(self, expr: str):
         """
-        Attempt to parse a matrix expression from LaTeX or sympy.Matrix format.
+        Parses a matrix from LaTeX or sympy string into a sympy Matrix.
+
+        :param expr: LaTeX or sympy matrix string.
+        :return: sympy Matrix object.
         """
         latex_match = re.search(
             r"\\begin\{(pmatrix|bmatrix|vmatrix|Bmatrix|matrix)\}(.*?)\\end\{\1\}",
@@ -394,7 +476,11 @@ class LLMAnswerComparator:
 
     def _compare_matrices(self, a: str, b: str) -> bool:
         """
-        Compare two matrices (from LaTeX or sympy format) elementwise.
+        Compares two matrix strings for numerical or symbolic equality.
+
+        :param a: First matrix string.
+        :param b: Second matrix string.
+        :return: True if equivalent, False otherwise.
         """
         try:
             mat_a = self._parse_matrix(a)
@@ -432,6 +518,12 @@ class LLMAnswerComparator:
         return Equality.EQUAL if "yes" in response.lower().split('decision:')[1].strip() else Equality.UNEQUAL
 
     def format_intervals(self, prediction: str) -> str:
+        """
+        Converts sympy Interval(...) string representations to standard bracket notation.
+
+        :param prediction: Interval string from sympy.
+        :return: Bracketed interval.
+        """
         patterns = {
             "Interval(": r"^Interval\((.*)\)$",
             "Interval.Ropen(": r"^Interval\.Ropen\((.*)\)$",
@@ -460,6 +552,11 @@ class LLMAnswerComparator:
     ) -> str:
         """
         Extract the answer from a LaTeX \\boxed or natural language string.
+
+        :param string: Input string potentially containing an answer.
+        :param extract_from_boxed: Whether to look for \\boxed or \\fbox answers.
+        :param extract_regex: Optional regex pattern(s) for natural language extraction.
+        :return: Extracted answer string.
         """
         if "boxed" not in string and "fbox" not in string:
             if extract_regex is None:
@@ -502,6 +599,13 @@ class LLMAnswerComparator:
     def extract_and_normalize(
         self, ans1: Union[str, float, bool], ans2: Union[str, float, bool]
     ) -> tuple[str]:
+        """
+        Extract and normalize two answers for comparison.
+
+        :param ans1: First answer (string, number, or boolean).
+        :param ans2: Second answer.
+        :return: Tuple of normalized answer strings.
+        """
         ans1 = self.extract_answer(ans1)
         ans2 = self.extract_answer(ans2)
         a = self.normalize_answer_string(ans1)
@@ -512,7 +616,11 @@ class LLMAnswerComparator:
         self, ans1: Union[str, float, bool], ans2: Union[str, float, bool]
     ) -> ValidationObject:
         """
-        Check whether two LLM-generated answers are essentially equivalent. Doesn't include final LLM check. Return equality and status
+        Check whether two LLM-generated answers are equivalent using deterministic logic.
+
+        :param ans1: First answer to compare.
+        :param ans2: Second answer to compare.
+        :return: ValidationObject indicating the result and reason for each comparison stage.
         """
         validation = ValidationObject()
         # Extract answers if wrapped in boxes or labeled.
@@ -553,7 +661,11 @@ class LLMAnswerComparator:
         self, ans1: Union[str, float, bool], ans2: Union[str, float, bool]
     ) -> bool:
         """
-        Check whether two LLM-generated answers are essentially equivalent. Doesn't include final LLM check.
+        Check whether two LLM-generated answers are equivalent using deterministic logic and an LLM fallback.
+
+        :param ans1: First answer to compare.
+        :param ans2: Second answer to compare.
+        :return: True if answers are equivalent, otherwise False.
         """
         # NOTE: sometimes sympy parses even though its meaningless
         validation = self._llm_answers_equivalent(ans1, ans2)

@@ -29,8 +29,30 @@ celery.conf.update(
 # Shared async function that handles the core exam generation process
 async def _generate_exam_core(self, pdf_data_list, num_questions, title, description, max_parallel=5):
     """
-    Core exam generation function used by both generate_exam_task and generate_and_save_exam_task
-    Returns the generated exam object and formatted exam data
+    Core function for generating an exam from a list of PDF files.
+
+    This method handles the full pipeline of:
+      1. Scanning and extracting content from PDF documents,
+      2. Generating potential exam questions based on the extracted content,
+      3. Randomly selecting a subset of questions,
+      4. Generating multiple answers per question (in parallel with concurrency control),
+      5. Formatting the exam data for output.
+
+    Args:
+        pdf_data_list (list[bytes]): A list of up to 5 PDF files in byte format.
+        num_questions (int): The number of questions to include in the final exam.
+        title (str): The title of the exam.
+        description (str): A short description of the exam.
+        max_parallel (int, optional): Maximum number of concurrent answer generation tasks. Defaults to 5.
+
+    Returns:
+        tuple:
+            - Exam: An `Exam` object containing the final questions and their answers.
+            - dict: A dictionary containing the formatted exam data with title, description, questions, and answers.
+
+    Raises:
+        ValueError: If the number of PDFs is not between 1 and 5.
+        Exception: If no questions could be generated from the provided PDFs.
     """
     exam = Exam()
     
@@ -134,6 +156,28 @@ async def _generate_exam_core(self, pdf_data_list, num_questions, title, descrip
 
 @celery.task(bind=True)
 def generate_exam_task(self, pdf_data_list, num_questions, title, description, max_parallel=3):
+    """
+    Celery task for generating an exam from uploaded PDFs without saving it to a database.
+
+    This task runs asynchronously and tracks its own progress state across key steps, including:
+        1. Initialization,
+        2. PDF scanning and content extraction,
+        3. Question generation,
+        4. Answer generation.
+
+    Args:
+        pdf_data_list (list[bytes]): A list of PDF file contents (as bytes).
+        num_questions (int): The number of questions to include in the generated exam.
+        title (str): The title of the exam.
+        description (str): A short description of the exam.
+        max_parallel (int, optional): Maximum number of concurrent answer generation tasks. Defaults to 3.
+
+    Returns:
+        dict: A dictionary containing the structured exam data (title, description, questions, and answers).
+
+    Raises:
+        Exception: If any step in the pipeline fails. Updates the task state to 'FAILURE' and returns error metadata.
+    """
     try:
         # Initial progress update
         self.update_state(
@@ -172,6 +216,31 @@ def generate_exam_task(self, pdf_data_list, num_questions, title, description, m
 
 @celery.task(bind=True)
 def generate_and_save_exam_task(self, pdf_data_list, num_questions, title, description, color, privacy, username, max_parallel=3):
+    """
+    Celery task for generating an exam and saving it to the database under a given user.
+
+    This task performs the same pipeline as `generate_exam_task`, but additionally:
+        - Saves the generated exam metadata to the database,
+        - Inserts all questions and their associated answers,
+        - Associates the exam with a specific user account.
+
+    Args:
+        pdf_data_list (list[bytes]): A list of PDF file contents (as bytes).
+        num_questions (int): The number of questions to generate.
+        title (str): The name/title of the exam.
+        description (str): A short description of the exam.
+        color (str): Color tag or theme for the exam in the UI.
+        privacy (bool): Whether the exam is public (`True`) or private (`False`).
+        username (str): The username of the user creating the exam.
+        max_parallel (int, optional): Max number of concurrent answer generation tasks. Defaults to 3.
+
+    Returns:
+        dict: A dictionary containing the `exam_id` of the saved exam.
+
+    Raises:
+        Exception: If an error occurs during exam generation or database insertion.
+        Task state is updated to 'FAILURE' with exception type and message.
+    """
     try:
         from backend.database.db_factory import get_db_instance
         db = get_db_instance()

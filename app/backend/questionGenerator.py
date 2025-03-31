@@ -5,7 +5,23 @@ import ast
 
 
 async def generate_questions(questions: list[str], num_new_questions: int, model: ModelProvider) -> list[str]:
+    """
+    Generates new questions based on the conceptual patterns of a provided list of questions
+    using a language model.
 
+    Args:
+        questions (list[str]): A list of existing questions to serve as examples.
+        num_new_questions (int): The number of new questions to generate.
+        model (ModelProvider): An instance of a ModelProvider (e.g., Gemini or Cohere) used to generate questions.
+
+    Returns:
+        list[str]: A list of newly generated questions. Returns an empty list if an error occurs.
+
+    Notes:
+        - The prompt instructs the model to return only a raw Python list of strings.
+        - The response is evaluated using `ast.literal_eval()` for safety.
+        - The model must return valid Python syntax, or the function will catch and handle the exception.
+    """
     try:
         assert len(questions) > 0, "Questions list cannot be empty"
         assert num_new_questions > 0, "Number of new questions must be greater than 0"

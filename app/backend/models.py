@@ -15,17 +15,52 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.WARNING)
 
 class ModelProvider:
-
+    """
+        Abstract base class for model providers that defines the interface
+        and shared behavior for calling language models.
+    """
     def __init__(self, model: str, max_reties: int, timeout: float):
         self.model = model
         self.max_retries = max_reties
         self.timeout = timeout
         self.default_preamble = "You are a helpful assistant"
 
+    """
+    Initializes the base model provider with common configuration.
+    
+    Args:
+        model (str): The name or ID of the model.
+        max_reties (int): The number of retry attempts on failure.
+        timeout (float): The timeout in seconds for each model call.
+    """
     async def call_model(self, prompt: str, preamble: Optional[str], pdf_path: Optional[str], accept_func: Callable, **kwargs) -> str:
+        """
+        Abstract method for calling the language model.
+
+        Must be implemented by subclasses.
+
+        Args:
+            prompt (str): The user prompt.
+            preamble (Optional[str]): The system message to guide the model's behavior.
+            pdf_path (Optional[str]): Optional path to a PDF for contextual input.
+            accept_func (Callable): A function to validate the model's response.
+
+        Returns:
+            str: The model's response.
+        """
         raise NotImplementedError
 
     def load_pdf(self, pdf_path: str) -> str:
+        """
+        Loads a PDF from the given file path and converts it to a Part object
+        for model consumption.
+
+        Args:
+            pdf_path (str): The path to the PDF file.
+
+        Returns:
+            Part: A Gemini-compatible Part containing the PDF data.
+        """
         try:
             with open(pdf_path, "rb") as f:
                 pdf_bytes = f.read()
@@ -111,7 +146,10 @@ class GeminiModel(ModelProvider):
 
 
 class Cohere(ModelProvider):
-
+    """
+    Cohere implementation of the ModelProvider, using Cohere's AsyncClient.
+    Note: Does not support PDF input.
+    """
     def __init__(self, model: str = 'command-a-03-2025', max_retries: int = 5, timeout: float = 10.0):
         super().__init__(model, max_retries, timeout)
         self.client = cohere.AsyncClient(os.environ.get("COHERE_API_KEY"))
