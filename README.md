@@ -63,7 +63,7 @@ To use the application, follow these steps, check [here](https://drive.google.co
 ### **Using the Application**
 1. **Upload a Sample Exam**  
    - Select a PDF document to extract questions from. Currently, we support math problems up to university-level calculus, for examples check the `/examples` directory.
-   - Choose how many questions you would like to generate (between 1-5).
+   - Choose how many questions you would like to generate (between 1-10).
    - Optionally, provide a **title** and **description** for the exam.
 
 2. **Generate Exam Questions**  
