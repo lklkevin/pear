@@ -26,8 +26,9 @@
   "include": [
     "next-env.d.ts",
     "**/*.ts",
-    "**/*.tsx"
-  ],
+    "**/*.tsx",
+  "__tests__/landing-navigation.test.js"
+],
   "exclude": [
     "node_modules"
   ]

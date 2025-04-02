@@ -84,6 +84,7 @@ const Signup: React.FC = () => {
           Get Started With Pear!
         </h2>
         <button
+          aria-label="Close"
           onClick={() => {
             router.push(callbackUrl);
           }}

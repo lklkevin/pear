@@ -88,6 +88,7 @@ export default function PasswordModal({
             Change Password
           </h2>
           <button
+            aria-label="Close"
             onClick={closeModal}
             className="select-none absolute right-4 sm:right-10 top-1 inset-y-0 flex items-center text-zinc-400 hover:text-zinc-200 transition"
           >
