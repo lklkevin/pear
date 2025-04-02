@@ -62,6 +62,7 @@ export function Skeleton({
 }: SkeletonProps) {
   return (
     <motion.div
+      data-testid="skeleton"
       className={cn(
         "animate-pulse bg-zinc-900",
         {
