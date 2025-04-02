@@ -1,11 +1,24 @@
 import { ReactNode } from "react";
 import Image from "next/image";
 
+/**
+ * Props for the AuthLayout component
+ * @interface AuthLayoutProps
+ * @property {ReactNode} children - Child components to render within the auth layout
+ * @property {string} text - Descriptive text for the auth page
+ */
 interface AuthLayoutProps {
   children: ReactNode;
   text: string;
 }
 
+/**
+ * Layout component for authentication pages
+ * Provides consistent styling and background for login, signup, and other auth screens
+ * 
+ * @param {AuthLayoutProps} props - Component props
+ * @returns {JSX.Element} - Rendered auth layout with background image and container
+ */
 export default function AuthLayout({ children, text }: AuthLayoutProps) {
   return (
     <div className="flex items-center justify-center min-h-screen bg-zinc-950 sm:px-8">
@@ -16,14 +29,6 @@ export default function AuthLayout({ children, text }: AuthLayoutProps) {
           fill
           className="object-cover object-center [filter:brightness(0.8)_contrast(1.1)_saturate(1.2)_hue-rotate(-45deg)]"
           priority
-        />
-        {/* Grain texture */}
-        <div
-          className="absolute inset-0 opacity-[0.25] mix-blend-multiply"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2' numOctaves='10' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: "repeat",
-          }}
         />
       </div>
       <div className="absolute inset-0 bg-gradient-to-b from-zinc-900/75 to-zinc-950/75" />

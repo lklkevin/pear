@@ -1,3 +1,13 @@
+/**
+ * Props for the InputField component
+ * @interface InputFieldProps
+ * @property {string} [label] - Label text for the input field
+ * @property {string} [placeholder] - Placeholder text for the input field
+ * @property {string} [value] - Current value of the input field
+ * @property {Function} [onChange] - Callback function for handling input changes
+ * @property {boolean} [textarea] - If true, renders a textarea instead of an input
+ * @property {boolean} [auth] - If true, applies authentication form styling
+ */
 interface InputFieldProps {
   label?: string;
   placeholder?: string;
@@ -9,6 +19,13 @@ interface InputFieldProps {
   auth?: boolean;
 }
 
+/**
+ * Reusable input field component that can render as either a text input or textarea
+ * Provides consistent styling and behavior for form inputs across the application
+ * 
+ * @param {InputFieldProps} props - Component props
+ * @returns {JSX.Element} - Rendered input or textarea element with optional label
+ */
 export default function InputField({
   label,
   value,
@@ -17,6 +34,7 @@ export default function InputField({
   textarea,
   auth,
 }: InputFieldProps) {
+  // Generate an ID from the label for accessibility
   const inputId = label ? label.toLowerCase().replace(/\s+/g, "-") : undefined;
 
   return (

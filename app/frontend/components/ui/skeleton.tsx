@@ -25,6 +25,34 @@ interface SkeletonProps extends React.HTMLAttributes<HTMLDivElement> {
   delay?: number;
 }
 
+/**
+ * Animation variants for the skeleton component
+ * Controls opacity transitions for entrance and exit animations
+ */
+const variants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1 },
+  exit: {
+    opacity: 0,
+    transition: {
+      duration: 0.3 * 1.2,
+      ease: [0.4, 0, 0.2, 1],
+    },
+  },
+};
+
+/**
+ * Loading skeleton component
+ * Features:
+ * - Multiple shape variants (rectangle, circle, text)
+ * - Smooth entrance/exit animations
+ * - Customizable dimensions via className
+ * - Pulse animation effect
+ * - Responsive sizing defaults
+ * 
+ * @param {SkeletonProps} props - Component props
+ * @returns {JSX.Element} Animated skeleton element
+ */
 export function Skeleton({
   className,
   variant = "rectangle",
@@ -32,19 +60,6 @@ export function Skeleton({
   duration = 0.3,
   delay = 0,
 }: SkeletonProps) {
-  // Animation variants
-  const variants = {
-    hidden: { opacity: 0 },
-    visible: { opacity: 1 },
-    exit: {
-      opacity: 0,
-      transition: {
-        duration: duration * 1.2,
-        ease: [0.4, 0, 0.2, 1],
-      },
-    },
-  };
-
   return (
     <motion.div
       data-testid="skeleton"

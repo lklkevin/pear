@@ -8,12 +8,35 @@ import { useRouter } from "next/router";
 import { getSession } from "next-auth/react";
 import ExamSkeleton from "./examSkeleton";
 
-export default function Page({ id }: { id: string }) {
+/**
+ * Props for the Page component
+ * @interface PageProps
+ * @property {string} id - ID of the exam to fetch and display
+ */
+interface PageProps {
+  id: string;
+}
+
+/**
+ * Authenticated user exam view component
+ * Fetches and displays a saved exam by ID
+ * Handles authentication and loading states
+ * Redirects to home page on error
+ * 
+ * @param {PageProps} props - Component props
+ * @returns {JSX.Element} Exam view with content or loading skeleton
+ */
+export default function Page({ id }: PageProps) {
   const { loading } = useLoadingStore();
   const router = useRouter();
   const [exam, setExam] = useState<Exam>();
 
   useEffect(() => {
+    /**
+     * Fetches exam data from the backend
+     * Handles authentication and error cases
+     * Updates loading state and redirects on error
+     */
     async function fetchData() {
       try {
         useLoadingStore.getState().setLoading(true);

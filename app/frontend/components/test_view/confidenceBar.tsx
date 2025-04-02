@@ -5,7 +5,28 @@ const dmMono = DM_Mono({
   weight: "500",
 });
 
-export default function ConfidenceBar({ confidence }: { confidence: number }) {
+/**
+ * Props for the ConfidenceBar component
+ * @interface ConfidenceBarProps
+ * @property {number} confidence - Confidence score as a percentage (0-100)
+ */
+interface ConfidenceBarProps {
+  confidence: number;
+}
+
+/**
+ * Visual confidence indicator component
+ * Displays a percentage value and animated progress bar
+ * Features:
+ * - Monospace font for percentage display
+ * - Gradient progress bar
+ * - Responsive sizing for mobile and desktop
+ * - Smooth width transition animation
+ * 
+ * @param {ConfidenceBarProps} props - Component props
+ * @returns {JSX.Element} Confidence indicator with percentage and progress bar
+ */
+export default function ConfidenceBar({ confidence }: ConfidenceBarProps) {
   return (
     <div className="h-9 gap-1 flex flex-col pt-1.5 sm:pt-1">
       <div className="font-medium flex justify-between sm:gap-2 text-zinc-400 text-xs sm:text-sm">

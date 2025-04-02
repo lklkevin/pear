@@ -6,7 +6,7 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Install dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install -r requirements.txt
 
 # Install Supervisor (and its dependency: apt-get update)
 RUN apt-get update && apt-get install -y supervisor

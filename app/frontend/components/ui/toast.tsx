@@ -2,23 +2,45 @@ import { useEffect, useState } from "react";
 import { useErrorStore, useSuccStore } from "../../store/store";
 import { motion, AnimatePresence } from "framer-motion";
 
+/**
+ * Toast notification component
+ * Features:
+ * - Error and success message support
+ * - Auto-dismiss after 5 seconds
+ * - Progress bar animation
+ * - Manual close button
+ * - Smooth entrance/exit animations
+ * - Responsive design
+ * - Blur backdrop effect
+ * 
+ * @returns {JSX.Element | null} Toast notification or null if no message
+ */
 export default function Toast() {
   const { errorMessage, setError } = useErrorStore();
   const [visible, setVisible] = useState(false);
   const { successMessage, setSuccess } = useSuccStore();
 
   useEffect(() => {
+    /**
+     * Handles toast visibility and auto-dismiss
+     * - Shows toast when message is set
+     * - Auto-dismisses after 5 seconds
+     * - Cleans up timer on unmount
+     */
     if (errorMessage || successMessage) {
       setVisible(true);
       const timer = setTimeout(() => {
         setVisible(false);
-      }, 5000); // Hide toast after 8s
+      }, 5000); // Hide toast after 5s
 
       return () => clearTimeout(timer);
     }
   }, [errorMessage, successMessage]);
 
-  // Handle complete exit animation
+  /**
+   * Handles cleanup after exit animation
+   * Clears error/success messages when toast is fully hidden
+   */
   const handleAnimationComplete = () => {
     if (!visible) {
       setError(null);
@@ -32,7 +54,7 @@ export default function Toast() {
     <AnimatePresence mode="wait" onExitComplete={handleAnimationComplete}>
       {visible && (
         <motion.div
-          className="fixed top-8 left-1/2 z-[999]"
+          className="fixed top-12 sm:top-8 left-1/2 z-[999]"
           initial={{ opacity: 0, y: -20, x: "-50%" }}
           animate={{ opacity: 1, y: 0, x: "-50%" }}
           exit={{ opacity: 0, y: -20, x: "-50%" }}

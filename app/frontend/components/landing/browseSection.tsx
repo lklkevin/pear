@@ -1,5 +1,12 @@
 import ExpandingCardGrid from "./browseGrid";
 
+/**
+ * Browse section component for the landing page
+ * Displays a grid of interactive category cards
+ * Includes a title and description of the browse functionality
+ * 
+ * @returns {JSX.Element} Browse section with category grid
+ */
 export default function BrowseSection() {
   return (
     <section className="min-h-96 bg-zinc-900">

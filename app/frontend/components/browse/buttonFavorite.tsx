@@ -2,11 +2,25 @@ import { useState } from "react";
 import { useSession, getSession } from "next-auth/react";
 import { useErrorStore } from "@/store/store";
 
+/**
+ * Props for the Favorite button component
+ * @interface FavoriteProps
+ * @property {number} examId - The ID of the exam to favorite/unfavorite
+ * @property {boolean} initialFavorite - The initial favorite state of the exam
+ */
 interface FavoriteProps {
   examId: number;
   initialFavorite: boolean;
 }
 
+/**
+ * Favorite button component for toggling exam favorite status
+ * Shows filled or outlined heart icon based on favorite state
+ * Only visible to authenticated users
+ * 
+ * @param {FavoriteProps} props - Component props
+ * @returns {JSX.Element | null} - Rendered favorite button or null if user is not authenticated
+ */
 export default function Favorite({ examId, initialFavorite }: FavoriteProps) {
   const { data: session } = useSession();
   const [isFavorite, setIsFavorite] = useState(initialFavorite);
@@ -16,6 +30,13 @@ export default function Favorite({ examId, initialFavorite }: FavoriteProps) {
     return null;
   }
 
+  /**
+   * Handles clicking the favorite button
+   * Toggles the favorite state and sends API request to update
+   * Provides optimistic UI updates with fallback on error
+   * 
+   * @param {React.MouseEvent} event - Click event
+   */
   const handleClick = async (event: React.MouseEvent) => {
     event.preventDefault();
     event.stopPropagation();

@@ -3,6 +3,14 @@ import CTA from "@/components/landing/cta";
 import Graphic from "@/components/landing/graphic";
 import Image from "next/image";
 
+/**
+ * Hero section component for the landing page
+ * Displays the main headline, subheading, and call-to-action button
+ * Features a background image with custom filters and gradient overlays
+ * Includes a decorative graphic at the bottom
+ * 
+ * @returns {JSX.Element} Hero section with responsive layout and visual effects
+ */
 const HeroSection = () => {
   return (
     <section className="min-h-[700px] sm:min-h-[810px] md:min-h-[850px] lg:min-h-[900px] h-[calc(100vh-72px)] w-full bg-zinc-950">
@@ -16,14 +24,6 @@ const HeroSection = () => {
               fill
               className="object-cover object-center [filter:brightness(0.8)_contrast(1.1)_saturate(1.2)_hue-rotate(-45deg)]"
               priority
-            />
-            {/* Grain texture */}
-            <div
-              className="absolute inset-0 opacity-[0.25] mix-blend-multiply"
-              style={{
-                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2' numOctaves='10' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-                backgroundRepeat: "repeat",
-              }}
             />
           </div>
           {/* Dark overlay */}

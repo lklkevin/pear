@@ -20,6 +20,14 @@ import { colors } from "../form/stylingOptions";
 import { MenuToggle } from "../ui/menuToggle";
 import { useUserStore } from "../../store/user";
 
+/**
+ * Main navigation component used throughout the application
+ * Provides navigation links, user account menu, and responsive mobile menu
+ * 
+ * @param {Object} props - Component props
+ * @param {boolean} [props.landing=false] - Whether the navbar is on a landing page (affects styling)
+ * @returns {JSX.Element} - Rendered navigation bar
+ */
 export default function Navbar({ landing = false }: { landing?: boolean }) {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -35,15 +43,30 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
   const [showModal, setShowModal] = useState(false);
   const [showPwdModal, setShowPwdModal] = useState(false);
 
+  /**
+   * Closes the desktop user dropdown menu
+   */
   const closeMenu = () => toggleMenu(0);
+  
+  /**
+   * Closes the mobile navigation menu
+   */
   const closeMobileMenu = () => setMobileMenuOpen(false);
+  
+  /**
+   * Toggles the mobile navigation menu open/closed
+   */
   const toggleMobileMenu = () => setMobileMenuOpen((prev) => !prev);
 
+  // Track scroll position for navbar styling
   const { scrollY } = useScroll();
   useMotionValueEvent(scrollY, "change", (latest) => {
     setScrolled(latest > 10);
   });
 
+  /**
+   * Fetches user profile data when the component mounts
+   */
   useEffect(() => {
     async function fetchProfile() {
       try {
@@ -68,6 +91,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     fetchProfile();
   }, []);
 
+  // Disable body scrolling when modals are open
   useEffect(() => {
     if (showPwdModal || showModal) {
       document.body.style.overflow = "hidden";
@@ -82,6 +106,7 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     };
   }, [showPwdModal, showModal]);
 
+  // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       closeMenu();
@@ -93,6 +118,13 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [menuOpen, mobileMenuOpen]);
 
+  /**
+   * Determines a color for user avatar based on username
+   * Uses a hash function to consistently map usernames to colors
+   * 
+   * @param {string} name - Username to generate color for
+   * @returns {Object} - Color object from the colors array
+   */
   const getColorFromName = (name: string) => {
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
@@ -101,7 +133,12 @@ export default function Navbar({ landing = false }: { landing?: boolean }) {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  // Nav background & border styles based on conditions
+  /**
+   * Determines navbar styling based on current state and props
+   * Different styles for mobile menu, landing page, and scrolled states
+   * 
+   * @returns {string} - CSS classes for navbar styling
+   */
   const getNavStyles = () => {
     if (mobileMenuOpen) {
       return "bg-zinc-950 border-b border-zinc-800/0"; // Mobile menu open: no border

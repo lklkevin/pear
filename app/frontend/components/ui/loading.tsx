@@ -7,13 +7,35 @@ const dmMono = DM_Mono({
   weight: "500",
 });
 
+/**
+ * Props for the AnimatedProgressBar component
+ * @interface ProgressBarProps
+ * @property {string} loadingMessage - Message to display while loading
+ * @property {number} progressPercentage - Current progress percentage (0-100)
+ */
 interface ProgressBarProps {
   loadingMessage: string;
   progressPercentage: number;
 }
 
+/**
+ * Breakpoints for progress animation
+ * Defines the stages of progress for smooth animation
+ */
 const BREAKPOINTS = [0, 25, 50, 75, 100];
 
+/**
+ * Animated progress bar component with loading message
+ * Features:
+ * - Smooth progress animation
+ * - Loading spinner
+ * - Progress percentage display
+ * - Responsive design
+ * - Backdrop blur effect
+ * 
+ * @param {ProgressBarProps} props - Component props
+ * @returns {JSX.Element} Loading overlay with animated progress bar
+ */
 export default function AnimatedProgressBar({
   loadingMessage = "Generating your new exam...",
   progressPercentage,
@@ -21,6 +43,13 @@ export default function AnimatedProgressBar({
   const [displayProgress, setDisplayProgress] = useState(progressPercentage);
 
   useEffect(() => {
+    /**
+     * Handles progress animation logic
+     * - Completes immediately at 100%
+     * - Animates between breakpoints
+     * - Uses dynamic increment calculation
+     * - Cleans up interval on unmount
+     */
     // If we've reached 100%, finish immediately.
     if (progressPercentage >= 100) {
       setDisplayProgress(100);

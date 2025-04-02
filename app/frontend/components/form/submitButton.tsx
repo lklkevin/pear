@@ -1,8 +1,21 @@
+/**
+ * Props for the SubmitButton component
+ * @interface SubmitButtonProps
+ * @property {string} text - Text to display on the button
+ * @property {boolean} loading - Whether the button is in a loading state
+ */
 interface SubmitButtonProps {
     text: string;
     loading: boolean;
 }
 
+/**
+ * Reusable submit button component for forms
+ * Shows loading state and prevents multiple submissions while loading
+ * 
+ * @param {SubmitButtonProps} props - Component props
+ * @returns {JSX.Element} - Rendered submit button with loading state handling
+ */
 export default function SubmitButton({
     text,
     loading,

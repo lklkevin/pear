@@ -7,6 +7,15 @@ const dmMono = DM_Mono({
   weight: "500",
 });
 
+/**
+ * Props for the Counter component
+ * @interface CounterProps
+ * @property {number} value - Current counter value
+ * @property {Function} onChange - Callback function when value changes
+ * @property {number} [min=0] - Minimum allowed value
+ * @property {number} [max=100] - Maximum allowed value
+ * @property {number} [step=1] - Increment/decrement step size
+ */
 interface CounterProps {
   value: number;
   onChange: (value: number) => void;
@@ -15,6 +24,14 @@ interface CounterProps {
   step?: number;
 }
 
+/**
+ * Numeric counter component with increment/decrement buttons
+ * Allows direct input with validation against min/max boundaries
+ * Provides accessibility features for screen readers
+ * 
+ * @param {CounterProps} props - Component props
+ * @returns {JSX.Element} - Rendered counter with buttons and input field
+ */
 export default function Counter({
   value,
   onChange,
@@ -30,14 +47,28 @@ export default function Counter({
     setInputValue(value.toString());
   }, [value]);
 
+  /**
+   * Increases the counter value by one step
+   * Respects the maximum boundary
+   */
   const increment = () => {
     onChange(Math.min(value + step, max));
   };
 
+  /**
+   * Decreases the counter value by one step
+   * Respects the minimum boundary
+   */
   const decrement = () => {
     onChange(Math.max(value - step, min));
   };
 
+  /**
+   * Handles changes to the input field
+   * Updates local state immediately but parent state only if valid
+   * 
+   * @param {React.ChangeEvent<HTMLInputElement>} e - Input change event
+   */
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawValue = e.target.value;
 
@@ -51,6 +82,11 @@ export default function Counter({
     }
   };
 
+  /**
+   * Handles input field blur event
+   * Ensures the final value is valid and within boundaries
+   * Resets to minimum value if input is invalid
+   */
   const handleBlur = () => {
     // When the input loses focus, ensure we have a valid value
     if (inputValue === "" || isNaN(Number(inputValue))) {

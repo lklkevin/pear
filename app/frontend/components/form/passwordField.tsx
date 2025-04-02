@@ -1,6 +1,16 @@
 import { useState, useId } from "react";
 import InputField from "./inputField";
 
+/**
+ * Props for the PasswordField component
+ * @interface PasswordFieldProps
+ * @property {string} [id] - Optional ID for the input element, auto-generated if not provided
+ * @property {string} label - Label text for the password field
+ * @property {string} value - Current value of the password field
+ * @property {Function} onChange - Callback function for handling input changes
+ * @property {boolean} [showForgotPassword=false] - If true, shows a "Forgot Password?" link
+ * @property {Function} [onForgotPasswordClick] - Callback function for when the forgot password link is clicked
+ */
 interface PasswordFieldProps {
   id?: string;
   label: string;
@@ -10,6 +20,13 @@ interface PasswordFieldProps {
   onForgotPasswordClick?: () => void;
 }
 
+/**
+ * Password input field component with show/hide password toggle functionality
+ * Optionally displays a "Forgot Password?" link if specified
+ * 
+ * @param {PasswordFieldProps} props - Component props
+ * @returns {JSX.Element} - Rendered password input with label and toggle visibility button
+ */
 export default function PasswordField({
   id,
   label,
@@ -20,6 +37,7 @@ export default function PasswordField({
 }: PasswordFieldProps) {
   const autoId = useId();
   const inputId = id || autoId
+  // State to track password visibility
   const [showPassword, setShowPassword] = useState(false);
 
   return (

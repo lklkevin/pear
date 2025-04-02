@@ -1,5 +1,17 @@
+/**
+ * Type defining the available color options for styling
+ * @typedef {"teal" | "cyan" | "sky" | "blue" | "indigo" | "violet" | "purple"} Color
+ */
 export type Color = "teal" | "cyan" | "sky" | "blue" | "indigo" | "violet" | "purple";
 
+/**
+ * Interface for color option configuration
+ * @interface ColorOption
+ * @property {Color} value - The color identifier
+ * @property {string} class - Tailwind CSS class for the color background
+ * @property {string} outline - Tailwind CSS class for the color outline/ring
+ * @property {string} hex - Hex color code for the color
+ */
 interface ColorOption {
   value: Color;
   class: string;
@@ -7,6 +19,9 @@ interface ColorOption {
   hex: string;
 }
 
+/**
+ * Array of predefined color options available for selection
+ */
 export const colors: ColorOption[] = [
   {
     value: "teal",
@@ -52,11 +67,24 @@ export const colors: ColorOption[] = [
   },
 ];
 
+/**
+ * Props for the StylingOptions component
+ * @interface StylingOptionsProps
+ * @property {Color} selectedColor - Currently selected color
+ * @property {Function} setSelectedColor - Callback function to update the selected color
+ */
 interface StylingOptionsProps {
   selectedColor: Color;
   setSelectedColor: (color: Color) => void;
 }
 
+/**
+ * Component for displaying and selecting color styling options
+ * Renders a row of color buttons with the currently selected color highlighted
+ * 
+ * @param {StylingOptionsProps} props - Component props
+ * @returns {JSX.Element} - Rendered styling options with color selection buttons
+ */
 export function StylingOptions({ selectedColor, setSelectedColor }: StylingOptionsProps) {
   return (
     <div className="flex flex-row justify-between mt-4 sm:mt-8 mb-2 sm:mb-4">

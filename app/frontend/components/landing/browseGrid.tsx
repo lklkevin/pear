@@ -5,6 +5,15 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { cn } from "../../utils/utils";
 
+/**
+ * Props for individual cards in the grid
+ * @interface CardProps
+ * @property {number} id - Unique identifier for the card
+ * @property {string} title - Title text to display on the card
+ * @property {string} [className] - Base CSS classes for the card
+ * @property {string} [hoverClassName] - CSS classes to apply on hover
+ * @property {string} [href] - URL to navigate to when clicked
+ */
 interface CardProps {
   id: number;
   title: string;
@@ -13,6 +22,13 @@ interface CardProps {
   href?: string;
 }
 
+/**
+ * Expanding card grid component for the landing page
+ * Features interactive hover effects and responsive layouts
+ * Cards expand on hover and link to filtered browse pages
+ * 
+ * @returns {JSX.Element} Responsive grid of interactive category cards
+ */
 export default function ExpandingCardGrid() {
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -27,6 +43,12 @@ export default function ExpandingCardGrid() {
     };
   }, []);
 
+  /**
+   * Handles mouse enter events on cards
+   * Updates hover state and clears any existing timeouts
+   * 
+   * @param {number} index - Index of the hovered card
+   */
   const handleMouseEnter = (index: number) => {
     // Clear any existing timeout
     if (hoverTimeoutRef.current) {
@@ -38,6 +60,11 @@ export default function ExpandingCardGrid() {
     setHoveredIndex(index);
   };
 
+  /**
+   * Handles mouse leave events on cards
+   * Adds a small delay before removing hover state
+   * Allows for smoother transitions between cards
+   */
   const handleMouseLeave = () => {
     isHoveringRef.current = false;
 
@@ -55,6 +82,10 @@ export default function ExpandingCardGrid() {
     }, 150);
   };
 
+  /**
+   * Array of predefined category cards
+   * Each card has unique styling and links to filtered browse pages
+   */
   const cards: CardProps[] = [
     {
       id: 1,
@@ -122,7 +153,12 @@ export default function ExpandingCardGrid() {
     },
   ];
 
-  // Calculate grid template based on hovered index and screen size
+  /**
+   * Calculates grid template based on hover state and screen size
+   * Expands hovered card's row and column
+   * 
+   * @returns {Object} Column and row template strings for grid layout
+   */
   const getGridTemplate = () => {
     // Default equal sizing
     let colTemplate = "1fr 1fr 1fr 1fr";
@@ -149,7 +185,13 @@ export default function ExpandingCardGrid() {
 
   const { colTemplate, rowTemplate } = getGridTemplate();
 
-  // Function to render card content
+  /**
+   * Renders the content of a card
+   * Includes title and hover effect for "Explore" text
+   * 
+   * @param {CardProps} card - Card configuration object
+   * @returns {JSX.Element} Card content with title and hover effects
+   */
   const renderCardContent = (card: CardProps) => {
     // Check if title has multiple words
     const hasMultipleWords = card.title.trim().includes(" ");
@@ -174,7 +216,15 @@ export default function ExpandingCardGrid() {
     );
   };
 
-  // Function to wrap card content with Link if href is provided
+  /**
+   * Wrapper component that adds Link functionality to cards
+   * Only wraps content in Link if href is provided
+   * 
+   * @param {Object} props - Component props
+   * @param {CardProps} props.card - Card configuration
+   * @param {React.ReactNode} props.children - Child elements to wrap
+   * @returns {JSX.Element} Wrapped card content with optional link
+   */
   const CardWrapper = ({
     card,
     children,
