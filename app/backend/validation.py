@@ -1,3 +1,10 @@
+# String processing functions in this file are adapted from code by NVIDIA Corporation,
+# licensed under the Apache License, Version 2.0.
+# Source: https://github.com/NVIDIA/NeMo-Skills (math evaluation utilities)
+#
+# Modifications have been made to suit this project.
+
+
 import re
 import contextlib
 from math import isclose
