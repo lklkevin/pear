@@ -304,8 +304,11 @@ The application is designed with extensibility in mind through well-defined inte
          temperature=0.7  # Add custom parameters
      )
      ```
+6. **Validator Extensions**
+   - Currently the symbolic step of the validator is lenient with the LLM fallback to reduce false negatives
+   - However, consider making the symbolic step more strict to reduce LLM reliance and thus latency
 
-6. **Frontend Extensions and Customization**
+7. **Frontend Extensions and Customization**
    - **Components Organization**:
      - Add reusable UI components to `app/frontend/components/`
      - Place layout components in `app/frontend/components/layout/` - these control the overall page structure
