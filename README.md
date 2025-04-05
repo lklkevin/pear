@@ -1,7 +1,7 @@
 # **Pear: An LLM-Based Math Practice Problem Generator**
 
 ## **Introduction**
-The LLM-Based Math Practice Problem Generator is a web service designed to help students generate additional math practice problems with verified final answers. By uploading a document containing math problems (e.g., past exams, homework sheets, lecture slides), students can generate a completely new set of similar problems to aid their learning and exam preparation.
+Pear is a web service designed to help students generate additional math practice problems with verified final answers. By uploading a document containing math problems (e.g., past exams, homework sheets, lecture slides), students can generate a completely new set of similar problems to aid their learning and exam preparation. See [here]() for a full video demo of the project.
 
 ### **Problem Statement**
 Students often face a shortage of practice material, especially when preparing for exams. Searching the internet for relevant problems is time-consuming, and existing AI tools may generate incorrect answers due to hallucinations. This tool provides reliable practice problems with accurate final answers, leveraging test-time scaling and majority voting techniques to ensure correctness.
@@ -19,6 +19,7 @@ Students often face a shortage of practice material, especially when preparing f
 - **Cloud-Based Deployment**
 
 ## **Feature Description**
+
 ### **1. Uploading a Document**
 - Users upload a PDF containing math problems.
 - The system extracts text and identifies math-related content.
@@ -37,7 +38,7 @@ Students often face a shortage of practice material, especially when preparing f
 
 ### **5. Saving Exams (Account Bearers Only)**
 - Users can choose to save their exams to a database for access later.
-- Users can choose a public privacy option, which would allow other users to view the exam's content, or keep it private
+- Users can choose a public privacy option, which would allow other users to view the exam's content, or keep it private.
 
 ### **6. Browsing Exams**
 - Users can search for public exams.
@@ -56,7 +57,7 @@ Students often face a shortage of practice material, especially when preparing f
 ### **Accessing the Application**
 To use the application, follow these steps, check [here](https://drive.google.com/file/d/1kbOCG3lf2pBAF-ax205SkVKt4xkynw1y/view?usp=drivesdk) for a quick video demo going over the core features:
 
-1. **Go to** [https://avgr.vercel.app/](https://avgr.vercel.app/)
+1. **Go to** [https://avgr.vercel.app/](https://avgr.vercel.app/).
 2. Click on the **"Try Now"** button.
 3. Alternatively, use the top navbar to quickly use any of our features.
 
@@ -106,26 +107,26 @@ In the case of inappropriate content, the extractor will flag any documents uplo
 Inside the `/examples` directory, you can find various example tests covering different subjects and question types, these range from high school level arithmetic and algebra to multivariate calculus and statistics. These are meant for you to try out the application's capabilities and understand how different types of math problems are handled.
 
 #### How to Use Example Tests
-1. Navigate to the `/examples` directory
-2. Choose a test file that matches your area of interest
-3. Upload the PDF to the application
-4. Generate new practice problems based on the example test
-5. Compare the generated questions with the original to understand the system's capabilities
+1. Navigate to the `/examples` directory.
+2. Choose a test file that matches your area of interest.
+3. Upload the PDF to the application.
+4. Generate new practice problems based on the example test.
+5. Compare the generated questions with the original to understand the system's capabilities.
 
 These example tests serve as both demonstration materials and templates for users to understand the types of content that work best with our system. They are particularly useful for:
-- Testing the system's question generation capabilities
-- Understanding the format of supported math problems
-- Verifying the accuracy of generated answers
-- Learning how to structure your own math problems for optimal results
+- Testing the system's question generation capabilities.
+- Understanding the format of supported math problems.
+- Verifying the accuracy of generated answers.
+- Learning how to structure your own math problems for optimal results.
 
 ## Technical Documentation
-See [here](deliverables/D5/discussion.md) for details
+See [here](deliverables/D5/discussion.md) for details.
 
 ## **Developer Instructions**
 ### **Setting Up the Project Locally**
 #### **Prerequisites**
-- **Node.js 18+** (for frontend development)
-- **Python 3.11+** (for backend API)
+- **Node.js 18+** (for frontend development).
+- **Python 3.11+** (for backend API).
 
 #### **Repository Structure**
 ```
@@ -163,50 +164,50 @@ project-27-the-avengers/
 ```
 
 #### **Directory Details**
-- **.circleci/**
-  - Contains CircleCI configuration for continuous integration and deployment
-  - `backend.yml`: Backend-specific CI configuration
-  - `frontend.yml`: Frontend-specific CI configuration
-  - `tests.yml`: Test suite CI configuration
+- **.circleci/**:
+  - Contains CircleCI configuration for continuous integration and deployment.
+  - `backend.yml`: Backend-specific CI configuration.
+  - `frontend.yml`: Frontend-specific CI configuration.
+  - `tests.yml`: Test suite CI configuration.
 
-- **app/**
-  - Main application directory containing both frontend and backend
-  - Contains Docker and deployment configurations
-  - `pyproject.toml` and `poetry.lock`: Poetry dependency management
-  - `Dockerfile`: Containerization setup
-  - `supervisord.conf`: Process management configuration
+- **app/**:
+  - Main application directory containing both frontend and backend.
+  - Contains Docker and deployment configurations.
+  - `pyproject.toml` and `poetry.lock`: Poetry dependency management.
+  - `Dockerfile`: Containerization setup.
+  - `supervisord.conf`: Process management configuration.
 
-- **backend/**
-  - Contains the Flask API server and Celery worker
-  - `app.py`: Main application file with API routes and core logic
-  - `task.py`: Background task definitions for question generation
-  - `database/`: Contains the database interface, schemas and implementations
-  - `tests/`: Contains backend test files
-  - `PdfScanner/`: PDF processing and text extraction module
+- **backend/**:
+  - Contains the Flask API server and Celery worker.
+  - `app.py`: Main application file with API routes and core logic.
+  - `task.py`: Background task definitions for question generation.
+  - `database/`: Contains the database interface, schemas and implementations.
+  - `tests/`: Contains backend test files.
+  - `PdfScanner/`: PDF processing and text extraction module.
 
-- **frontend/**
-  - Next.js application with React components
-  - `components/`: Reusable UI components (buttons, forms, etc.)
-  - `pages/`: Next.js pages and API routes
-  - `store/`: State management for user data and application state
-  - `utils/`: Helper functions, API calls, and common utilities
-  - `public/`: Static assets including example math problems
+- **frontend/**:
+  - Next.js application with React components.
+  - `components/`: Reusable UI components (buttons, forms, etc.).
+  - `pages/`: Next.js pages and API routes.
+  - `store/`: State management for user data and application state.
+  - `utils/`: Helper functions, API calls, and common utilities.
+  - `public/`: Static assets including example math problems.
 
-- **examples/**
-  - Sample math problems in PDF format
-  - Useful for testing the question generation system
-  - New developers should add their own examples here
+- **examples/**:
+  - Sample math problems in PDF format.
+  - Useful for testing the question generation system.
+  - New developers should add their own examples here.
 
 #### **Configuration Files**
-- `.env` (app/)
-  - Backend configuration including API keys and database settings
-  - Required for running the backend server
-  - See Environment Variables section for required values
+- `.env` (app/):
+  - Backend configuration including API keys and database settings.
+  - Required for running the backend server.
+  - See Environment Variables section for required values.
 
-- `.env.local` (app/frontend/)
-  - Frontend configuration including authentication and API endpoints
-  - Required for running the frontend development server
-  - See Environment Variables section for required values
+- `.env.local` (app/frontend/):
+  - Frontend configuration including authentication and API endpoints.
+  - Required for running the frontend development server.
+  - See Environment Variables section for required values.
 
 #### **Installation Steps**
 1. **Clone the repository:**
@@ -251,23 +252,23 @@ project-27-the-avengers/
 #### **Extending the System**
 The application is designed with extensibility in mind through well-defined interfaces:
 
-1. **Adding New Database Implementations**
-   - Implement the `DataAccessObject` interface from `app/backend/database/__init__.py`
-   - Follow the pattern in `app/backend/database/sqlitedb.py` or `app/backend/database/postgresdb.py`
-   - Register your implementation in `app/backend/database/db_factory.py`
+1. **Adding New Database Implementations**:
+   - Implement the `DataAccessObject` interface from `app/backend/database/__init__.py`.
+   - Follow the pattern in `app/backend/database/sqlitedb.py` or `app/backend/database/postgresdb.py`.
+   - Register your implementation in `app/backend/database/db_factory.py`.
 
-2. **Adding New LLM Providers**
-   - Extend the `ModelProvider` class in `app/backend/models.py`
-   - Implement the `call_model` method with your provider's API
-   - See examples in the existing `GeminiModel` and `Cohere` classes
+2. **Adding New LLM Providers**:
+   - Extend the `ModelProvider` class in `app/backend/models.py`.
+   - Implement the `call_model` method with your provider's API.
+   - See examples in the existing `GeminiModel` and `Cohere` classes.
 
-3. **PDF Processing Extensions**
-   - The `PDFObject` class in `app/backend/PdfScanner/pdfobject.py` defines the interface for PDF content
-   - You can extend extraction capabilities by modifying the scanner while maintaining this interface
+3. **PDF Processing Extensions**:
+   - The `PDFObject` class in `app/backend/PdfScanner/pdfobject.py` defines the interface for PDF content.
+   - You can extend extraction capabilities by modifying the scanner while maintaining this interface.
 
-4. **API Routes and Endpoints**
-   - New API routes can be added to `app/backend/app.py` by following the existing patterns
-   - For authenticated routes, use the `@token_required` decorator to ensure proper authentication
+4. **API Routes and Endpoints**:
+   - New API routes can be added to `app/backend/app.py` by following the existing patterns.
+   - For authenticated routes, use the `@token_required` decorator to ensure proper authentication.
    - Group related endpoints together and maintain consistent error handling patterns:
      ```python
      @app.route('/api/your-feature', methods=['POST'])
@@ -286,7 +287,7 @@ The application is designed with extensibility in mind through well-defined inte
          return jsonify({'result': 'success'}), 200
      ```
 
-5. **Customizing LLM Models for Exam Generation**
+5. **Customizing LLM Models for Exam Generation**:
    - The exam generation pipeline in `app/backend/task.py` uses two model providers:
      ```python
      # To change models, modify these lines in _generate_exam_core
@@ -294,9 +295,9 @@ The application is designed with extensibility in mind through well-defined inte
      text_model = Cohere('command-a-03-2025')  # Used for text generation
      ```
    - To change the model providers or specific models:
-     - For PDF processing: Replace `GeminiModel()` with your custom implementation
-     - For text generation: Replace `Cohere('command-a-03-2025')` with another provider or model
-     - You can also adjust parameters like temperature or max tokens by passing them to the constructor
+     - For PDF processing: Replace `GeminiModel()` with your custom implementation.
+     - For text generation: Replace `Cohere('command-a-03-2025')` with another provider or model.
+     - You can also adjust parameters like temperature or max tokens by passing them to the constructor.
    - For question and answer generation, modify the calls to:
      ```python
      # Example: Adding model parameters
@@ -307,14 +308,15 @@ The application is designed with extensibility in mind through well-defined inte
          temperature=0.7  # Add custom parameters
      )
      ```
-6. **Validator Extensions**
-   - Currently the symbolic step of the validator is lenient with the LLM fallback to reduce false negatives
-   - However, consider making the symbolic step more strict to reduce LLM reliance and thus latency
+     
+6. **Validator Extensions**:
+   - Currently the symbolic step of the validator is lenient with the LLM fallback to reduce false negatives.
+   - However, consider making the symbolic step more strict to reduce LLM reliance and thus latency.
 
-7. **Frontend Extensions and Customization**
+7. **Frontend Extensions and Customization**:
    - **Components Organization**:
-     - Add reusable UI components to `app/frontend/components/`
-     - Place layout components in `app/frontend/components/layout/` - these control the overall page structure
+     - Add reusable UI components to `app/frontend/components/`.
+     - Place layout components in `app/frontend/components/layout/` - these control the overall page structure.
      - Follow TypeScript best practices by declaring prop types for all components:
        ```tsx
        // Example component with type declarations
@@ -339,7 +341,7 @@ The application is designed with extensibility in mind through well-defined inte
        ```
 
    - **Creating New Pages/Routes**:
-     - Add new pages in the `app/frontend/pages/` directory - each file automatically becomes a route
+     - Add new pages in the `app/frontend/pages/` directory - each file automatically becomes a route.
      - Use dynamic routes with file names like `[id].tsx` or `[slug].tsx` for parameter-based routing:
        ```tsx
        // pages/exam/[id].tsx - Creates a route like /exam/123
@@ -354,11 +356,11 @@ The application is designed with extensibility in mind through well-defined inte
        
        export default ExamPage;
        ```
-     - Create API routes in `app/frontend/pages/api/` following the same file-based routing pattern
+     - Create API routes in `app/frontend/pages/api/` following the same file-based routing pattern.
 
    - **Utility Functions**:
-     - Add helper functions to `app/frontend/utils/` for code reuse across components
-     - Group related utilities in separate files (e.g., `formatting.ts`, `validation.ts`)
+     - Add helper functions to `app/frontend/utils/` for code reuse across components.
+     - Group related utilities in separate files (e.g., `formatting.ts`, `validation.ts`).
      - Export named functions with type definitions:
        ```typescript
        // utils/formatting.ts
@@ -373,8 +375,8 @@ The application is designed with extensibility in mind through well-defined inte
        ```
 
    - **State Management**:
-     - Global state is managed in `app/frontend/store/` using Zustand
-     - Use global state sparingly - prefer component state for UI-specific logic
+     - Global state is managed in `app/frontend/store/` using Zustand.
+     - Use global state sparingly - prefer component state for UI-specific logic.
      - Create specialized stores for distinct features:
        ```typescript
        // store/examStore.ts
@@ -407,10 +409,10 @@ The application is designed with extensibility in mind through well-defined inte
        ```
 
    - **Authentication Customization**:
-     - The authentication system uses NextAuth.js configured in `app/frontend/pages/api/auth/[...nextauth].js`
+     - The authentication system uses NextAuth.js configured in `app/frontend/pages/api/auth/[...nextauth].js`.
      - To customize authentication:
-       - Modify the providers array to add/remove authentication methods
-       - Adjust callbacks for custom session handling or JWT token management
+       - Modify the providers array to add/remove authentication methods.
+       - Adjust callbacks for custom session handling or JWT token management.
        - Example to add a new provider:
          ```javascript
          // pages/api/auth/[...nextauth].js
@@ -432,7 +434,7 @@ The application is designed with extensibility in mind through well-defined inte
            // Other configuration options
          });
          ```
-       - For custom backend integration, modify the callbacks section to handle token and session management
+       - For custom backend integration, modify the callbacks section to handle token and session management.
 
 Each interface is thoroughly documented with docstrings explaining the expected behavior and parameter requirements.
 
@@ -481,8 +483,8 @@ For frontend testing, we utilize the Jest framework. We test components individu
 Additionally, we have created integration tests to ensure that the routing is correct. Our current test coverage is 90%. 
 
 #### Frontend Tests
-- Test files are located in `__tests__` directories within component directories (e.g., `app/frontend/components/auth/__tests__/`)
-- Files follow the naming convention `*.test.tsx` 
+- Test files are located in `__tests__` directories within component directories (e.g., `app/frontend/components/auth/__tests__/`).
+- Files follow the naming convention `*.test.tsx`. 
 - To run frontend tests locally:
   ```sh
   cd app/frontend
@@ -490,8 +492,8 @@ Additionally, we have created integration tests to ensure that the routing is co
   ```
 
 #### Backend Tests
-- Test files are located in the `app/backend/tests` directory
-- Files follow the naming convention `test_*.py`
+- Test files are located in the `app/backend/tests` directory.
+- Files follow the naming convention `test_*.py`.
 - To run backend tests locally:
   ```sh
   # Option 1: Using pytest directly (in app directory)
@@ -507,13 +509,13 @@ We have automated test coverage across our entire pipeline to ensure functionali
 
 Our backend testing covers the following aspects:
 
-- Question Extractor (`test_extractor.py`) - Tests PDF extraction functionality
-- Extracted Question Validator (`test_extractorvalidator.py`) - Tests validation of extracted content 
-- Question Generation (`test_questionGenerator.py`) - Tests LLM-based question generation
-- Answer Generation (`test_answerGenerator.py`) - Tests answer generation and verification
-- Answer Validator (`test_validation.py`) - Tests answer validation algorithms and confidence scoring
-- LLM Models (`test_models.py`) - Tests Cohere and Gemini API integrations with proper error handling
-- Exam Management (`test_exam.py`) - Tests exam data structure, question/answer storage, and confidence scoring
+- Question Extractor (`test_extractor.py`) - Tests PDF extraction functionality.
+- Extracted Question Validator (`test_extractorvalidator.py`) - Tests validation of extracted content.
+- Question Generation (`test_questionGenerator.py`) - Tests LLM-based question generation.
+- Answer Generation (`test_answerGenerator.py`) - Tests answer generation and verification.
+- Answer Validator (`test_validation.py`) - Tests answer validation algorithms and confidence scoring.
+- LLM Models (`test_models.py`) - Tests Cohere and Gemini API integrations with proper error handling.
+- Exam Management (`test_exam.py`) - Tests exam data structure, question/answer storage, and confidence scoring.
 
 The test suite uses example PDFs in the `tests/example_pdfs/` directory to simulate real-world usage scenarios and verify system components work correctly both individually and together.
 
@@ -541,9 +543,9 @@ docker compose up
 ```
 
 This will:
-- Build all necessary containers for the backend and frontend
-- Set up the network between services
-- Start all services and make them available at the configured URLs
+- Build all necessary containers for the backend and frontend.
+- Set up the network between services.
+- Start all services and make them available at the configured URLs.
 
 The application should be accessible at the following URLs (ensure the environment variables are consistent):
 - Frontend: http://localhost:3000
@@ -558,15 +560,15 @@ docker compose down
 For production deployment, you need to ensure that environment variables are properly set on the respective platforms:
 
 1. **DigitalOcean** (Backend): 
-   - All environment variables from the `.env` file must be configured in your DigitalOcean App Platform settings
-   - This includes `COHERE_API_KEY`, `GEMINI_API_KEY`, `SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`
-   - DigitalOcean automatically sets environment variables for services it manages (like database connections)
+   - All environment variables from the `.env` file must be configured in your DigitalOcean App Platform settings.
+   - This includes `COHERE_API_KEY`, `GEMINI_API_KEY`, `SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`.
+   - DigitalOcean automatically sets environment variables for services it manages (like database connections).
 
 2. **Vercel** (Frontend):
-   - All environment variables from the `.env.local` file must be configured in your Vercel project settings
-   - This includes `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXT_PUBLIC_BACKEND_URL`
-   - Make sure `NEXT_PUBLIC_BACKEND_URL` points to your production backend on DigitalOcean
-   - Set `NEXTAUTH_URL` and `NEXT_PUBLIC_URL` to your Vercel deployment URL
+   - All environment variables from the `.env.local` file must be configured in your Vercel project settings.
+   - This includes `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `NEXT_PUBLIC_BACKEND_URL`.
+   - Make sure `NEXT_PUBLIC_BACKEND_URL` points to your production backend on DigitalOcean.
+   - Set `NEXTAUTH_URL` and `NEXT_PUBLIC_URL` to your Vercel deployment URL.
 
 When properly configured, the CircleCI pipeline will automatically deploy changes to both platforms when PRs are merged to the main branch.
 
@@ -574,8 +576,8 @@ When properly configured, the CircleCI pipeline will automatically deploy change
 
 #### Port Conflicts
 - **localhost:5000 isn't available on macOS**: This is due to AirPlay Receiver using the same port. You can either:
-  - Turn off AirPlay Receiver in System Preferences → Sharing
-  - Change the backend port in `docker-compose.yml` and update the corresponding environment variables
+  - Turn off AirPlay Receiver in System Preferences → Sharing.
+  - Change the backend port in `docker-compose.yml` and update the corresponding environment variables.
 
 #### Authentication Issues
 - **Auth features don't work in local development**: Try unsetting the following environment variables:
@@ -593,42 +595,42 @@ Our project uses CircleCI for continuous integration and deployment with three p
 0. **Pre-commit Hooks**: We use pre-commit hooks to ensure consistent coding conventions, with tools like `black` for Python code formatting.
 
 1. **Automated Testing** (`.circleci/tests.yml`):
-   - Frontend testing with Jest - Tests all React components and page functionality
-   - Backend testing with Pytest - Tests all core functionality: extraction, validation, generation, and database operations
-   - Tests run automatically when a PR is opened or updated
+   - Frontend testing with Jest - Tests all React components and page functionality.
+   - Backend testing with Pytest - Tests all core functionality: extraction, validation, generation, and database operations.
+   - Tests run automatically when a PR is opened or updated.
 
 2. **Backend Deployment** (`.circleci/backend.yml`):
-   - Builds Docker image for the backend
-   - Pushes to DigitalOcean Container Registry
-   - Tags images with commit SHA for versioning
+   - Builds Docker image for the backend.
+   - Pushes to DigitalOcean Container Registry.
+   - Tags images with commit SHA for versioning.
 
 3. **Frontend Deployment** (`.circleci/frontend.yml`):
-   - Syncs frontend code to a production repository
-   - Excludes test files from the production build
-   - Triggers Vercel deployment through GitHub integration
+   - Syncs frontend code to a production repository.
+   - Excludes test files from the production build.
+   - Triggers Vercel deployment through GitHub integration.
 
 #### CircleCI Configuration
 To set up CircleCI for this project, you need to configure the following environment variables in the CircleCI project settings:
 
 1. **API Keys**:
-   - `COHERE_API_KEY` - API key for Cohere services
-   - `GEMINI_API_KEY` - API key for Google's Gemini AI
+   - `COHERE_API_KEY` - API key for Cohere services.
+   - `GEMINI_API_KEY` - API key for Google's Gemini AI.
 
 2. **DigitalOcean Configuration**:
-   - `DIGITALOCEAN_API_TOKEN` - For authenticating with DigitalOcean services
-   - `DIGITALOCEAN_EMAIL` - Email associated with the DigitalOcean account
-   - `DIGITALOCEAN_REGISTRY_NAME` - Name of the container registry
+   - `DIGITALOCEAN_API_TOKEN` - For authenticating with DigitalOcean services.
+   - `DIGITALOCEAN_EMAIL` - Email associated with the DigitalOcean account.
+   - `DIGITALOCEAN_REGISTRY_NAME` - Name of the container registry.
 
 3. **GitHub Integration**:
-   - `FRONTEND_FORK_REPO` - Git URL for the frontend deployment repository
-   - `GITHUB_EMAIL` - Email for Git operations
-   - `GITHUB_USERNAME` - Username for Git operations
+   - `FRONTEND_FORK_REPO` - Git URL for the frontend deployment repository.
+   - `GITHUB_EMAIL` - Email for Git operations.
+   - `GITHUB_USERNAME` - Username for Git operations.
 
 4. **Testing**:
-   - `TEST_DATABASE_URL` - Database URL for running tests
+   - `TEST_DATABASE_URL` - Database URL for running tests.
 
 5. **SSH Keys**:
-   - Add an SSH key with access to the GitHub repositories in the CircleCI project settings
+   - Add an SSH key with access to the GitHub repositories in the CircleCI project settings.
 
 These environment variables enable the CI/CD pipeline to authenticate with various services, run tests, and deploy the application automatically.
 
@@ -654,8 +656,8 @@ These environment variables enable the CI/CD pipeline to authenticate with vario
  **4. Merging and Deployment**
 - After approval, the PR is merged into `main`.
 - This triggers the deployment pipeline:
-  - Backend: Docker image is built and pushed to DigitalOcean, where it's automatically deployed on DigitalOcean
-  - Frontend: Code is synced to our production repository, triggering Vercel to build and deploy the frontend application
+  - Backend: Docker image is built and pushed to DigitalOcean, where it's automatically deployed on DigitalOcean.
+  - Frontend: Code is synced to our production repository, triggering Vercel to build and deploy the frontend application.
 - Developers then pull the latest changes to stay updated.
 - The entire process from merge to production deployment typically takes less than 5 minutes.
 
