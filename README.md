@@ -1,4 +1,4 @@
-# **LLM-Based Math Practice Problem Generator**
+# **Pear: An LLM-Based Math Practice Problem Generator**
 
 ## **Introduction**
 The LLM-Based Math Practice Problem Generator is a web service designed to help students generate additional math practice problems with verified final answers. By uploading a document containing math problems (e.g., past exams, homework sheets, lecture slides), students can generate a completely new set of similar problems to aid their learning and exam preparation.
