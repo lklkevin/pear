@@ -118,6 +118,9 @@ These example tests serve as both demonstration materials and templates for user
 - Verifying the accuracy of generated answers
 - Learning how to structure your own math problems for optimal results
 
+## Technical Documentation
+See [here](deliverables/D5/discussion.md) for details
+
 ## **Developer Instructions**
 ### **Setting Up the Project Locally**
 #### **Prerequisites**
