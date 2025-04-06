@@ -49,7 +49,7 @@ Students often face a shortage of practice material, especially when preparing f
 
 ### **8. Account creation**
 - Users can sign up for an account using a username and password or externally using Google.
-- Logging in will provide users with more options for their exam creation (see 5.).
+- Logging in will provide users with more options for their exam creation (see 5).
 - You can edit or delete your account later.
 
 ## **Instructions for Use**
