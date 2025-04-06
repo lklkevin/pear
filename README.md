@@ -55,7 +55,7 @@ Students often face a shortage of practice material, especially when preparing f
 ## **Instructions for Use**
 
 ### **Accessing the Application**
-To use the application, follow these steps, check [here](https://drive.google.com/file/d/1kbOCG3lf2pBAF-ax205SkVKt4xkynw1y/view?usp=drivesdk) for a quick video demo going over the core features:
+To use the application, follow these steps:
 
 1. **Go to** [https://avgr.vercel.app/](https://avgr.vercel.app/).
 2. Click on the **"Try Now"** button.
