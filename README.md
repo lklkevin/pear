@@ -1,7 +1,7 @@
 # **Pear: An LLM-Based Math Practice Problem Generator**
 
 ## **Introduction**
-Pear is a web service designed to help students generate additional math practice problems with verified final answers. By uploading a document containing math problems (e.g., past exams, homework sheets, lecture slides), students can generate a completely new set of similar problems to aid their learning and exam preparation. See [here]() for a full video demo of the project.
+Pear is a web service designed to help students generate additional math practice problems with verified final answers. By uploading a document containing math problems (e.g., past exams, homework sheets, lecture slides), students can generate a completely new set of similar problems to aid their learning and exam preparation. See [here](https://drive.google.com/file/d/1Tenv1cBELECxWy-v68WyUtQ3HXreyZaQ/view?usp=sharing) for a full video demo of the project.
 
 ### **Problem Statement**
 Students often face a shortage of practice material, especially when preparing for exams. Searching the internet for relevant problems is time-consuming, and existing AI tools may generate incorrect answers due to hallucinations. This tool provides reliable practice problems with accurate final answers, leveraging test-time scaling and majority voting techniques to ensure correctness.
