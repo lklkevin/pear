@@ -1,4 +1,6 @@
 # **Pear: An LLM-Based Math Practice Problem Generator**
+## **Notice**
+This repository is a public mirror of a private group project originally developed for CSC301 at the University of Toronto.  The original repo is private due to organizational settings; we cannot open it directly. You can find the private upstream at `https://github.com/csc301-2025-s/project-27-the-avengers` (permission granted under MIT).
 
 ## **Introduction**
 Pear is a web service designed to help students generate additional math practice problems with verified final answers. By uploading a document containing math problems (e.g., past exams, homework sheets, lecture slides), students can generate a completely new set of similar problems to aid their learning and exam preparation. See [here](https://drive.google.com/file/d/1Tenv1cBELECxWy-v68WyUtQ3HXreyZaQ/view?usp=sharing) for a full video demo of the project.
@@ -55,72 +57,7 @@ Students often face a shortage of practice material, especially when preparing f
 ## **Instructions for Use**
 
 ### **Accessing the Application**
-To use the application, follow these steps:
-
-1. **Go to** [https://avgr.vercel.app/](https://avgr.vercel.app/).
-2. Click on the **"Try Now"** button.
-3. Alternatively, use the top navbar to quickly use any of our features.
-
-### **Using the Application**
-1. **Upload a Sample Exam**  
-   - Select a PDF document to extract questions from. Currently, we support math problems up to university-level calculus, for examples check the `/examples` directory.
-   - Choose how many questions you would like to generate (between 1-10).
-   - Optionally, provide a **title** and **description** for the exam.
-
-2. **Generate Exam Questions**  
-   - Click on the generate button and wait for the system to process the exam.
-   - You will get live updates during the exam generation process, do not refresh the tab.
-   - Do not refresh the page, this process will take 1-2 minutes depending on the number of questions.
-
-3. **View Results**  
-   - The generated questions and available answers will be displayed.
-   - You can reveal answers for each question, or for all questions simultaneously, and see alternative answers with respective confidence levels.
-
-4. **Download the Exam**  
-   - Click on the download option to save the exam for offline use.
-
-5. **Browse Other Exams**  
-   - Visit the **Browse** page to explore previously generated exams by other users.
-   - You can sort by popularity (number of favourites), or explore (recency).
-   - You can search by the title to find exams similar to your needs.
-
-6. **Sign Up / Log In (Optional)**  
-   - Create an account to:
-     - **Save** generated exams, either as public or private.
-     - **Favourite** exams to easily access them later in the browse tab. 
-     - Unlock **customization** options for better organization.
-   - You can create an account using username, email, and password, or simply use your Google account.
-
-7. **Account Management**
-   - Once logged in, you can modify your account details such as your username and password (password modification not supported for Google accounts):
-     - Navigate to your **Profile** page by clicking on your username in the top-right corner, or in the drop-down menu on mobile.
-   - Account deletion is available through the "Delete Account" button at the bottom of the profile page.
-
-### Content Guidelines
-
-Our application supports the uploading of unrelated PDFs instead of math exams during the generation process; doing so will include assorted questions on the theme of the document uploaded. However, blank documents will not be considered for generation.
-
-In the case of inappropriate content, the extractor will flag any documents uploaded, preventing any questions from being extracted from the document.
-
-### Example Tests
-
-Inside the `/examples` directory, you can find various example tests covering different subjects and question types, these range from high school level arithmetic and algebra to multivariate calculus and statistics. These are meant for you to try out the application's capabilities and understand how different types of math problems are handled.
-
-#### How to Use Example Tests
-1. Navigate to the `/examples` directory.
-2. Choose a test file that matches your area of interest.
-3. Upload the PDF to the application.
-4. Generate new practice problems based on the example test.
-5. Compare the generated questions with the original to understand the system's capabilities.
-
-These example tests serve as both demonstration materials and templates for users to understand the types of content that work best with our system. They are particularly useful for:
-- Testing the system's question generation capabilities.
-- Understanding the format of supported math problems.
-- Verifying the accuracy of generated answers.
-- Learning how to structure your own math problems for optimal results.
-
-## Technical Documentation
-See [here](deliverables/D5/discussion.md) for details.
+The deployment is no longer online, please see the following section for local installation.
 
 ## **Developer Instructions**
 ### **Setting Up the Project Locally**
